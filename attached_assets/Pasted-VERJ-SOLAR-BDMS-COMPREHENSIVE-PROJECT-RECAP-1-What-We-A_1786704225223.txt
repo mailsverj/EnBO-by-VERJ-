@@ -1,0 +1,1328 @@
+VERJ SOLAR BDMS — COMPREHENSIVE PROJECT RECAP
+
+1. What We Are Building
+
+BDMS — Business Development Management System is intended to become VERJ SOLAR’s central digital platform for managing the entire journey from:
+
+BDO Recruitment → Training → Certification → Lead Generation → Customer Management → Technical Design → Approval → Invoicing → Sales → Commission → Financial Analysis
+
+It should not simply be a database of BDOs.
+
+It should become an integrated business-development, sales, technical, invoicing and management system for VERJ SOLAR.
+
+The guiding principle is:
+
+Every opportunity should be traceable from the person who generated it to the final project, invoice, revenue, profit and commission.
+
+⸻
+
+2. THE BDO MODEL
+
+VERJ BDOs are flexible business developers.
+
+They do not necessarily need to work full-time.
+
+A BDO can sell VERJ SOLAR while:
+
+* Working a 9–5
+* Running a personal business
+* Studying
+* Working another professional occupation
+* Managing other activities
+
+Their primary responsibility is to generate business opportunities.
+
+Important correction
+
+BDOs do not receive leads from VERJ.
+
+Instead:
+
+BDOs generate their own leads.
+
+They use:
+
+* Personal networks
+* Workplace contacts
+* Family/friends
+* Businesses
+* Social media
+* Community networks
+* Referrals
+* Professional connections
+
+They then register those leads in BDMS.
+
+⸻
+
+3. BDO APPLICATION & RECRUITMENT
+
+The first part of BDMS manages the BDO recruitment process.
+
+Applicant submits:
+
+* Personal information
+* Contact details
+* DOB
+* Professional information
+* Selfie
+* Government-issued ID
+* Other agreed application information
+* Declaration
+
+The applicant should not control internal administrative fields.
+
+⸻
+
+4. APPLICATION STATUS
+
+We have deliberately kept the recruitment status simple.
+
+Application Status
+
+Submitted
+
+↓
+
+KYC Pending
+
+↓
+
+Shortlisted
+
+or
+
+Rejected
+
+KYC is manually verified by VERJ.
+
+⸻
+
+5. KYC SYSTEM
+
+The applicant submits:
+
+* Selfie
+* Government ID/passport
+
+These are not automatically considered valid simply because an image was uploaded.
+
+VERJ Admin manually checks them.
+
+The purpose is to ensure that applicants don’t manipulate the process by uploading meaningless or inappropriate images.
+
+⸻
+
+6. KYC RESUBMISSION
+
+We later agreed that BDMS should support KYC resubmission.
+
+If the submitted ID/selfie is unacceptable:
+
+Admin → Request KYC Resubmission
+
+Admin should be able to provide a reason.
+
+For example:
+
+“Please upload a clearer image of your government-issued ID. The photograph and identification number are not sufficiently visible.”
+
+The applicant can then resubmit the required document.
+
+The system should ideally maintain:
+
+* Original submission
+* Resubmission
+* Reason
+* Date/time
+* Admin responsible
+
+The applicant should only be able to replace the requested KYC information rather than modify the entire application.
+
+⸻
+
+7. SHORTLISTING
+
+Once KYC is satisfactory:
+
+Application Status → Shortlisted
+
+This triggers the shortlist communication.
+
+The shortlist email contains:
+
+Training Workbook
+
+The official VERJ SOLAR BDO Training Workbook.
+
+Assessment
+
+A Google Forms assessment testing the knowledge required of a BDO.
+
+The current assessment system is already built using:
+
+Google Forms + Google Sheets
+
+⸻
+
+8. BDO TRAINING
+
+The BDO training workbook contains four major modules:
+
+Module 1 — Sales & Marketing
+
+Covers:
+
+* Role of a BDO
+* Lead generation
+* Sales funnel
+* Starting conversations
+* Needs discovery
+* Presenting solutions
+* Objection handling
+* Staying top-of-mind
+* Follow-up
+* Lead management
+
+Module 2 — Basic Technical Knowledge
+
+Covers:
+
+* Solar energy
+* Solar components
+* Electrical loads
+* Power and energy
+* Battery capacity
+* Solar generation
+* Technical boundaries of the BDO
+
+Module 3 — Solar Financing & Payment by Installment
+
+Covers:
+
+* Financing
+* Eligibility
+* Required documentation
+* Load schedule
+* Solution recommendation
+* Payment simulation
+* Application
+* Approval
+* Equity contribution
+* Installation timeline
+
+Module 4 — The “You” Factor
+
+Covers:
+
+* Personal branding
+* Self-image
+* Confidence
+* Carriage
+* Aura
+* Communication
+* Digital reputation
+* Integrity
+* Professional growth
+
+The company slogan remains:
+
+REDEFINE YOUR LIMIT
+
+⸻
+
+9. ASSESSMENT
+
+The applicant completes the Google assessment after studying the workbook.
+
+The assessment tests the required knowledge across the training material.
+
+The Google Sheet has already been configured so that:
+
+* Passing candidates can receive a VBDO ID
+* Failed candidates do not receive an ID
+
+The VBDO ID format is:
+
+VBDO-0001
+
+The numerical portion is four digits.
+
+Examples:
+
+VBDO-0001
+VBDO-0025
+VBDO-0147
+
+Administrators must be able to search for BDOs using their VBDO ID.
+
+⸻
+
+10. BDO ONBOARDING
+
+After successful assessment and completion of the required recruitment process:
+
+Applicant → BDO
+
+The system creates/maintains a permanent BDO profile.
+
+The profile contains:
+
+* VBDO ID
+* Personal details
+* Contact information
+* Professional information
+* Application information
+* Assessment information
+* Onboarding information
+* BDO status
+* Leads
+* Activities
+* Sales performance
+* Commission records
+
+⸻
+
+11. BDO STATUS
+
+Separate from Application Status.
+
+Possible BDO statuses:
+
+* Pending
+* Active
+* Inactive
+* Suspended
+
+This allows VERJ to retain historical BDO records without deleting them.
+
+⸻
+
+12. AUTOMATIC BDO BACKUP DATABASE
+
+This is a major requirement.
+
+When a BDO is onboarded, BDMS should automatically create or initialise a dedicated Google Sheet for that BDO.
+
+For example:
+
+VBDO-0047 — BDO Activity & Lead Register
+
+The spreadsheet becomes an automatic backup database.
+
+It should record the BDO’s:
+
+Leads
+
+* Lead ID
+* Customer
+* Contact
+* Location
+* Lead date
+* Project type
+* Lead status
+* Project value
+
+Activities
+
+* Calls
+* Meetings
+* Follow-ups
+* Customer responses
+* Load information
+* Quote activity
+* Other lead updates
+
+Audit information
+
+* Who made the update
+* Date
+* Time
+* What was updated
+
+The BDO should not manually maintain this spreadsheet.
+
+BDMS should automatically push relevant information into it.
+
+⸻
+
+13. WHY THE BACKUP MATTERS
+
+Zoho/BDMS remains the primary operational system.
+
+Google Sheets becomes the independent backup/archive layer.
+
+Therefore, if:
+
+* A Zoho page fails
+* A form breaks
+* A record is accidentally deleted
+* A technical problem affects the application
+
+VERJ still has a separate record of its business-development data.
+
+⸻
+
+14. MULTIPLE ADMIN ACCOUNTS
+
+BDMS should support multiple authorised VERJ users.
+
+This is important because the system isn’t only for Admin.
+
+Different users may include:
+
+Management
+
+Full visibility.
+
+BDO/Admin team
+
+Applications, BDOs, leads, sales activity, etc.
+
+Engineering/Technical Officers
+
+Lead requirements, appliance schedules, technical information and designs.
+
+Lead Technical Officer
+
+Design approval authority.
+
+Finance/Admin
+
+Invoices, payments, financial information, etc.
+
+Access should therefore be controlled through role-based permissions.
+
+⸻
+
+15. LEAD MANAGEMENT
+
+The BDO generates the lead and registers it in BDMS.
+
+The lead record should capture:
+
+* Lead ID
+* Customer name
+* Phone
+* Email
+* Location
+* Customer type
+* Source BDO
+* Appliances
+* Quantities
+* Usage
+* Backup requirement
+* Existing power source
+* Generator information
+* Photos/documents
+* Lead status
+* Follow-up dates
+* Customer feedback
+
+⸻
+
+16. BOTH BDOs AND VERJ CAN UPDATE LEADS
+
+This is an important requirement.
+
+BDOs can enter updates.
+
+VERJ Admin can also enter updates.
+
+Engineering/technical personnel may also need to enter technical updates.
+
+The system must clearly show:
+
+WHO SHARED WHAT
+
+For example:
+
+BDO Update
+
+Customer requested a 10-hour backup solution.
+
+Created by: VBDO-0047
+Date/time: 14 Aug 2026, 10:30 AM
+
+Then:
+
+Technical Update
+
+15kWh battery recommended based on load analysis.
+
+Created by: Technical Officer
+Date/time: 14 Aug 2026, 2:15 PM
+
+This creates a proper audit trail.
+
+⸻
+
+17. SALES FUNNEL
+
+BDMS should track every opportunity through a sales funnel.
+
+Typical stages
+
+New Lead
+
+↓
+
+Contacted
+
+↓
+
+Needs Discovery
+
+↓
+
+Load Details Submitted
+
+↓
+
+Technical Assessment
+
+↓
+
+System Design
+
+↓
+
+Design Approval
+
+↓
+
+Invoice
+
+↓
+
+Follow-Up / Negotiation
+
+↓
+
+Won / Closed
+
+or
+
+Lost / Nurture
+
+This is consistent with the training principle that:
+
+A customer who doesn’t buy today isn’t necessarily a lost customer.
+
+They may buy later or refer someone who does.
+
+⸻
+
+18. TOP-OF-MIND
+
+BDMS should support the BDO’s ability to continue nurturing prospects.
+
+A lead that isn’t ready to buy can remain in:
+
+Nurture / Follow-Up
+
+rather than simply being abandoned.
+
+This supports the sales-training concept:
+
+Stay top-of-mind.
+
+⸻
+
+19. LEAD OWNERSHIP
+
+The BDO who generates and properly registers the lead should be identified as the source/owner according to VERJ’s lead rules.
+
+The system should retain:
+
+* Source BDO
+* VBDO ID
+* Registration date
+* Follow-up history
+* Other users who interacted with the lead
+* Ownership history
+
+This protects both VERJ and BDOs against disputes.
+
+⸻
+
+20. SOLAR SYSTEM DESIGN CALCULATOR
+
+BDMS should contain a Solar System Design Calculator.
+
+This is an admin/technical-only feature.
+
+BDOs do not directly design systems.
+
+The calculator should allow authorised technical personnel to simulate solutions based on:
+
+* Appliances
+* Quantity
+* Wattage
+* Usage hours
+* Peak load
+* Energy requirement
+* Backup requirement
+* Battery capacity
+* Inverter capacity
+* PV capacity
+* System voltage
+* Solar generation assumptions
+* Other relevant technical parameters
+
+⸻
+
+21. INVENTORY DIRECTORY
+
+The design calculator should connect to an Inventory Directory.
+
+The inventory directory contains VERJ’s products/equipment.
+
+For example:
+
+* Solar panels
+* Inverters
+* Batteries
+* Mounting structures
+* Breakers
+* SPDs
+* Cables
+* Protection equipment
+* Accessories
+
+Each product can contain:
+
+* Product name
+* Brand
+* Model
+* SKU
+* Description
+* Cost price
+* Selling price
+* Stock quantity
+* Supplier
+* Warranty
+* Specifications
+* Active/inactive status
+
+This prevents engineers from manually typing every product into every design.
+
+⸻
+
+22. DESIGN CREATION
+
+Each design must have a unique design record.
+
+For example:
+
+DESIGN-00192
+
+And automatically record:
+
+Created By: Technical Officer X
+
+Created Date: [timestamp]
+
+The system should maintain design history where modifications occur.
+
+⸻
+
+23. DESIGN VISIBILITY
+
+The calculator and generated designs are:
+
+ADMIN/TECHNICAL ONLY
+
+BDOs should not have unrestricted access to the calculator.
+
+They should provide customer requirements and receive the approved solution.
+
+⸻
+
+24. TECHNICAL APPROVAL
+
+The technical workflow is:
+
+BDO submits load information
+
+↓
+
+Technical Officer creates design
+
+↓
+
+Design = Draft
+
+↓
+
+Technical Officer reviews/simulates
+
+↓
+
+Submit for Approval
+
+↓
+
+Lead Technical Officer reviews
+
+↓
+
+APPROVED
+
+or
+
+REVISION REQUIRED
+
+This ensures that a design does not automatically become an official customer proposal simply because someone created it.
+
+⸻
+
+25. INTEGRATED INVOICING SYSTEM
+
+BDMS should have a full invoicing system.
+
+Once a technical design has been approved:
+
+CONVERT TO INVOICE
+
+The system automatically transfers the approved design information into the invoice.
+
+⸻
+
+26. INVOICE INFORMATION
+
+Invoices should contain:
+
+* Invoice number
+* Invoice date
+* Customer
+* Address
+* Contact details
+* Lead ID
+* Project
+* Source BDO
+* Source BDO ID
+* Equipment
+* Quantities
+* Unit prices
+* Installation costs
+* Other charges
+* Discounts where authorised
+* VAT/taxes where applicable
+* Total project value
+* Payment terms
+* VERJ company information
+* Official payment details
+
+⸻
+
+27. SOURCE BDO ID ON EVERY BDO-SOURCED INVOICE
+
+This is critical.
+
+If VBDO-0047 generated the lead, the invoice must retain:
+
+Source BDO: VBDO-0047
+
+This allows VERJ to determine:
+
+* Who generated the opportunity
+* Which BDO deserves attribution
+* Commission
+* BDO sales performance
+* Lead ownership
+* Historical source
+
+⸻
+
+28. DOWNLOADABLE INVOICE
+
+After generation, BDMS should create a professional PDF.
+
+Authorised users can click:
+
+DOWNLOAD INVOICE
+
+⸻
+
+29. SHARE TO BDO
+
+Every invoice associated with a BDO should have:
+
+SHARE TO BDO
+
+This makes the invoice available to the originating BDO.
+
+Potential delivery methods:
+
+* BDO dashboard
+* Email
+* Secure link
+* WhatsApp sharing where technically appropriate
+
+The BDO can view/download/share the invoice.
+
+But:
+
+BDOs cannot edit invoices.
+
+⸻
+
+30. INVOICE AUDIT TRAIL
+
+Every invoice should show:
+
+* Created by
+* Approved by
+* Issued by
+* Source BDO
+* Date/time
+* Revision history
+* Payment status
+
+Invoices should not simply disappear when cancelled.
+
+⸻
+
+31. INVOICE STATUS
+
+The system should support:
+
+* Draft
+* Pending Approval
+* Approved
+* Issued
+* Partially Paid
+* Paid
+* Overdue
+* Cancelled
+
+⸻
+
+32. CUSTOMER DIRECTORY
+
+BDMS should have a central Customer Directory.
+
+Each customer gets a customer record containing:
+
+* Customer ID
+* Name
+* Phone
+* Email
+* Address
+* Customer type
+* Location
+* Lead history
+* Source BDO
+* Projects
+* Designs
+* Invoices
+* Payments
+* Installation history
+* Notes
+
+If the customer returns later, VERJ should find the existing customer instead of creating unnecessary duplicates.
+
+⸻
+
+33. CUSTOMER → LEAD → DESIGN → INVOICE
+
+The system should connect everything.
+
+For example:
+
+Customer
+
+ABC Bakery Ltd.
+
+↓
+
+Lead
+
+LEAD-00482
+
+↓
+
+Source BDO
+
+VBDO-0047
+
+↓
+
+Load Schedule
+
+↓
+
+Technical Design
+
+DESIGN-00192
+
+↓
+
+Technical Approval
+
+↓
+
+Invoice
+
+INV-2026-00482
+
+↓
+
+Payment
+
+↓
+
+Installation
+
+This creates a complete customer history.
+
+⸻
+
+34. ATTACH INVOICE TO LEAD
+
+VERJ Admin must be able to upload/attach an invoice directly to a BDO’s lead.
+
+The lead record can therefore contain:
+
+* Customer details
+* Lead activity
+* Technical information
+* Design
+* Approval
+* Invoice
+* Payment
+* Follow-up
+* Project status
+
+Everything remains connected.
+
+⸻
+
+35. COMMISSION SYSTEM
+
+The agreed BDO commission is:
+
+3% of total asset/project value
+
+BDMS should have a Commission Ledger.
+
+It should show:
+
+* BDO
+* VBDO ID
+* Customer
+* Lead
+* Project
+* Project value
+* Commission %
+* Commission amount
+* Commission status
+* Payment date
+
+⸻
+
+36. FINANCIAL ANALYSIS
+
+BDMS should include a dedicated:
+
+FINANCIAL ANALYSIS
+
+section.
+
+Management should be able to see:
+
+Revenue
+
+* Total revenue
+* Monthly revenue
+* Annual revenue
+* Revenue by BDO
+* Revenue by customer
+* Revenue by product
+* Revenue by project
+* Revenue by location
+
+⸻
+
+37. COST & PROFIT
+
+BDMS should distinguish:
+
+Revenue
+
+from
+
+Cost
+
+so management can see project profitability.
+
+For each project:
+
+Revenue − Project Cost = Gross Profit
+
+Costs can include:
+
+* Equipment
+* Installation
+* Logistics
+* Project-specific expenses
+* Other applicable costs
+
+The system should display:
+
+* Revenue
+* Cost
+* Gross profit
+* Gross margin %
+
+⸻
+
+38. PROFIT & LOSS
+
+The financial section should provide a broader P&L view:
+
+Revenue
+
+− Cost of Goods Sold
+
+= Gross Profit
+
+− Operating Expenses
+
+= Net Profit
+
+Management should be able to view this by:
+
+* Day
+* Month
+* Quarter
+* Year
+* Custom date range
+
+⸻
+
+39. FINANCIAL DASHBOARD
+
+The dashboard should show:
+
+* Revenue
+* Expenses
+* Gross profit
+* Net profit
+* Paid invoices
+* Outstanding invoices
+* Overdue invoices
+* Project pipeline
+* Commission liability
+* Inventory value
+
+⸻
+
+40. BDO PERFORMANCE ANALYSIS
+
+Because leads and invoices carry the Source BDO ID, BDMS can automatically measure BDO performance.
+
+Example:
+
+VBDO-0047
+
+Leads: 42
+Technical Designs: 18
+Invoices: 11
+Closed Projects: 7
+Project Value: ₦XX,XXX,XXX
+Commission: ₦XXX,XXX
+
+This creates a measurable performance system.
+
+⸻
+
+41. BDO-SPECIFIC BACKUP
+
+Every onboarded BDO should have an automatically generated Google Sheet containing their activity and lead history.
+
+This provides:
+
+BDO Operational Record + Independent Backup
+
+The system should ideally maintain a master backup structure as well, allowing VERJ management to retrieve historical data even if the main application becomes unavailable.
+
+⸻
+
+42. MULTI-ADMIN ARCHITECTURE
+
+BDMS should support multiple VERJ users simultaneously.
+
+For example:
+
+Role	Main Access
+Super Admin	Everything
+Management	Reports, BDOs, leads, finance
+Recruitment/Admin	Applications, KYC, onboarding
+Sales Admin	Leads, quotations, customers
+Technical Officer	Leads, loads, designs
+Lead Technical Officer	Design approval
+Finance	Invoices, payments, financial analysis
+BDO	Own leads and permitted activities
+
+Permissions should be configurable.
+
+⸻
+
+43. AUDITABILITY
+
+A fundamental BDMS rule should be:
+
+Nothing important should happen anonymously.
+
+The system should know:
+
+Who created it?
+
+Who changed it?
+
+Who approved it?
+
+When did it happen?
+
+This should apply to:
+
+* Applications
+* KYC
+* Leads
+* Lead updates
+* Designs
+* Design changes
+* Design approvals
+* Invoices
+* Invoice changes
+* Payments
+* Commission records
+
+⸻
+
+44. BIRTHDAY AUTOMATION
+
+BDMS should use the DOB in the BDO profile to automatically identify birthdays.
+
+On the appropriate date, the system can send:
+
+Happy Birthday, [Name]! 🎉
+
+Everyone at VERJ SOLAR wishes you a wonderful birthday and continued growth, success and fulfilment.
+
+Redefine Your Limit.
+
+⸻
+
+45. MASTER SYSTEM ARCHITECTURE
+
+The complete BDMS can now be viewed as nine connected systems:
+
+1. BDO MANAGEMENT
+
+Application → KYC → Assessment → VBDO ID → Onboarding
+
+2. LEAD MANAGEMENT
+
+Lead generation → Customer needs → Activities → Follow-up → Sales funnel
+
+3. CUSTOMER MANAGEMENT
+
+Customers → Leads → Projects → History
+
+4. ENGINEERING
+
+Load schedule → Solar calculator → Design → Technical approval
+
+5. INVENTORY
+
+Products → Cost → Selling price → Stock → Design → Invoice
+
+6. INVOICING
+
+Approved design → Invoice → PDF → Share to BDO → Payment
+
+7. COMMISSION
+
+BDO → Project → Project value → 3% commission → Commission ledger
+
+8. FINANCIAL ANALYSIS
+
+Revenue → Costs → Profit → P&L → Financial dashboard
+
+9. BACKUP & AUDIT
+
+BDMS activity → Google Sheets → Independent historical record
+
+⸻
+
+46. COMPLETE END-TO-END WORKFLOW
+
+                    BDO APPLICATION
+                           ↓
+                   APPLICATION SUBMITTED
+                           ↓
+                      KYC PENDING
+                           ↓
+                    MANUAL KYC REVIEW
+                           ↓
+              ┌────────────┴────────────┐
+              ↓                         ↓
+          REJECTED                KYC ISSUE
+                                        ↓
+                              REQUEST RESUBMISSION
+                                        ↓
+                               APPLICANT RESUBMITS
+                                        ↓
+                                  KYC REVIEW
+                                        ↓
+                                  SHORTLISTED
+                                        ↓
+                               SHORTLIST EMAIL
+                                        ↓
+                              TRAINING WORKBOOK
+                                        ↓
+                               GOOGLE ASSESSMENT
+                                        ↓
+                                     PASS
+                                        ↓
+                                  ONBOARDING
+                                        ↓
+                                VBDO ID CREATED
+                                        ↓
+                                BDO STATUS ACTIVE
+                                        ↓
+                              BDO GENERATES LEAD
+                                        ↓
+                                 LEAD REGISTERED
+                                        ↓
+                               NEEDS DISCOVERY
+                                        ↓
+                               LOAD INFORMATION
+                                        ↓
+                             TECHNICAL TEAM REVIEW
+                                        ↓
+                               SYSTEM DESIGN
+                                        ↓
+                             DESIGN CREATED BY
+                             TECHNICAL OFFICER
+                                        ↓
+                              TECHNICAL APPROVAL
+                              ↙                  ↘
+                     REVISION REQUIRED         APPROVED
+                            ↓                      ↓
+                     DESIGN UPDATED       CONVERT TO INVOICE
+                                                   ↓
+                                         INVOICE GENERATED
+                                                   ↓
+                                     SOURCE BDO ID ATTACHED
+                                                   ↓
+                                           SHARE TO BDO
+                                                   ↓
+                                        CUSTOMER RECEIVES
+                                                   ↓
+                                             PAYMENT
+                                                   ↓
+                                           INSTALLATION
+                                                   ↓
+                                      PROJECT COMPLETED
+                                                   ↓
+                                        3% COMMISSION
+                                                   ↓
+                                      FINANCIAL ANALYSIS
+                                                   ↓
+                               REVENUE / COST / PROFIT
+                                                   ↓
+                                     GOOGLE SHEETS BACKUP
+
+⸻
+
+47. The Ultimate Objective
+
+At maturity, VERJ should be able to open one system and answer:
+
+About a BDO
+
+Who is this person?
+
+What is their VBDO ID?
+
+Are they active?
+
+How many leads have they generated?
+
+How much business have they generated?
+
+How much commission have they earned?
+
+About a Lead
+
+Who generated it?
+
+What did the customer request?
+
+Who has interacted with the customer?
+
+What has been communicated?
+
+What design was created?
+
+Who created it?
+
+Who approved it?
+
+What invoice was issued?
+
+Has the customer paid?
+
+About a Project
+
+What equipment is required?
+
+What did it cost VERJ?
+
+What did VERJ sell it for?
+
+What is the gross profit?
+
+What commission is payable?
+
+About the Business
+
+How much revenue are we generating?
+
+What is our profit?
+
+Which products sell most?
+
+Which BDOs generate the most business?
+
+Which leads are likely to close?
+
+What invoices are outstanding?
+
+What is our inventory position?
+
+⸻
+
+48. The BDMS Vision
+
+The ultimate architecture is:
+
+BDO → Lead → Customer → Engineering → Design → Approval → Invoice → Payment → Installation → Commission → Profit
+
+with every stage connected, searchable, permission-controlled, auditable and backed up.
+
+Zoho/BDMS becomes the operational brain.
+
+Google Forms/Sheets continue to support the assessment and provide independent backup infrastructure.
+
+Engineering gets the tools to turn BDO-generated opportunities into technically sound solutions.
+
+Finance gets visibility into invoices, revenue, costs and profitability.
+
+Management gets a single view of the entire business-development operation.
+
+And BDOs get a structured platform through which they can generate opportunities, track their work and ultimately earn from the business they create.

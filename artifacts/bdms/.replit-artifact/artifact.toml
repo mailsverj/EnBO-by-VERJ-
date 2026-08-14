@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "VERJ SOLAR BDMS"
+description = "VERJ SOLAR's Business Development Management System — a comprehensive internal platform for managing BDO recruitment & onboarding, lead generation & sales funnel, customer directory, solar system engineering & design, inventory, invoicing, commission tracking, and financial analysis. Used by VERJ management, admins, technical officers, BDOs, and finance teams."
+version = "1.0.0"
+id = "artifacts/bdms"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20798
+
+[services.development]
+run = "pnpm --filter @workspace/bdms run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/bdms", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/bdms/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20798"
+BASE_PATH = "/"
