@@ -1,0 +1,1151 @@
+Absolutely. I’d now treat BuDOM by VERJ as the official product architecture rather than simply renaming the old BDMS.
+
+The clean brand hierarchy is:
+
+VERJ
+
+BuDOM
+
+Business Development & Operations Management System
+
+by VERJ
+
+The BuDOM name is the product/platform identity. VERJ is the parent/company endorsement. This means the platform can eventually become a recognizable software product while remaining unmistakably part of VERJ.
+
+⸻
+
+VERJ BuDOM
+
+Business Development & Operations Management System
+
+BuDOM by VERJ
+
+Master Product Specification
+
+⸻
+
+1. PLATFORM PURPOSE
+
+BuDOM by VERJ is VERJ’s centralized business operations platform connecting:
+
+* BDO recruitment and onboarding
+* BDO management
+* Lead management
+* Customer management
+* Site/load information
+* Automated solar system design
+* Engineering operations
+* Inventory
+* Technical approvals
+* Invoicing
+* Sales
+* Payments
+* Commissions
+* Accounting
+* Financial analysis
+* Business intelligence
+
+BuDOM should function as the operational backbone of VERJ, connecting commercial, engineering and financial activities in one traceable system.
+
+⸻
+
+2. BRAND ARCHITECTURE
+
+Primary product identity
+
+BuDOM
+
+Parent/company endorsement
+
+by VERJ
+
+Formal name
+
+VERJ BuDOM
+
+Full description
+
+Business Development & Operations Management System
+
+Recommended UI treatment
+
+The platform login/header should primarily display:
+
+BuDOM
+by VERJ
+
+Where additional context is useful:
+
+BuDOM
+Business Development & Operations Management System
+by VERJ
+
+The BuDOM logo should have its own visual identity, while retaining visual compatibility with VERJ’s brand.
+
+⸻
+
+3. CORE BUSINESS CHAIN
+
+Every major transaction should remain traceable through the complete chain:
+
+BDO → Lead → Customer → Load Schedule → Design → Invoice → Payment → Inventory → Commission → Accounting
+
+This is one of the most important architectural principles of BuDOM.
+
+Every record should retain the IDs necessary to trace where it originated and what happened afterward.
+
+⸻
+
+4. BDO MANAGEMENT
+
+BuDOM should manage the complete BDO lifecycle:
+
+Application → KYC → Shortlisting → Assessment → Certification/Activation → BDO Portal → Leads → Sales → Commission
+
+Each BDO should have a unique ID such as:
+
+VBDO-017
+
+BDOs should be able to access:
+
+* Their profile
+* Leads
+* Customers
+* Activities
+* Follow-ups
+* Site/load submissions
+* Designs
+* Invoices
+* Sales
+* Payments
+* Commission
+* Performance
+
+BDO activation
+
+When an authorized admin activates a BDO after successful assessment:
+
+* BDO account becomes active
+* Username is generated/assigned
+* Default password is generated
+* Login details are sent by email
+* WhatsApp notification is sent
+* BDO receives the BuDOM login link
+* On login, the BDO lands on their personal portal
+
+⸻
+
+5. LEAD MANAGEMENT
+
+Every lead must automatically carry:
+
+* Lead ID
+* Customer ID
+* Source BDO ID
+* Assigned engineer
+* Lead status
+* Date created
+* Last activity
+* Follow-up history
+
+A BDO should be able to create and manage their leads.
+
+Every subsequent design, invoice, payment, commission and accounting record must remain linked to the originating lead.
+
+⸻
+
+6. AUTOMATIC ENGINEER ASSIGNMENT
+
+When a BDO submits a site/load schedule:
+
+1. BuDOM creates/updates the lead.
+2. Customer and site information are attached.
+3. Load schedule is attached.
+4. An engineer is automatically assigned.
+5. Preliminary design is generated.
+6. The design appears on the assigned engineer’s portal.
+
+If the assigned engineer does not attend to it:
+
+* It becomes visible in the General Engineering Room.
+* Other engineers can see the pending job.
+* Another engineer can take it over.
+
+Once an engineer opens it:
+
+🔒 Engr. Emeka is working on this design
+
+The design becomes locked against simultaneous editing.
+
+After 3 hours without resolution/submission, the design becomes available for another engineer.
+
+⸻
+
+7. SOLAR DESIGN ENGINE
+
+BuDOM automatically generates a preliminary solar solution from:
+
+* Appliance/load
+* Quantity
+* Power rating
+* Hours/day
+* Hours/night
+* Site information
+
+Engineers can modify the generated design.
+
+Each design retains:
+
+* Design ID
+* Lead ID
+* Customer ID
+* Source BDO ID
+* Engineer
+* Date/time created
+* Date/time modified
+* Design status
+* Design history
+
+⸻
+
+8. BATTERY SIZING
+
+The separate Backup Hours field is removed.
+
+BuDOM calculates night-time energy from the appliance schedule.
+
+Formula
+
+Battery Required (kWh) = Total Night-time Load Energy × 1.25
+
+The 1.25 factor represents the specified allowance for:
+
+* 20% DOD allowance
+* 5% inefficiency
+
+The system should calculate the night-time energy automatically from the individual appliance entries.
+
+⸻
+
+9. BATTERY SELECTION
+
+After calculating required storage, BuDOM selects the smallest available battery configuration that meets or exceeds the requirement.
+
+Required Storage	Battery
+0–5 kWh	5 kWh
+5.1–10 kWh	10 kWh
+10.1–16 kWh	16 kWh
+16.1–32 kWh	32 kWh
+32.1–48 kWh	48 kWh
+Above 48 kWh	Continue progression
+
+Multiple modules can be combined where necessary.
+
+Battery modules should appear in designs using standardized descriptions such as:
+
+16kWh 51.2V Lithium Battery Module × 2
+
+⸻
+
+10. PV SIZING
+
+BuDOM uses:
+
+PV Required = (Total Battery Size ÷ 6 hours + Total Load) × 1.67
+
+The system must clearly distinguish:
+
+* Calculated PV requirement
+* Selected panel wattage
+* Number of panels
+* Total installed PV capacity
+
+⸻
+
+11. INVERTER SELECTION
+
+The design engine should:
+
+1. Determine inverter requirement from total load.
+2. Check PV requirement.
+3. Determine whether the next inverter class is required.
+4. Search inventory for an appropriate inverter.
+5. Select the nearest available acceptable size.
+
+The maximum permitted deviation from the intended inverter size is:
+
+5 kW
+
+If no suitable inverter exists within that tolerance:
+
+DESIGN REVIEW REQUIRED
+
+The system must not silently select an unsuitable inverter.
+
+The progression should be scalable rather than hard-coded only to today’s inverter sizes.
+
+⸻
+
+12. ENGINEERING DESIGN SCREEN
+
+The engineer gets two primary actions:
+
+SAVE DESIGN
+
+Saves the current design without submitting it for invoicing.
+
+APPROVE / CONVERT TO INVOICE
+
+Submits the technical design into the invoice workflow.
+
+Engineers can:
+
+* Modify automatically generated designs
+* Select components from inventory
+* Adjust quantities
+* Select actual available products
+* Add PV cable
+* Add AC cable
+* Add battery cable
+* Specify cable sizes
+* Save designs
+
+Engineers do not see component prices unless they also have an authorized Sales role.
+
+⸻
+
+13. CABLE SIZING
+
+The design must include dedicated fields for:
+
+* PV cable
+* AC wire/cable
+* Battery cable
+
+These become part of the technical design and invoice where applicable.
+
+⸻
+
+14. LEAD TECHNICAL OFFICER
+
+The Lead Technical Officer can:
+
+* Edit design
+* Review design
+* Approve design
+* Reject design
+* Download design
+* Share design
+* Convert approved design to invoice
+
+A rejection requires a mandatory reason.
+
+All rejection actions enter the audit trail.
+
+⸻
+
+15. SALES WORKFLOW
+
+Sales can access relevant:
+
+* Leads
+* Customers
+* Designs
+* Invoices
+* Selling prices
+* Payments
+* Sales reports
+
+Sales actions include:
+
+* Download
+* Share
+* Reject
+* Edit invoice
+
+Rejection requires a reason.
+
+⸻
+
+16. INVOICE SYSTEM
+
+Approved technical designs can be converted directly into invoices.
+
+Invoices should automatically inherit:
+
+* Customer ID
+* Lead ID
+* Source BDO ID
+* Design ID
+* Engineer
+* System specifications
+* Applicable prices
+
+Every invoice gets a unique:
+
+Invoice ID
+
+Customer records receive:
+
+CID
+
+BDOs carry:
+
+VBDO ID
+
+⸻
+
+17. CUSTOMER-FACING INVOICE
+
+The customer should see the solution as a solar plan, not an unnecessarily complicated engineering bill.
+
+Example:
+
+VERJ HOME POWER PLAN
+
+Inverter
+12kW 48V Hybrid Inverter Module × 1
+
+Battery
+16kWh 51.2V Lithium Battery Module × 2
+
+Solar Panels
+620W Solar Panel × 20
+
+Installation Accessories
+
+Installation Service
+
+For the customer-facing copy, brand names should not automatically be exposed unless specifically required.
+
+⸻
+
+18. INVOICE PRICING VISIBILITY
+
+For systems involving up to 48kW inverter modules, customer invoices should show major component prices for:
+
+* Inverter
+* Battery
+* Solar panels
+
+PV cable and AC wire/cable remain visible as line items.
+
+Other accessories should be consolidated as:
+
+Installation Accessories
+
+Installation labour/service should appear as:
+
+Installation Service
+
+⸻
+
+19. INVOICE APPROVAL
+
+Final invoices require authorization from:
+
+* Sales
+* Chief Admin
+
+Once approved:
+
+Customer
+
+Invoice automatically sent through:
+
+* Email
+* WhatsApp
+
+BDO
+
+Receives:
+
+* BuDOM portal notification
+* WhatsApp notification
+
+⸻
+
+20. INVOICE SHARING
+
+Every generated invoice should have:
+
+Share with BDO + Customer
+
+Share with BDO only
+
+Share with Customer only
+
+⸻
+
+21. INVOICE IDENTITY
+
+Every invoice should carry:
+
+* VERJ logo
+* BuDOM by VERJ identity where appropriate
+* 9 Badaru Street, Jakande, Lekki, Lagos
+* Invoice ID
+* CID
+* VBDO ID
+* Date
+* Solar plan
+* System specifications
+* Applicable pricing
+
+⸻
+
+22. INVENTORY
+
+Inventory is a central BuDOM module.
+
+Each product contains:
+
+* Product ID
+* Product name
+* Category
+* Brand
+* Model
+* Specification
+* Voltage
+* Capacity/wattage
+* Cost price
+* Selling price
+* Quantity purchased
+* Quantity sold
+* Quantity available
+* Reorder indicator
+* Created date
+* Last updated
+* Active/inactive status
+
+⸻
+
+23. COST AND SELLING PRICE
+
+Inventory separates:
+
+COST PRICE
+
+What VERJ pays.
+
+SELLING PRICE
+
+What VERJ charges.
+
+Authorized users can alter prices:
+
+* Sales
+* Chief Admin
+
+Every change records:
+
+* Previous price
+* New price
+* Person who changed it
+* Date/time
+* Product
+
+⸻
+
+24. INVENTORY DOCUMENT IMPORT
+
+Sales and Chief Admin can upload supplier/product price documents.
+
+BuDOM should identify:
+
+Existing products
+
+Product already exists — update cost price?
+
+New products
+
+5 new products detected — add to inventory?
+
+Admin reviews proposed changes before applying them.
+
+Duplicate detection is mandatory.
+
+⸻
+
+25. INITIAL INVENTORY
+
+Inventory should support relevant Nigerian-market products from brands such as:
+
+* Itel Energy
+* Jinko Solar
+* JA Solar
+* Canadian Solar
+* Astronergy
+* Bicodi
+* LV-Topsun
+* Cworth
+* Gospower
+* Growatt
+* Deye
+* SRNE
+
+The supplied product list remains authoritative for the specifically provided products.
+
+For those products:
+
+Selling Price = Cost Price + ₦25,000
+
+Example:
+
+Astronergy 615W Bifacial
+
+Cost: ₦133,000
+Selling: ₦158,000
+
+⸻
+
+26. LIVE INVENTORY SALES ANALYTICS
+
+BuDOM tracks product sales in real time.
+
+Example:
+
+DEYE 12kW Hybrid Inverter
+
+Total purchased: 2,125
+Units sold: 2,000
+Units available: 125
+
+This helps VERJ identify:
+
+* Best-selling products
+* Slow-moving products
+* Stock priorities
+* Products to promote
+* Inventory turnover
+
+⸻
+
+27. SOLAR PLAN SALES
+
+BuDOM also tracks sales by solution.
+
+Solar Plan	Units Sold	Revenue
+Home Power 5	125	₦XXX
+Home Power 10	87	₦XXX
+Business Power 20	42	₦XXX
+
+This allows VERJ to understand which solutions, not merely components, are selling.
+
+⸻
+
+28. ENGINEER + BDO DUAL ROLE
+
+An engineer can have a secondary BDO role.
+
+Example:
+
+Engr. Emeka
+
+Primary: Engineer
+Secondary: BDO
+
+Chief Admin can assign/remove the secondary role.
+
+The engineer can switch between:
+
+ENGINEER MODE
+
+and
+
+BDO MODE
+
+without creating a second account.
+
+When operating as a BDO, the engineer can generate leads and earn applicable commissions.
+
+⸻
+
+29. ACCOUNTING
+
+BuDOM’s Accounting module becomes VERJ’s internal financial management center.
+
+Dashboard
+
+* Sales
+* Revenue
+* COGS
+* Gross profit
+* Operating expenses
+* Net profit/loss
+* Receivables
+* Payables
+* Inventory value
+* Recorded cash/bank balances
+
+Payments
+
+* Customer
+* Invoice
+* Amount
+* Payment reference
+* Payment date
+* Partial/full payment
+* Payment status
+
+Expenses
+
+Manual entry of:
+
+* Expense category
+* Description
+* Amount
+* Vendor
+* Date
+* Attachment
+
+Receivables
+
+Track:
+
+* Customer
+* Invoice
+* Amount owed
+* Amount paid
+* Balance
+* Due date
+* Overdue status
+
+Payables
+
+Track supplier obligations and outstanding payments.
+
+⸻
+
+30. PROJECT PROFITABILITY
+
+Every completed project calculates:
+
+Sales Price − Component Cost − Installation Cost − Other Project Expenses = Project Profit
+
+And:
+
+Project Profit ÷ Sales Price × 100 = Project Profit Margin
+
+This works at:
+
+* Individual project level
+* Overall company level
+
+⸻
+
+31. BDO FINANCIAL PERFORMANCE
+
+Because invoices carry the VBDO ID, BuDOM automatically attributes performance.
+
+Example:
+
+VBDO-017
+
+Sales: ₦25m
+Projects: 6
+Collected: ₦20m
+Outstanding: ₦5m
+Commission earned: ₦750k
+
+⸻
+
+32. COMMISSION ACCOUNTING
+
+The existing 3% commission structure integrates directly into BuDOM.
+
+Track:
+
+* Commissionable project value
+* Commission rate
+* Commission earned
+* Commission paid
+* Commission outstanding
+* BDO
+* VBDO ID
+* Related project
+* Related invoice
+
+⸻
+
+33. FINANCIAL ANALYTICS
+
+BuDOM should produce:
+
+* Profit & Loss
+* Revenue Report
+* Sales Report
+* Expense Report
+* Project Profitability
+* Inventory Valuation
+* Accounts Receivable
+* Accounts Payable
+* Payment Report
+* Outstanding Invoice Report
+* BDO Performance
+* Commission Report
+
+And provide insights into:
+
+* Monthly revenue
+* Monthly profit
+* Sales growth
+* Expense trends
+* Gross margin
+* Net margin
+* Best BDOs
+* Most profitable projects
+* Best-selling products
+* Slow-moving inventory
+* Best-selling solar plans
+
+⸻
+
+34. ACCOUNTING BACKUP
+
+BuDOM automatically maintains a structured spreadsheet backup of accounting information.
+
+Exportable data includes:
+
+* Sales
+* Revenue
+* Payments
+* Expenses
+* Inventory
+* COGS
+* Profit/loss
+* Commissions
+* Receivables
+* Payables
+
+This provides a secondary database and facilitates external accounting review.
+
+⸻
+
+35. BDO BACKUP DATABASE
+
+Every onboarded BDO gets an automatically maintained spreadsheet backup containing:
+
+* Leads
+* Customers
+* Activities
+* Follow-ups
+* Designs
+* Invoices
+* Sales
+* Payments
+* Commission records
+
+This is an operational backup independent of the main BuDOM interface.
+
+⸻
+
+36. AUDIT TRAIL
+
+Sensitive activities must be recorded.
+
+Example:
+
+Product: Deye 12kW Inverter
+Previous price: ₦1,200,000
+New price: ₦1,250,000
+Changed by: Chief Admin
+Date: 15 Aug 2026
+
+Audit logging should cover:
+
+* Product prices
+* Cost prices
+* Selling prices
+* Designs
+* Invoices
+* Payments
+* Expenses
+* Inventory
+* Commissions
+* Customer information
+* Permissions
+* Approvals
+* Rejections
+
+⸻
+
+37. ROLE-BASED ACCESS
+
+BDO
+
+Access to:
+
+* Leads
+* Customers
+* Their designs
+* Their invoices
+* Sales
+* Activities
+* Commissions
+
+Engineer
+
+Access to:
+
+* Assigned leads
+* Site information
+* Load schedules
+* Designs
+* Inventory component selection
+
+No prices by default.
+
+Sales
+
+Access to:
+
+* Leads
+* Customers
+* Designs
+* Invoices
+* Selling prices
+* Payments
+* Sales reports
+
+Accounting
+
+Access to:
+
+* Financial records
+* Payments
+* Expenses
+* Revenue
+* P&L
+* Receivables
+* Payables
+* Accounting reports
+
+Lead Technical Officer
+
+Access to:
+
+* Design review
+* Design editing
+* Approval
+* Rejection
+* Download
+* Sharing
+* Invoice conversion
+
+Chief Admin
+
+Full system access.
+
+⸻
+
+38. ENGINEERING WORKFLOW
+
+The operational sequence is:
+
+BDO submits lead + site details + load schedule
+
+↓
+
+Lead automatically assigned to engineer
+
+↓
+
+BuDOM generates preliminary design
+
+↓
+
+Design appears on assigned engineer’s portal
+
+↓
+
+If unattended:
+
+General Engineering Room + other engineers
+
+↓
+
+Engineer opens design:
+
+🔒 Engr. Emeka is working on this design
+
+↓
+
+3-hour timeout if unresolved
+
+↓
+
+Another engineer can take over
+
+↓
+
+Engineer modifies design
+
+↓
+
+Engineer selects actual inventory components
+
+↓
+
+SAVE DESIGN
+
+or
+
+APPROVE / CONVERT TO INVOICE
+
+↓
+
+Lead Technical Officer review
+
+↓
+
+Approve / Edit / Reject
+
+↓
+
+Approved design enters Sales/Invoice workflow
+
+↓
+
+Sales/Chief Admin approve invoice
+
+↓
+
+Invoice sent
+
+↓
+
+Customer payment recorded
+
+↓
+
+Inventory updated
+
+↓
+
+Revenue recorded
+
+↓
+
+COGS recorded
+
+↓
+
+Commission calculated
+
+↓
+
+Accounting updated
+
+↓
+
+Profitability calculated
+
+↓
+
+Analytics updated
+
+⸻
+
+39. THE BU DOM DATA CHAIN
+
+The most important architectural principle is that BuDOM should not operate as disconnected modules.
+
+Everything should be connected:
+
+BDO
+
+↓
+Lead
+
+↓
+Customer
+
+↓
+Site
+
+↓
+Load Schedule
+
+↓
+Design
+
+↓
+Engineer
+
+↓
+Inventory Components
+
+↓
+Technical Approval
+
+↓
+Invoice
+
+↓
+Sales Approval
+
+↓
+Payment
+
+↓
+Inventory Movement
+
+↓
+Revenue / COGS
+
+↓
+Commission
+
+↓
+Accounting
+
+↓
+Profitability
+
+↓
+Business Analytics
+
+That means VERJ can eventually answer questions such as:
+
+Which BDO generated this customer?
+
+Which engineer designed the system?
+
+Which products went into the project?
+
+What did VERJ pay for those products?
+
+What did the customer pay?
+
+How much commission is owed?
+
+How profitable was the project?
+
+Which products are selling fastest?
+
+Which BDOs generate the most profitable business?
+
+—all from one connected system.
+
+⸻
+
+40. THE FINAL PRODUCT IDENTITY
+
+The official presentation should therefore be:
+
+BuDOM
+
+by VERJ
+
+Business Development & Operations Management System
+
+BuDOM by VERJ is not simply a BDO management app anymore.
+
+It is a business operating platform connecting VERJ’s:
+
+People → Leads → Customers → Engineering → Inventory → Sales → Invoicing → Payments → Commissions → Accounting → Analytics.
+
+That distinction is important when giving the specification to Replit. Do not ask Replit to build “a BDO app.” The product should be described as a modular business operations platform, with BDO management as one of its major modules.
+
+And I would keep the “BuDOM by VERJ” lockup consistently on the login page, navigation/header, invoices and major generated documents, while using the standalone BuDOM mark inside the application.

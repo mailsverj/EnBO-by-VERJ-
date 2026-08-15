@@ -1,0 +1,1 @@
+- [BuDOM by VERJ platform spec](budom-spec.md) — official product identity, 40-point spec, logo colour rule, battery/PV/inverter formulas, full business chain.

@@ -70,7 +70,7 @@ export default function InvoiceDetail() {
           <div className="flex justify-between items-start mb-12">
             <div>
               <div className="mb-6">
-                <img src={logoPath} alt="VERJ SOLAR" className="h-14 object-contain" />
+                <img src={logoPath} alt="VERJ SOLAR" className="h-14 object-contain" style={{ filter: 'brightness(0)' }} />
               </div>
               <div className="text-sm text-muted-foreground space-y-1">
                 <div>9 Badaru Street, Jakande, Lekki, Lagos</div>
