@@ -118,9 +118,12 @@ export default function BdoApply() {
     }
 
     if (step === 3) {
+      const isValidUrl = (v: string) => { try { const u = new URL(v.trim()); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } };
       if (!formData.referralSource) e.referralSource = 'Required';
       if (!formData.photoUrl.trim()) e.photoUrl = 'Required';
+      else if (!isValidUrl(formData.photoUrl)) e.photoUrl = 'Must be a valid link starting with https://';
       if (!formData.idDocumentUrl.trim()) e.idDocumentUrl = 'Required';
+      else if (!isValidUrl(formData.idDocumentUrl)) e.idDocumentUrl = 'Must be a valid link starting with https://';
       if (!formData.declaration) e.declaration = 'You must accept the declaration to continue';
     }
 
