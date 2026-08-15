@@ -1,27 +1,41 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockDesigns } from '@/data/mock';
+import { api, type Design } from '@/lib/api';
 import { format, addHours, differenceInMinutes } from 'date-fns';
-import { Lock, FileDigit, ChevronDown, ChevronUp } from 'lucide-react';
+import { Lock, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { useAuth } from '@/store/auth';
 import { useLocation } from 'wouter';
 
 export default function EngineeringQueue() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const [designs, setDesigns] = useState(mockDesigns);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const handleTakeOwnership = (id: string) => {
-    setDesigns(designs.map(d => 
-      d.id === id 
-        ? { ...d, lockedBy: user.id, assignedEngineer: user.id, lockStartedAt: new Date().toISOString(), status: 'In Progress' }
-        : d
-    ));
+  const { data, isLoading } = useQuery({
+    queryKey: ['designs'],
+    queryFn: () => api.designs.list(),
+  });
+
+  const designs = data?.designs ?? [];
+
+  const lockMutation = useMutation({
+    mutationFn: (designRef: string) => api.designs.lock(designRef),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['designs'] }),
+  });
+
+  const unlockMutation = useMutation({
+    mutationFn: (designRef: string) => api.designs.unlock(designRef),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['designs'] }),
+  });
+
+  const handleTakeOwnership = (designRef: string) => {
+    lockMutation.mutate(designRef);
   };
 
   const getStatusColor = (status: string) => {
@@ -34,10 +48,10 @@ export default function EngineeringQueue() {
     }
   };
 
-  const renderLockIndicator = (lockedBy: string | null, lockStartedAt: string | null) => {
-    if (!lockedBy) return null;
-    
-    if (lockedBy === user.id) {
+  const renderLockIndicator = (lockedById: number | null, lockStartedAt: string | null) => {
+    if (!lockedById) return null;
+
+    if (user && lockedById === user.id) {
       return (
         <div className="flex items-center text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-md w-fit">
           <Lock className="h-3 w-3 mr-1" /> You are working on this
@@ -48,14 +62,14 @@ export default function EngineeringQueue() {
     if (lockStartedAt) {
       const expiry = addHours(new Date(lockStartedAt), 3);
       const minsLeft = differenceInMinutes(expiry, new Date());
-      
+
       return (
         <div className="flex items-center text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-md w-fit">
           <Lock className="h-3 w-3 mr-1" /> Locked ({minsLeft > 0 ? `${minsLeft}m left` : 'Expired'})
         </div>
       );
     }
-    
+
     return (
       <div className="flex items-center text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-md w-fit">
         <Lock className="h-3 w-3 mr-1" /> Locked
@@ -63,7 +77,7 @@ export default function EngineeringQueue() {
     );
   };
 
-  const renderTable = (data: typeof designs) => (
+  const renderTable = (data: Design[]) => (
     <div className="rounded-md border bg-card">
       <Table>
         <TableHeader>
@@ -82,14 +96,14 @@ export default function EngineeringQueue() {
           {data.map(design => (
             <React.Fragment key={design.id}>
               <TableRow className="group">
-                <TableCell className="font-mono text-xs">{design.id}</TableCell>
+                <TableCell className="font-mono text-xs">{design.designRef}</TableCell>
                 <TableCell>
                   <div className="font-semibold text-sm">{design.customerName}</div>
                   <div className="text-xs text-muted-foreground">{design.customerId}</div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm">{design.sourceBdo}</div>
-                  <div className="text-xs text-muted-foreground">{design.leadId}</div>
+                  <div className="text-sm">{design.sourceBdoId}</div>
+                  <div className="text-xs text-muted-foreground">{design.leadRef}</div>
                 </TableCell>
                 <TableCell className="text-sm">{format(new Date(design.createdAt), 'MMM d, yyyy')}</TableCell>
                 <TableCell>
@@ -97,43 +111,42 @@ export default function EngineeringQueue() {
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    {design.assignedEngineer ? (
-                      <span className="text-sm font-medium">{design.assignedEngineer}</span>
+                    {design.assignedEngineerId ? (
+                      <span className="text-sm font-medium">Eng. #{design.assignedEngineerId}</span>
                     ) : (
                       <span className="text-sm text-muted-foreground italic">Unassigned</span>
                     )}
-                    {renderLockIndicator(design.lockedBy, design.lockStartedAt)}
+                    {renderLockIndicator(design.lockedById, design.lockStartedAt)}
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  {design.status === 'Pending' && !design.lockedBy && (
-                    <Button size="sm" onClick={() => handleTakeOwnership(design.id)}>Take Ownership</Button>
+                  {design.status === 'Pending' && !design.lockedById && (
+                    <Button size="sm" onClick={() => handleTakeOwnership(design.designRef)} disabled={lockMutation.isPending}>
+                      Take Ownership
+                    </Button>
                   )}
-                  {design.lockedBy === user.id && (
-                    <Button size="sm" variant="secondary" onClick={() => setLocation(`/engineering/calculator?designId=${design.id}`)}>Open Design</Button>
+                  {user && design.lockedById === user.id && (
+                    <Button size="sm" variant="secondary" onClick={() => setLocation(`/engineering/calculator?designId=${design.designRef}`)}>Open Design</Button>
                   )}
-                  {design.lockedBy && design.lockedBy !== user.id && (
+                  {design.lockedById && (!user || design.lockedById !== user.id) && (
                     <Badge variant="outline" className="opacity-50 cursor-not-allowed">Locked</Badge>
                   )}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon" onClick={() => setExpandedId(expandedId === design.id ? null : design.id)}>
-                    {expandedId === design.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  <Button variant="ghost" size="icon" onClick={() => setExpandedId(expandedId === design.designRef ? null : design.designRef)}>
+                    {expandedId === design.designRef ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
                 </TableCell>
               </TableRow>
-              {expandedId === design.id && design.engineeringHistory && (
+              {expandedId === design.designRef && (
                 <TableRow className="bg-muted/30">
                   <TableCell colSpan={8} className="p-4">
-                    <h4 className="text-sm font-semibold mb-3 border-b pb-2">Engineering History</h4>
-                    <div className="space-y-3">
-                      {design.engineeringHistory.map((hist, i) => (
-                        <div key={i} className="flex gap-4 text-sm">
-                          <div className="w-[150px] text-muted-foreground">{format(new Date(hist.startedAt), 'MMM d, h:mm a')}</div>
-                          <div className="w-[200px] font-medium">{hist.engineer}</div>
-                          <div className="flex-1">{hist.action}</div>
-                        </div>
-                      ))}
+                    <h4 className="text-sm font-semibold mb-3 border-b pb-2">Design Details</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                      <div><span className="text-muted-foreground">System Size:</span> <span className="font-medium">{design.systemSize ?? '-'}</span></div>
+                      <div><span className="text-muted-foreground">PV kWp:</span> <span className="font-medium">{design.pvKwp ?? '-'}</span></div>
+                      <div><span className="text-muted-foreground">Battery kWh:</span> <span className="font-medium">{design.batteryKwh ?? '-'}</span></div>
+                      <div><span className="text-muted-foreground">Inverter kW:</span> <span className="font-medium">{design.inverterKw ?? '-'}</span></div>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -154,18 +167,24 @@ export default function EngineeringQueue() {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="all">All Requests</TabsTrigger>
-          <TabsTrigger value="my">My Assignments</TabsTrigger>
-        </TabsList>
-        <TabsContent value="all">
-          {renderTable(designs)}
-        </TabsContent>
-        <TabsContent value="my">
-          {renderTable(designs.filter(d => d.assignedEngineer === user.id))}
-        </TabsContent>
-      </Tabs>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="all">All Requests</TabsTrigger>
+            <TabsTrigger value="my">My Assignments</TabsTrigger>
+          </TabsList>
+          <TabsContent value="all">
+            {renderTable(designs)}
+          </TabsContent>
+          <TabsContent value="my">
+            {renderTable(designs.filter(d => user && d.lockedById === user.id))}
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }

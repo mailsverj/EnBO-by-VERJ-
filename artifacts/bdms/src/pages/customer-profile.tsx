@@ -1,22 +1,54 @@
+import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { mockCustomers, mockLeads, mockInvoices, formatCurrency } from '@/data/mock';
+import { api } from '@/lib/api';
+import { formatCurrency } from '@/data/mock';
 import { format } from 'date-fns';
-import { Mail, Phone, MapPin, Building2, User, FileText, Briefcase } from 'lucide-react';
+import { Mail, Phone, MapPin, Building2, User, FileText, Briefcase, Loader2 } from 'lucide-react';
 
 export default function CustomerProfile() {
   const { id } = useParams();
-  const customer = mockCustomers.find(c => c.id === id);
+
+  const { data: customersData, isLoading: customersLoading } = useQuery({
+    queryKey: ['customers'],
+    queryFn: () => api.customers.list(),
+  });
+
+  const { data: leadsData, isLoading: leadsLoading } = useQuery({
+    queryKey: ['leads'],
+    queryFn: () => api.leads.list(),
+  });
+
+  const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
+    queryKey: ['invoices'],
+    queryFn: () => api.invoices.list(),
+  });
+
+  const isLoading = customersLoading || leadsLoading || invoicesLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const customers = customersData?.customers ?? [];
+  const leads = leadsData?.leads ?? [];
+  const invoices = invoicesData?.invoices ?? [];
+
+  const customer = customers.find(c => c.cidRef === id);
 
   if (!customer) {
     return <div className="p-8 text-center text-muted-foreground">Customer not found</div>;
   }
 
-  const customerLeads = mockLeads.filter(l => l.customerId === id);
-  const customerInvoices = mockInvoices.filter(i => i.customerId === id);
+  const customerLeads = leads.filter(l => l.customerId === id);
+  const customerInvoices = invoices.filter(i => i.customerId === id);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -24,7 +56,7 @@ export default function CustomerProfile() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold tracking-tight">{customer.name}</h1>
-            <Badge variant="outline" className="font-mono">{customer.id}</Badge>
+            <Badge variant="outline" className="font-mono">{customer.cidRef}</Badge>
             <Badge variant="secondary" className="flex items-center gap-1">
               {customer.type === 'Business' ? <Building2 className="h-3 w-3" /> : <User className="h-3 w-3" />}
               {customer.type}
@@ -41,21 +73,27 @@ export default function CustomerProfile() {
             <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Contact Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-3 text-sm">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span>{customer.email}</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <span>{customer.phone}</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{customer.location}</span>
-            </div>
+            {customer.email && (
+              <div className="flex items-center gap-3 text-sm">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{customer.email}</span>
+              </div>
+            )}
+            {customer.phone && (
+              <div className="flex items-center gap-3 text-sm">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span>{customer.phone}</span>
+              </div>
+            )}
+            {customer.location && (
+              <div className="flex items-center gap-3 text-sm">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span>{customer.location}</span>
+              </div>
+            )}
             <div className="pt-4 border-t mt-4">
               <div className="text-xs text-muted-foreground mb-1">Source BDO</div>
-              <Link href={`/bdo/${customer.sourceBdo}`} className="font-mono text-sm text-primary hover:underline">{customer.sourceBdo}</Link>
+              <Link href={`/bdo/${customer.sourceBdoId}`} className="font-mono text-sm text-primary hover:underline">{customer.sourceBdoId}</Link>
             </div>
           </CardContent>
         </Card>
@@ -103,7 +141,7 @@ export default function CustomerProfile() {
                 ) : (
                   customerLeads.map(lead => (
                     <TableRow key={lead.id}>
-                      <TableCell className="font-mono text-xs"><Link href={`/leads/${lead.id}`} className="text-primary hover:underline">{lead.id}</Link></TableCell>
+                      <TableCell className="font-mono text-xs"><Link href={`/leads/${lead.leadRef}`} className="text-primary hover:underline">{lead.leadRef}</Link></TableCell>
                       <TableCell><Badge variant="outline" className="text-[10px]">{lead.stage}</Badge></TableCell>
                       <TableCell className="text-right">{lead.value > 0 ? formatCurrency(lead.value) : '-'}</TableCell>
                     </TableRow>
@@ -133,7 +171,7 @@ export default function CustomerProfile() {
                 ) : (
                   customerInvoices.map(inv => (
                     <TableRow key={inv.id}>
-                      <TableCell className="font-mono text-xs"><Link href={`/invoicing/${inv.id}`} className="text-primary hover:underline">{inv.id}</Link></TableCell>
+                      <TableCell className="font-mono text-xs"><Link href={`/invoicing/${inv.invoiceRef}`} className="text-primary hover:underline">{inv.invoiceRef}</Link></TableCell>
                       <TableCell><Badge className={inv.status === 'Paid' ? 'bg-green-600' : 'bg-amber-600'} variant="outline">{inv.status}</Badge></TableCell>
                       <TableCell className="text-right font-medium">{formatCurrency(inv.total)}</TableCell>
                     </TableRow>

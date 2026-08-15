@@ -61,8 +61,35 @@ export default function BdoApply() {
     if (validateStep()) setStep(step + 1);
   };
   const prevStep = () => setStep(step - 1);
-  const handleSubmit = () => {
-    if (validateStep()) setSubmitted(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [refId, setRefId] = useState('');
+
+  const handleSubmit = async () => {
+    if (!validateStep()) return;
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      const result = await fetch(
+        (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '') + '/api/applications',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...formData,
+            consent: formData.consent ? 'true' : 'false',
+          }),
+        }
+      );
+      const json = await result.json() as { ok?: boolean; refId?: string; error?: string };
+      if (!result.ok) throw new Error(json.error ?? 'Submission failed');
+      setRefId(json.refId ?? '');
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Submission failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const updateForm = (key: keyof typeof formData, value: string | boolean) => {
@@ -91,7 +118,7 @@ export default function BdoApply() {
             We will review your application and contact you at {formData.email || 'your email'} within 3-5 working days.
           </p>
           <div className="p-4 bg-muted rounded-lg font-mono text-sm tracking-widest text-muted-foreground border">
-            Application Reference: APP-{Math.floor(100000 + Math.random() * 900000)}
+            Application Reference: {refId || 'APP-000'}
           </div>
           <Button asChild className="mt-8" size="lg">
             <a href="#">Return to Home</a>
@@ -357,9 +384,12 @@ export default function BdoApply() {
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             ) : (
-              <Button onClick={handleSubmit} className="bg-primary text-primary-foreground">
-                <Send className="h-4 w-4 mr-2" /> Submit Application
-              </Button>
+              <div className="flex flex-col items-end gap-2">
+                {submitError && <p className="text-xs text-destructive">{submitError}</p>}
+                <Button onClick={handleSubmit} className="bg-primary text-primary-foreground" disabled={submitting}>
+                  {submitting ? <><span className="mr-2 h-4 w-4 animate-spin inline-block border-2 border-current border-t-transparent rounded-full" /> Submitting…</> : <><Send className="h-4 w-4 mr-2" /> Submit Application</>}
+                </Button>
+              </div>
             )}
           </CardFooter>
         </Card>

@@ -1,20 +1,28 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { mockDesigns } from '@/data/mock';
-import { Search, Filter, CheckCircle2, AlertCircle } from 'lucide-react';
+import { api } from '@/lib/api';
+import { Search, Filter, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'wouter';
 
 export default function EngineeringDesigns() {
   const [search, setSearch] = useState('');
 
-  const filteredDesigns = mockDesigns.filter(d => 
-    d.customerName.toLowerCase().includes(search.toLowerCase()) || 
-    d.id.toLowerCase().includes(search.toLowerCase())
+  const { data, isLoading } = useQuery({
+    queryKey: ['designs'],
+    queryFn: () => api.designs.list(),
+  });
+
+  const designs = data?.designs ?? [];
+
+  const filteredDesigns = designs.filter(d =>
+    (d.customerName ?? '').toLowerCase().includes(search.toLowerCase()) ||
+    d.designRef.toLowerCase().includes(search.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -44,8 +52,8 @@ export default function EngineeringDesigns() {
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search designs..." 
+              <Input
+                placeholder="Search designs..."
                 className="pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -56,63 +64,71 @@ export default function EngineeringDesigns() {
             </Button>
           </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Design ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Linked Lead</TableHead>
-                  <TableHead>System Size</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDesigns.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                      No designs found.
-                    </TableCell>
+                    <TableHead>Design ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Linked Lead</TableHead>
+                    <TableHead>System Size</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ) : (
-                  filteredDesigns.map(design => (
-                    <TableRow key={design.id} className="hover:bg-muted/50 transition-colors">
-                      <TableCell className="font-mono text-xs font-semibold text-primary">{design.id}</TableCell>
-                      <TableCell className="font-medium">{design.customerName}</TableCell>
-                      <TableCell>
-                        <Link href={`/leads/${design.leadId}`} className="text-xs hover:underline text-primary">
-                          {design.leadId}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="font-semibold">{design.systemSize}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{format(new Date(design.createdAt), 'MMM d, yyyy')}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={`hover:bg-transparent ${getStatusColor(design.status)}`}>
-                          {design.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {design.status === 'Submitted for Approval' ? (
-                          <div className="flex justify-end gap-2">
-                            <Button size="sm" variant="ghost" className="text-green-600 hover:text-green-700 hover:bg-green-50">
-                              <CheckCircle2 className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                              <AlertCircle className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <Button size="sm" variant="outline">View</Button>
-                        )}
+                </TableHeader>
+                <TableBody>
+                  {filteredDesigns.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                        No designs found.
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  ) : (
+                    filteredDesigns.map(design => (
+                      <TableRow key={design.id} className="hover:bg-muted/50 transition-colors">
+                        <TableCell className="font-mono text-xs font-semibold text-primary">{design.designRef}</TableCell>
+                        <TableCell className="font-medium">{design.customerName}</TableCell>
+                        <TableCell>
+                          {design.leadRef ? (
+                            <Link href={`/leads/${design.leadRef}`} className="text-xs hover:underline text-primary">
+                              {design.leadRef}
+                            </Link>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell className="font-semibold">{design.systemSize ?? '-'}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{format(new Date(design.createdAt), 'MMM d, yyyy')}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className={`hover:bg-transparent ${getStatusColor(design.status)}`}>
+                            {design.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {design.status === 'Submitted for Approval' ? (
+                            <div className="flex justify-end gap-2">
+                              <Button size="sm" variant="ghost" className="text-green-600 hover:text-green-700 hover:bg-green-50">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                                <AlertCircle className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button size="sm" variant="outline">View</Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

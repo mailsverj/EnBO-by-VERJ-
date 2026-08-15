@@ -1,17 +1,19 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockLeads, formatCurrency } from '@/data/mock';
-import { Search, Plus, List, LayoutGrid } from 'lucide-react';
+import { api } from '@/lib/api';
+import { formatCurrency } from '@/data/mock';
+import { Search, Plus, List, LayoutGrid, Loader2 } from 'lucide-react';
 import { Link } from 'wouter';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const FUNNEL_STAGES = [
-  'New Lead', 'Contacted', 'Needs Discovery', 'Load Details Submitted', 
-  'Technical Assessment', 'System Design', 'Design Approval', 
+  'New Lead', 'Contacted', 'Needs Discovery', 'Load Details Submitted',
+  'Technical Assessment', 'System Design', 'Design Approval',
   'Invoice', 'Follow-Up / Negotiation', 'Won', 'Lost / Nurture'
 ];
 
@@ -19,9 +21,16 @@ export default function Leads() {
   const [view, setView] = useState<'board' | 'table'>('board');
   const [search, setSearch] = useState('');
 
-  const filteredLeads = mockLeads.filter(l => 
-    l.customerName.toLowerCase().includes(search.toLowerCase()) || 
-    l.id.toLowerCase().includes(search.toLowerCase())
+  const { data, isLoading } = useQuery({
+    queryKey: ['leads'],
+    queryFn: () => api.leads.list(),
+  });
+
+  const leads = data?.leads ?? [];
+
+  const filteredLeads = leads.filter(l =>
+    l.customerName.toLowerCase().includes(search.toLowerCase()) ||
+    l.leadRef.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -40,8 +49,8 @@ export default function Leads() {
       <div className="flex flex-col sm:flex-row gap-4 shrink-0">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search leads..." 
+          <Input
+            placeholder="Search leads..."
             className="pl-9 bg-card"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -55,7 +64,11 @@ export default function Leads() {
         </Tabs>
       </div>
 
-      {view === 'board' ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : view === 'board' ? (
         <div className="flex-1 overflow-x-auto pb-4">
           <div className="flex gap-4 min-h-[500px] h-full items-start w-max">
             {FUNNEL_STAGES.map(stage => {
@@ -68,12 +81,12 @@ export default function Leads() {
                   </div>
                   <div className="p-2 space-y-2 overflow-y-auto flex-1">
                     {stageLeads.map(lead => (
-                      <Link key={lead.id} href={`/leads/${lead.id}`}>
+                      <Link key={lead.id} href={`/leads/${lead.leadRef}`}>
                         <Card className="cursor-pointer hover:border-primary/50 transition-colors shadow-sm">
                           <CardContent className="p-3 space-y-2">
                             <div className="flex justify-between items-start">
-                              <span className="font-mono text-xs text-muted-foreground">{lead.id}</span>
-                              <span className="text-xs font-medium text-primary bg-primary/10 px-1.5 rounded">{lead.sourceBdo}</span>
+                              <span className="font-mono text-xs text-muted-foreground">{lead.leadRef}</span>
+                              <span className="text-xs font-medium text-primary bg-primary/10 px-1.5 rounded">{lead.sourceBdoId}</span>
                             </div>
                             <div className="font-medium text-sm line-clamp-1">{lead.customerName}</div>
                             {lead.value > 0 && <div className="text-xs font-semibold">{formatCurrency(lead.value)}</div>}
@@ -109,12 +122,12 @@ export default function Leads() {
                 {filteredLeads.map(lead => (
                   <TableRow key={lead.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
                     <TableCell className="font-mono text-xs font-semibold text-primary">
-                      <Link href={`/leads/${lead.id}`}>{lead.id}</Link>
+                      <Link href={`/leads/${lead.leadRef}`}>{lead.leadRef}</Link>
                     </TableCell>
                     <TableCell className="font-medium">
-                      <Link href={`/leads/${lead.id}`}>{lead.customerName}</Link>
+                      <Link href={`/leads/${lead.leadRef}`}>{lead.customerName}</Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{lead.sourceBdo}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{lead.sourceBdoId}</TableCell>
                     <TableCell><Badge variant="outline">{lead.stage}</Badge></TableCell>
                     <TableCell className="text-right font-medium">{lead.value > 0 ? formatCurrency(lead.value) : '-'}</TableCell>
                   </TableRow>

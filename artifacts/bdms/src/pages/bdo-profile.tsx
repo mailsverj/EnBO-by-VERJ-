@@ -1,25 +1,49 @@
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { mockBdos, mockLeads, mockCommissions, formatCurrency } from '@/data/mock';
+import { api } from '@/lib/api';
+import { formatCurrency } from '@/data/mock';
 import { format, differenceInDays } from 'date-fns';
 import { useParams, Link } from 'wouter';
-import { Mail, Phone, MapPin, Calendar, Cake, ShieldAlert } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Cake, ShieldAlert, Loader2 } from 'lucide-react';
 
 export default function BdoProfile() {
   const { id } = useParams();
-  const bdo = mockBdos.find(b => b.id === id);
+
+  const { data: bdosData, isLoading: bdosLoading } = useQuery({
+    queryKey: ['bdos'],
+    queryFn: () => api.bdos.list(),
+  });
+
+  const { data: leadsData, isLoading: leadsLoading } = useQuery({
+    queryKey: ['leads'],
+    queryFn: () => api.leads.list(),
+  });
+
+  const isLoading = bdosLoading || leadsLoading;
+
+  const bdos = bdosData?.bdos ?? [];
+  const leads = leadsData?.leads ?? [];
+
+  const bdo = bdos.find(b => b.vbdoId === id);
+  const bdoLeads = leads.filter(l => l.sourceBdoId === id);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!bdo) {
     return <div className="p-8 text-center text-muted-foreground">BDO not found</div>;
   }
 
-  const bdoLeads = mockLeads.filter(l => l.sourceBdo === id);
-  const bdoCommissions = mockCommissions.filter(c => c.bdoId === id);
-
-  const daysToBirthday = differenceInDays(new Date(bdo.birthday), new Date());
+  const daysToBirthday = bdo.birthday ? differenceInDays(new Date(bdo.birthday), new Date()) : -1;
   const isBirthdaySoon = daysToBirthday >= 0 && daysToBirthday <= 30;
 
   return (
@@ -28,7 +52,7 @@ export default function BdoProfile() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold tracking-tight">{bdo.name}</h1>
-            <Badge variant="outline" className="font-mono">{bdo.id}</Badge>
+            <Badge variant="outline" className="font-mono">{bdo.vbdoId}</Badge>
             <Badge className={bdo.status === 'Active' ? 'bg-green-600' : 'bg-amber-600'}>{bdo.status}</Badge>
           </div>
           <p className="text-muted-foreground mt-1">BDO Profile & Performance Tracking</p>
@@ -49,23 +73,29 @@ export default function BdoProfile() {
               <Mail className="h-4 w-4 text-muted-foreground" />
               <span>{bdo.email}</span>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <span>{bdo.phone}</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{bdo.location}</span>
-            </div>
+            {bdo.phone && (
+              <div className="flex items-center gap-3 text-sm">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span>{bdo.phone}</span>
+              </div>
+            )}
+            {bdo.location && (
+              <div className="flex items-center gap-3 text-sm">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span>{bdo.location}</span>
+              </div>
+            )}
             <div className="flex items-center gap-3 text-sm">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>Joined {format(new Date(bdo.joinedAt), 'MMM d, yyyy')}</span>
+              <span>Joined {format(new Date(bdo.createdAt), 'MMM d, yyyy')}</span>
             </div>
-            <div className={`flex items-center gap-3 text-sm p-2 rounded-md ${isBirthdaySoon ? 'bg-accent/10 text-accent font-medium' : ''}`}>
-              <Cake className={`h-4 w-4 ${isBirthdaySoon ? 'text-accent' : 'text-muted-foreground'}`} />
-              <span>Birthday: {format(new Date(bdo.birthday), 'MMMM d')}</span>
-              {isBirthdaySoon && <Badge variant="default" className="ml-auto text-xs py-0 h-5">Upcoming</Badge>}
-            </div>
+            {bdo.birthday && (
+              <div className={`flex items-center gap-3 text-sm p-2 rounded-md ${isBirthdaySoon ? 'bg-accent/10 text-accent font-medium' : ''}`}>
+                <Cake className={`h-4 w-4 ${isBirthdaySoon ? 'text-accent' : 'text-muted-foreground'}`} />
+                <span>Birthday: {format(new Date(bdo.birthday), 'MMMM d')}</span>
+                {isBirthdaySoon && <Badge variant="default" className="ml-auto text-xs py-0 h-5">Upcoming</Badge>}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -120,7 +150,7 @@ export default function BdoProfile() {
                   ) : (
                     bdoLeads.map(lead => (
                       <TableRow key={lead.id}>
-                        <TableCell className="font-mono text-xs"><Link href={`/leads/${lead.id}`} className="text-primary hover:underline">{lead.id}</Link></TableCell>
+                        <TableCell className="font-mono text-xs"><Link href={`/leads/${lead.leadRef}`} className="text-primary hover:underline">{lead.leadRef}</Link></TableCell>
                         <TableCell className="font-medium">{lead.customerName}</TableCell>
                         <TableCell><Badge variant="outline">{lead.stage}</Badge></TableCell>
                         <TableCell>{lead.value > 0 ? formatCurrency(lead.value) : '-'}</TableCell>
@@ -139,31 +169,16 @@ export default function BdoProfile() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Project</TableHead>
+                    <TableHead>Invoice Ref</TableHead>
+                    <TableHead>Customer</TableHead>
                     <TableHead>Project Value</TableHead>
-                    <TableHead>Commission (3%)</TableHead>
+                    <TableHead>Commission</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {bdoCommissions.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No commissions recorded.</TableCell></TableRow>
-                  ) : (
-                    bdoCommissions.map(comm => (
-                      <TableRow key={comm.id}>
-                        <TableCell className="font-mono text-xs">{comm.id}</TableCell>
-                        <TableCell className="font-medium">{comm.customerName}</TableCell>
-                        <TableCell>{formatCurrency(comm.projectValue)}</TableCell>
-                        <TableCell className="font-bold">{formatCurrency(comm.amount)}</TableCell>
-                        <TableCell>
-                          <Badge className={comm.status === 'Paid' ? 'bg-green-600' : 'bg-amber-500'}>{comm.status}</Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">{format(new Date(comm.date), 'MMM d, yyyy')}</TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Commission data loaded from global ledger.</TableCell></TableRow>
                 </TableBody>
               </Table>
             </CardContent>

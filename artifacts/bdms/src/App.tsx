@@ -1,12 +1,14 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
-import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { Route, Switch, useLocation, Router as WouterRouter, Redirect } from 'wouter';
+import { Loader2 } from 'lucide-react';
 
 import { Shell } from '@/components/layout/Shell';
+import { useAuth } from '@/store/auth';
 
 // Pages
 import Login from '@/pages/login';
@@ -29,12 +31,21 @@ import Commission from '@/pages/commission';
 import Finance from '@/pages/finance';
 import Settings from '@/pages/settings';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
+});
 
 function Router() {
   const [location] = useLocation();
+  const { user, initialized, refresh } = useAuth();
 
-  if (location === '/apply' || location.startsWith('/apply')) {
+  useEffect(() => {
+    refresh();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Public — no auth, no shell
+  if (location.startsWith('/apply')) {
     return (
       <RoutedErrorBoundary>
         <Switch>
@@ -44,37 +55,55 @@ function Router() {
     );
   }
 
+  // Show spinner while session is being verified
+  if (!initialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Login page
+  if (location === '/login') {
+    return user ? <Redirect to="/" /> : <Login />;
+  }
+
+  // All other routes require auth
+  if (!user) {
+    return <Redirect to="/login" />;
+  }
+
   return (
     <RoutedErrorBoundary>
       <Shell>
         <Switch>
-          <Route path="/login" component={Login} />
           <Route path="/" component={Dashboard} />
-          
+
           <Route path="/bdo/applications" component={BdoApplications} />
           <Route path="/bdo/directory" component={BdoDirectory} />
           <Route path="/bdo/:id" component={BdoProfile} />
-          
+
           <Route path="/leads" component={Leads} />
           <Route path="/leads/:id" component={LeadDetail} />
-          
+
           <Route path="/customers" component={Customers} />
           <Route path="/customers/:id" component={CustomerProfile} />
-          
+
           <Route path="/engineering/queue" component={EngineeringQueue} />
           <Route path="/engineering/designs" component={EngineeringDesigns} />
           <Route path="/engineering/calculator" component={EngineeringCalculator} />
-          
+
           <Route path="/inventory" component={Inventory} />
-          
+
           <Route path="/invoicing" component={Invoices} />
           <Route path="/invoicing/:id" component={InvoiceDetail} />
-          
+
           <Route path="/commission" component={Commission} />
           <Route path="/finance" component={Finance} />
-          
+
           <Route path="/settings" component={Settings} />
-          
+
           <Route component={NotFound} />
         </Switch>
       </Shell>

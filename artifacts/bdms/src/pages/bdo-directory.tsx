@@ -1,20 +1,29 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { mockBdos, formatCurrency } from '@/data/mock';
-import { Search, Filter } from 'lucide-react';
+import { api } from '@/lib/api';
+import { formatCurrency } from '@/data/mock';
+import { Search, Filter, Loader2 } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function BdoDirectory() {
   const [search, setSearch] = useState('');
 
-  const filteredBdos = mockBdos.filter(bdo => 
-    bdo.name.toLowerCase().includes(search.toLowerCase()) || 
-    bdo.id.toLowerCase().includes(search.toLowerCase()) ||
-    bdo.location.toLowerCase().includes(search.toLowerCase())
+  const { data, isLoading } = useQuery({
+    queryKey: ['bdos'],
+    queryFn: () => api.bdos.list(),
+  });
+
+  const bdos = data?.bdos ?? [];
+
+  const filteredBdos = bdos.filter(bdo =>
+    bdo.name.toLowerCase().includes(search.toLowerCase()) ||
+    bdo.vbdoId.toLowerCase().includes(search.toLowerCase()) ||
+    (bdo.location ?? '').toLowerCase().includes(search.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -41,8 +50,8 @@ export default function BdoDirectory() {
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search by name, VBDO ID, or location..." 
+              <Input
+                placeholder="Search by name, VBDO ID, or location..."
                 className="pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -53,51 +62,57 @@ export default function BdoDirectory() {
             </Button>
           </div>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>VBDO ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total Leads</TableHead>
-                  <TableHead className="text-right">Project Value</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredBdos.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                      No BDOs found matching your search.
-                    </TableCell>
+                    <TableHead>VBDO ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Total Leads</TableHead>
+                    <TableHead className="text-right">Project Value</TableHead>
                   </TableRow>
-                ) : (
-                  filteredBdos.map(bdo => (
-                    <TableRow key={bdo.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
-                      <TableCell className="font-mono text-xs font-semibold text-primary">
-                        <Link href={`/bdo/${bdo.id}`}>{bdo.id}</Link>
+                </TableHeader>
+                <TableBody>
+                  {filteredBdos.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                        No BDOs found matching your search.
                       </TableCell>
-                      <TableCell>
-                        <Link href={`/bdo/${bdo.id}`} className="block">
-                          <div className="font-semibold">{bdo.name}</div>
-                          <div className="text-xs text-muted-foreground">{bdo.email}</div>
-                        </Link>
-                      </TableCell>
-                      <TableCell>{bdo.location}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={`hover:bg-transparent ${getStatusColor(bdo.status)}`}>
-                          {bdo.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">{bdo.leadsCount}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(bdo.totalValue)}</TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  ) : (
+                    filteredBdos.map(bdo => (
+                      <TableRow key={bdo.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
+                        <TableCell className="font-mono text-xs font-semibold text-primary">
+                          <Link href={`/bdo/${bdo.vbdoId}`}>{bdo.vbdoId}</Link>
+                        </TableCell>
+                        <TableCell>
+                          <Link href={`/bdo/${bdo.vbdoId}`} className="block">
+                            <div className="font-semibold">{bdo.name}</div>
+                            <div className="text-xs text-muted-foreground">{bdo.email}</div>
+                          </Link>
+                        </TableCell>
+                        <TableCell>{bdo.location}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className={`hover:bg-transparent ${getStatusColor(bdo.status)}`}>
+                            {bdo.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">{bdo.leadsCount}</TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(bdo.totalValue)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

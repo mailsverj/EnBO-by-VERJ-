@@ -72,6 +72,21 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    proxy: (() => {
+      // BASE_PATH may be "/" or "/bdms".  Requests arrive as
+      // `<BASE_PATH>/api/*`; we strip the prefix and forward to the API server.
+      const apiPrefix = basePath === '/' ? '/api' : `${basePath}/api`;
+      return {
+        [apiPrefix]: {
+          target: `http://localhost:${process.env.API_PORT ?? 8080}`,
+          changeOrigin: true,
+          secure: false,
+          rewrite: basePath === '/'
+            ? undefined
+            : (p: string) => p.replace(new RegExp(`^${basePath}`), ''),
+        },
+      };
+    })(),
   },
   preview: {
     port,

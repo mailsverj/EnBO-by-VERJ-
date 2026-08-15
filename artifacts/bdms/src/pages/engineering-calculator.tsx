@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, Calculator as CalcIcon, Save, AlertTriangle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { mockLeads, mockInventory } from '@/data/mock';
+import { api } from '@/lib/api';
 import { useAuth } from '@/store/auth';
 
 interface Appliance {
@@ -90,20 +91,24 @@ export default function EngineeringCalculator() {
     else break;
   }
 
-  const inverters = useMemo(() => mockInventory.filter(i => i.category === 'Inverter'), []);
-  const batteries = useMemo(() => mockInventory.filter(i => i.category === 'Battery'), []);
-  const panels = useMemo(() => mockInventory.filter(i => i.category === 'Solar Panel'), []);
+  const { data: inventoryData } = useQuery({ queryKey: ['inventory'], queryFn: () => api.inventory.list() });
+  const { data: leadsData } = useQuery({ queryKey: ['leads'], queryFn: () => api.leads.list() });
+  const allInventory = inventoryData?.inventory ?? [];
+  const allLeads = leadsData?.leads ?? [];
+  const inverters = useMemo(() => allInventory.filter(i => i.category === 'Inverter'), [allInventory]);
+  const batteries = useMemo(() => allInventory.filter(i => i.category === 'Battery'), [allInventory]);
+  const panels = useMemo(() => allInventory.filter(i => i.category === 'Solar Panel'), [allInventory]);
 
   const { autoInverter, autoBattery, defaultAutoBatteryQty, autoPanel, defaultAutoPanelQty } = useMemo(() => {
     const suitableInverters = inverters
-      .filter(i => (i.capacityKW ?? 0) >= requiredInverterKW && (i.capacityKW ?? 0) - requiredInverterKW <= 5)
-      .sort((a, b) => (a.capacityKW ?? 0) - (b.capacityKW ?? 0));
+      .filter(i => (i.capacityKw ?? 0) >= requiredInverterKW && (i.capacityKw ?? 0) - requiredInverterKW <= 5)
+      .sort((a, b) => (a.capacityKw ?? 0) - (b.capacityKw ?? 0));
     const autoInverter = suitableInverters[0] || null;
 
     const autoBattery = batteries
-      .filter(b => (b.capacityKWh ?? 0) >= batteryConfig.moduleKWh * 0.8)
-      .sort((a, b) => Math.abs((a.capacityKWh ?? 0) - batteryConfig.moduleKWh) - Math.abs((b.capacityKWh ?? 0) - batteryConfig.moduleKWh))[0]
-      || batteries.sort((a, b) => (b.capacityKWh ?? 0) - (a.capacityKWh ?? 0))[0];
+      .filter(b => (b.capacityKwh ?? 0) >= batteryConfig.moduleKWh * 0.8)
+      .sort((a, b) => Math.abs((a.capacityKwh ?? 0) - batteryConfig.moduleKWh) - Math.abs((b.capacityKwh ?? 0) - batteryConfig.moduleKWh))[0]
+      || batteries.sort((a, b) => (b.capacityKwh ?? 0) - (a.capacityKwh ?? 0))[0];
     const defaultAutoBatteryQty = batteryConfig.qty;
 
     const autoPanel = panels.sort((a, b) => (b.capacityW ?? 0) - (a.capacityW ?? 0))[0];
@@ -278,8 +283,8 @@ export default function EngineeringCalculator() {
                       <SelectValue placeholder="Choose a lead..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockLeads.filter(l => l.stage !== 'Won' && l.stage !== 'Lost / Nurture').map(lead => (
-                        <SelectItem key={lead.id} value={lead.id}>{lead.id} - {lead.customerName}</SelectItem>
+                      {allLeads.filter(l => l.stage !== 'Won' && l.stage !== 'Lost / Nurture').map(lead => (
+                        <SelectItem key={lead.leadRef} value={lead.leadRef}>{lead.leadRef} - {lead.customerName}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -353,7 +358,7 @@ export default function EngineeringCalculator() {
                         <div className="flex flex-col text-left">
                           <span className="font-medium">{inv.model} ({inv.brand})</span>
                           <span className="text-xs text-muted-foreground">{inv.specs}</span>
-                          {canSeePrices() && <span className="text-xs font-semibold mt-1">₦{inv.sellingPrice.toLocaleString()}</span>}
+                          {canSeePrices() && inv.sellingPrice != null && <span className="text-xs font-semibold mt-1">₦{inv.sellingPrice.toLocaleString()}</span>}
                         </div>
                       </SelectItem>
                     ))}
@@ -372,7 +377,7 @@ export default function EngineeringCalculator() {
                           <SelectItem key={bat.sku} value={bat.sku}>
                             <div className="flex flex-col text-left">
                               <span className="font-medium">{bat.model} ({bat.brand})</span>
-                              {canSeePrices() && <span className="text-xs font-semibold">₦{bat.sellingPrice.toLocaleString()}</span>}
+                              {canSeePrices() && bat.sellingPrice != null && <span className="text-xs font-semibold">₦{bat.sellingPrice.toLocaleString()}</span>}
                             </div>
                           </SelectItem>
                         ))}
@@ -394,7 +399,7 @@ export default function EngineeringCalculator() {
                           <SelectItem key={pan.sku} value={pan.sku}>
                             <div className="flex flex-col text-left">
                               <span className="font-medium">{pan.model} ({pan.brand})</span>
-                              {canSeePrices() && <span className="text-xs font-semibold">₦{pan.sellingPrice.toLocaleString()}</span>}
+                              {canSeePrices() && pan.sellingPrice != null && <span className="text-xs font-semibold">₦{pan.sellingPrice.toLocaleString()}</span>}
                             </div>
                           </SelectItem>
                         ))}

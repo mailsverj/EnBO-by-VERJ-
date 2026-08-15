@@ -1,28 +1,52 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { mockBdoApplications, mockUsers } from '@/data/mock';
 import { format } from 'date-fns';
-import { Eye, CheckCircle2, XCircle, RefreshCw, Power, Copy, ExternalLink, Link2, Settings2 } from 'lucide-react';
+import { Eye, CheckCircle2, XCircle, RefreshCw, Power, Copy, ExternalLink, Link2, Settings2, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { api, type Application } from '@/lib/api';
+
+const ENGINEER_OPTIONS = [
+  { id: '3', name: 'Chidi Nwosu', role: 'Lead Technical Officer' },
+];
 
 export default function BdoApplications() {
-  const [apps, setApps] = useState(mockBdoApplications);
-  const [selectedApp, setSelectedApp] = useState<typeof mockBdoApplications[0] | null>(null);
+  const { toast } = useToast();
+  const qc = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['applications'],
+    queryFn: () => api.applications.list(),
+  });
+  const apps = data?.applications ?? [];
+
+  const updateMut = useMutation({
+    mutationFn: ({ id, patch }: { id: number; patch: Partial<Application> }) =>
+      api.applications.update(id, patch),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['applications'] }),
+  });
+
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
   const [isActivateOpen, setIsActivateOpen] = useState(false);
-  const { toast } = useToast();
-
+  const [rejectReason, setRejectReason] = useState('');
+  const [resubmitNote, setResubmitNote] = useState('');
+  const [assignedEngineerId, setAssignedEngineerId] = useState('');
   const [formSettingsOpen, setFormSettingsOpen] = useState(false);
+
+  // Generated credentials for Activate dialog (kept stable while dialog is open)
+  const [genUsername] = useState(() => '');
+  const [genPassword] = useState(() => '');
 
   const defaultFormConfig = [
     { key: 'fullName', label: 'Full Name', step: 1, enabled: true, required: true },
@@ -66,22 +90,27 @@ export default function BdoApplications() {
     }
   };
 
-  const updateStatus = (id: string, status: string) => {
-    setApps(apps.map(a => a.id === id ? { ...a, status } : a));
+  const updateStatus = async (id: number, status: string, extra?: Partial<Application>) => {
+    await updateMut.mutateAsync({ id, patch: { status, ...extra } });
     setIsRejectOpen(false);
     setIsResubmitOpen(false);
     setIsActivateOpen(false);
+    setSelectedApp(null);
+    toast({ title: `Status updated to ${status}` });
   };
 
-  const handleActivate = () => {
-    if (selectedApp) {
-      updateStatus(selectedApp.id, 'Activated');
-      toast({
-        title: 'BDO Account Created',
-        description: `${selectedApp.name} has been successfully activated as a BDO.`,
-      });
-      setSelectedApp(null);
-    }
+  const handleActivate = async () => {
+    if (!selectedApp) return;
+    const firstName = selectedApp.fullName.split(' ')[0].toLowerCase();
+    const username = `vbdo.${firstName}.${Math.floor(Math.random() * 9000 + 1000)}`;
+    await updateStatus(selectedApp.id, 'Activated', {
+      generatedUsername: username,
+      assignedEngineerId: assignedEngineerId || undefined,
+    });
+    toast({
+      title: 'BDO Account Created',
+      description: `${selectedApp.fullName} has been activated as a BDO (${username}).`,
+    });
   };
 
   return (
@@ -103,82 +132,77 @@ export default function BdoApplications() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">ID</TableHead>
-                <TableHead>Applicant</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Applied Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {apps.map(app => (
-                <TableRow key={app.id}>
-                  <TableCell className="font-medium text-xs text-muted-foreground">{app.id}</TableCell>
-                  <TableCell>
-                    <div className="font-semibold">{app.name}</div>
-                    <div className="text-xs text-muted-foreground">{app.email}</div>
-                  </TableCell>
-                  <TableCell>{app.location}</TableCell>
-                  <TableCell>{format(new Date(app.date), 'MMM d, yyyy')}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={`${getStatusColor(app.status)}`}>
-                      {app.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => setSelectedApp(app)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[110px]">Ref</TableHead>
+                  <TableHead>Applicant</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Applied Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {apps.length === 0 && (
+                  <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">No applications yet.</TableCell></TableRow>
+                )}
+                {apps.map(app => (
+                  <TableRow key={app.id}>
+                    <TableCell className="font-medium text-xs text-muted-foreground">{app.refId}</TableCell>
+                    <TableCell>
+                      <div className="font-semibold">{app.fullName}</div>
+                      <div className="text-xs text-muted-foreground">{app.email}</div>
+                    </TableCell>
+                    <TableCell>{app.state}{app.lga ? `, ${app.lga}` : ''}</TableCell>
+                    <TableCell>{format(new Date(app.createdAt), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={getStatusColor(app.status)}>
+                        {app.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button variant="ghost" size="icon" onClick={() => setSelectedApp(app)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
+      {/* Application Details Dialog */}
       <Dialog open={!!selectedApp && !isRejectOpen && !isResubmitOpen && !isActivateOpen} onOpenChange={(o) => !o && setSelectedApp(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Application Details: {selectedApp?.name}</DialogTitle>
+            <DialogTitle>Application Details: {selectedApp?.fullName}</DialogTitle>
           </DialogHeader>
           {selectedApp && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="text-muted-foreground mb-1">Email</div>
-                  <div className="font-medium">{selectedApp.email}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground mb-1">Phone</div>
-                  <div className="font-medium">{selectedApp.phone}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground mb-1">Location</div>
-                  <div className="font-medium">{selectedApp.location}</div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground mb-1">Applied On</div>
-                  <div className="font-medium">{format(new Date(selectedApp.date), 'MMMM d, yyyy')}</div>
-                </div>
+                <div><div className="text-muted-foreground mb-1">Email</div><div className="font-medium">{selectedApp.email}</div></div>
+                <div><div className="text-muted-foreground mb-1">Phone</div><div className="font-medium">{selectedApp.phone}</div></div>
+                <div><div className="text-muted-foreground mb-1">Location</div><div className="font-medium">{selectedApp.state}{selectedApp.lga ? `, ${selectedApp.lga}` : ''}</div></div>
+                <div><div className="text-muted-foreground mb-1">Applied On</div><div className="font-medium">{format(new Date(selectedApp.createdAt), 'MMMM d, yyyy')}</div></div>
+                {selectedApp.nin && <div><div className="text-muted-foreground mb-1">NIN</div><div className="font-medium font-mono">{selectedApp.nin}</div></div>}
+                {selectedApp.bankName && <div><div className="text-muted-foreground mb-1">Bank</div><div className="font-medium">{selectedApp.bankName} — {selectedApp.accountNumber}</div></div>}
+                {selectedApp.guarantorName && <div><div className="text-muted-foreground mb-1">Guarantor</div><div className="font-medium">{selectedApp.guarantorName} ({selectedApp.guarantorRelationship})</div></div>}
+                {selectedApp.salesExperience && <div><div className="text-muted-foreground mb-1">Sales Experience</div><div className="font-medium">{selectedApp.salesExperience}</div></div>}
               </div>
-
-              <div>
-                <h4 className="font-semibold mb-3 border-b pb-2">KYC Documents</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="border rounded-md p-4 flex flex-col items-center justify-center bg-muted/30 aspect-video text-muted-foreground text-sm cursor-pointer hover:bg-muted/50 transition-colors">
-                    National ID
-                  </div>
-                  <div className="border rounded-md p-4 flex flex-col items-center justify-center bg-muted/30 aspect-video text-muted-foreground text-sm cursor-pointer hover:bg-muted/50 transition-colors">
-                    Utility Bill
-                  </div>
-                </div>
-              </div>
-
+              {selectedApp.statement && (
+                <div><div className="text-muted-foreground mb-1 text-sm">Statement</div><div className="text-sm border rounded-md p-3 bg-muted/30">{selectedApp.statement}</div></div>
+              )}
+              {selectedApp.adminNotes && (
+                <div><div className="text-muted-foreground mb-1 text-sm">Admin Notes</div><div className="text-sm border rounded-md p-3 bg-amber-50 text-amber-900">{selectedApp.adminNotes}</div></div>
+              )}
               <div className="flex justify-end gap-2 pt-4 border-t">
                 {selectedApp.status !== 'Rejected' && selectedApp.status !== 'Activated' && (
                   <Button variant="destructive" onClick={() => setIsRejectOpen(true)}>
@@ -191,9 +215,7 @@ export default function BdoApplications() {
                   </Button>
                 )}
                 {selectedApp.status === 'Submitted' && (
-                  <Button onClick={() => updateStatus(selectedApp.id, 'KYC Pending')}>
-                    Request KYC
-                  </Button>
+                  <Button onClick={() => updateStatus(selectedApp.id, 'KYC Pending')}>Request KYC</Button>
                 )}
                 {selectedApp.status === 'KYC Pending' && (
                   <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => updateStatus(selectedApp.id, 'Shortlisted')}>
@@ -211,59 +233,66 @@ export default function BdoApplications() {
         </DialogContent>
       </Dialog>
 
+      {/* Reject Dialog */}
       <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Reject Application</DialogTitle>
             <DialogDescription>Please provide a reason for rejecting this application.</DialogDescription>
           </DialogHeader>
-          <Textarea placeholder="Rejection reason..." />
+          <Textarea placeholder="Rejection reason..." value={rejectReason} onChange={e => setRejectReason(e.target.value)} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsRejectOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => selectedApp && updateStatus(selectedApp.id, 'Rejected')}>Confirm Rejection</Button>
+            <Button variant="destructive" onClick={() => selectedApp && updateStatus(selectedApp.id, 'Rejected', { adminNotes: rejectReason })}>
+              Confirm Rejection
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Resubmit Dialog */}
       <Dialog open={isResubmitOpen} onOpenChange={setIsResubmitOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Request Resubmission</DialogTitle>
             <DialogDescription>What needs to be fixed or resubmitted?</DialogDescription>
           </DialogHeader>
-          <Textarea placeholder="e.g. Utility bill is blurred..." />
+          <Textarea placeholder="e.g. Utility bill is blurred…" value={resubmitNote} onChange={e => setResubmitNote(e.target.value)} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsResubmitOpen(false)}>Cancel</Button>
-            <Button onClick={() => selectedApp && updateStatus(selectedApp.id, 'Submitted')}>Send Request</Button>
+            <Button onClick={() => selectedApp && updateStatus(selectedApp.id, 'Submitted', { adminNotes: resubmitNote })}>
+              Send Request
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Activate Dialog */}
       <Dialog open={isActivateOpen} onOpenChange={setIsActivateOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Activate BDO Account</DialogTitle>
-            <DialogDescription>Finalise account creation for {selectedApp?.name}.</DialogDescription>
+            <DialogDescription>Finalise account creation for {selectedApp?.fullName}.</DialogDescription>
           </DialogHeader>
           {selectedApp && (
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label>Generated Username</Label>
-                  <Input value={`vbdo.${selectedApp.name.split(' ')[0].toLowerCase()}.${Math.floor(Math.random() * 9000 + 1000)}`} readOnly className="bg-muted" />
+                  <Input value={genUsername || `vbdo.${selectedApp.fullName.split(' ')[0].toLowerCase()}.${Math.floor(Math.random() * 9000 + 1000)}`} readOnly className="bg-muted font-mono text-sm" />
                 </div>
                 <div className="space-y-1">
                   <Label>Temporary Password</Label>
-                  <Input value={`VERJ@${Math.floor(Math.random() * 900000 + 100000)}`} readOnly className="bg-muted" />
+                  <Input value={genPassword || 'VERJ@2026'} readOnly className="bg-muted font-mono text-sm" />
                 </div>
               </div>
               <div className="space-y-2 pt-2">
                 <Label>Assigned Engineer</Label>
-                <Select>
+                <Select value={assignedEngineerId} onValueChange={setAssignedEngineerId}>
                   <SelectTrigger><SelectValue placeholder="Select supervising engineer" /></SelectTrigger>
                   <SelectContent>
-                    {mockUsers.filter(u => u.roles.includes('Engineer') || u.roles.includes('Lead Technical Officer')).map(eng => (
-                      <SelectItem key={eng.id} value={eng.id}>{eng.name} ({eng.roles[0]})</SelectItem>
+                    {ENGINEER_OPTIONS.map(eng => (
+                      <SelectItem key={eng.id} value={eng.id}>{eng.name} ({eng.role})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -278,23 +307,26 @@ export default function BdoApplications() {
                   <Label htmlFor="notify-whatsapp" className="font-normal cursor-pointer">Send WhatsApp notification</Label>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground pt-2">This will create the BDO account and notify them via email and WhatsApp.</p>
+              <p className="text-xs text-muted-foreground pt-2">This will activate the BDO account.</p>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsActivateOpen(false)}>Cancel</Button>
-            <Button onClick={handleActivate} className="bg-green-600 hover:bg-green-700">Activate BDO</Button>
+            <Button onClick={handleActivate} className="bg-green-600 hover:bg-green-700" disabled={updateMut.isPending}>
+              {updateMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Activate BDO
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Form Settings Dialog */}
       <Dialog open={formSettingsOpen} onOpenChange={setFormSettingsOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Application Form Settings</DialogTitle>
-            <DialogDescription>Configure the BDO application form fields. Disabled fields won't appear to applicants.</DialogDescription>
+            <DialogDescription>Configure the BDO application form fields.</DialogDescription>
           </DialogHeader>
-          
           <div className="bg-muted rounded-lg p-3 flex items-center gap-3">
             <span className="text-sm text-muted-foreground flex-1 font-mono truncate">{window.location.origin}{import.meta.env.BASE_URL}apply</span>
             <Button size="sm" variant="outline" onClick={copyFormLink}>
@@ -306,7 +338,6 @@ export default function BdoApplications() {
               </a>
             </Button>
           </div>
-
           {[1, 2, 3].map(step => (
             <div key={step} className="space-y-2">
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
@@ -318,22 +349,15 @@ export default function BdoApplications() {
                     <span className="text-sm font-medium">{field.label}</span>
                     <div className="flex items-center gap-6">
                       <label className="flex items-center gap-2 text-sm cursor-pointer">
-                        <Checkbox
-                          checked={field.enabled}
-                          onCheckedChange={(checked) => setFormConfig(prev =>
-                            prev.map(f => f.key === field.key ? { ...f, enabled: !!checked, required: !!checked ? f.required : false } : f)
-                          )}
-                        />
+                        <Checkbox checked={field.enabled} onCheckedChange={(checked) => setFormConfig(prev =>
+                          prev.map(f => f.key === field.key ? { ...f, enabled: !!checked, required: !!checked ? f.required : false } : f)
+                        )} />
                         Show
                       </label>
                       <label className="flex items-center gap-2 text-sm cursor-pointer">
-                        <Checkbox
-                          checked={field.required}
-                          disabled={!field.enabled}
-                          onCheckedChange={(checked) => setFormConfig(prev =>
-                            prev.map(f => f.key === field.key ? { ...f, required: !!checked } : f)
-                          )}
-                        />
+                        <Checkbox checked={field.required} disabled={!field.enabled} onCheckedChange={(checked) => setFormConfig(prev =>
+                          prev.map(f => f.key === field.key ? { ...f, required: !!checked } : f)
+                        )} />
                         Required
                       </label>
                     </div>
@@ -342,10 +366,9 @@ export default function BdoApplications() {
               </div>
             </div>
           ))}
-
           <DialogFooter>
             <Button variant="outline" onClick={copyFormLink}><Link2 className="h-4 w-4 mr-2" /> Copy Link</Button>
-            <Button onClick={() => setFormSettingsOpen(false)}>Save Settings</Button>
+            <Button onClick={() => setFormSettingsOpen(false)}>Done</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

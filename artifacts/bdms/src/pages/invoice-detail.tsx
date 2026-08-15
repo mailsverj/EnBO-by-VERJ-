@@ -1,10 +1,12 @@
+import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { mockInvoices, mockCustomers, formatCurrency } from '@/data/mock';
+import { api } from '@/lib/api';
+import { formatCurrency } from '@/data/mock';
 import { format } from 'date-fns';
-import { ChevronRight, Download, Send, Edit, Sun, Building2, User, Mail, MapPin, Phone, CheckCircle2, XCircle } from 'lucide-react';
+import { ChevronRight, Download, Send, Edit, Sun, Building2, User, Mail, MapPin, Phone, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/store/auth';
@@ -13,12 +15,35 @@ import logoPath from '@assets/Copy_of_Modern_Cabinet_Furniture_Product_178675435
 export default function InvoiceDetail() {
   const { id } = useParams();
   const { canSeePrices, user } = useAuth();
-  const invoice = mockInvoices.find(i => i.id === id);
-  const customer = invoice ? mockCustomers.find(c => c.id === invoice.customerId) : null;
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['invoice', id],
+    queryFn: () => api.invoices.get(id!),
+    enabled: !!id,
+  });
+
+  const { data: customersData } = useQuery({
+    queryKey: ['customers'],
+    queryFn: () => api.customers.list(),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const invoice = data?.invoice;
+  const customers = customersData?.customers ?? [];
+  const customer = invoice ? customers.find(c => c.cidRef === invoice.customerId) : null;
 
   if (!invoice) return <div className="p-8 text-center text-muted-foreground">Invoice not found</div>;
 
-  const solarPlanItems = [
+  const lineItems = Array.isArray(invoice.lineItems) ? invoice.lineItems as Array<{ desc: string; qty: number; unitPrice: number; category: string }> : [];
+
+  const solarPlanItems = lineItems.length > 0 ? lineItems : [
     { desc: 'Jinko Tiger Pro 550W Solar Panels', qty: 20, unitPrice: 150000, category: 'panel' },
     { desc: 'Felicity 5kWh 48V Lithium Battery', qty: 4, unitPrice: 1150000, category: 'battery' },
     { desc: 'Deye 12kW Hybrid Inverter', qty: 1, unitPrice: 1450000, category: 'inverter' },
@@ -28,9 +53,9 @@ export default function InvoiceDetail() {
     { desc: 'Installation Service', qty: 1, unitPrice: 850000, category: 'installation' },
   ];
 
-  const subtotal = solarPlanItems.reduce((acc, item) => acc + (item.qty * item.unitPrice), 0);
+  const subtotal = invoice.subtotal || solarPlanItems.reduce((acc, item) => acc + (item.qty * item.unitPrice), 0);
   const vat = subtotal * 0.075;
-  const total = subtotal + vat;
+  const total = invoice.total || subtotal + vat;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl mx-auto">
@@ -38,7 +63,7 @@ export default function InvoiceDetail() {
         <div className="flex items-center text-sm text-muted-foreground">
           <Link href="/invoicing" className="hover:text-primary">Invoices</Link>
           <ChevronRight className="h-4 w-4 mx-1" />
-          <span className="text-foreground font-medium">{invoice.id}</span>
+          <span className="text-foreground font-medium">{invoice.invoiceRef}</span>
         </div>
         <div className="flex gap-2">
           {invoice.status === 'Pending Approval' && canSeePrices() && (
@@ -48,7 +73,7 @@ export default function InvoiceDetail() {
             </>
           )}
           <Button variant="outline"><Edit className="h-4 w-4 mr-2" /> Edit</Button>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline"><Send className="h-4 w-4 mr-2" /> Share</Button>
@@ -59,7 +84,7 @@ export default function InvoiceDetail() {
               <DropdownMenuItem>Share to Customer Only</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           <Button><Download className="h-4 w-4 mr-2" /> Download PDF</Button>
         </div>
       </div>
@@ -83,20 +108,22 @@ export default function InvoiceDetail() {
               <div className="text-sm space-y-2">
                 <div className="flex justify-end items-center gap-4">
                   <span className="text-muted-foreground">Invoice No:</span>
-                  <span className="font-mono font-bold text-base">{invoice.id}</span>
+                  <span className="font-mono font-bold text-base">{invoice.invoiceRef}</span>
                 </div>
                 <div className="flex justify-end items-center gap-4">
                   <span className="text-muted-foreground">Date:</span>
-                  <span className="font-medium">{format(new Date(invoice.date), 'MMM d, yyyy')}</span>
+                  <span className="font-medium">{format(new Date(invoice.createdAt), 'MMM d, yyyy')}</span>
                 </div>
-                <div className="flex justify-end items-center gap-4">
-                  <span className="text-muted-foreground">Due Date:</span>
-                  <span className="font-medium">{format(new Date(invoice.dueDate), 'MMM d, yyyy')}</span>
-                </div>
+                {invoice.dueDate && (
+                  <div className="flex justify-end items-center gap-4">
+                    <span className="text-muted-foreground">Due Date:</span>
+                    <span className="font-medium">{format(new Date(invoice.dueDate), 'MMM d, yyyy')}</span>
+                  </div>
+                )}
               </div>
               <div className="mt-4 flex flex-col items-end gap-2">
                 <Badge className={invoice.status === 'Paid' ? 'bg-green-600' : 'bg-amber-600'} variant="default">{invoice.status}</Badge>
-                {invoice.approvedBy && <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">Approved</Badge>}
+                {invoice.approvedById && <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">Approved</Badge>}
               </div>
             </div>
           </div>
@@ -108,10 +135,10 @@ export default function InvoiceDetail() {
               <div className="text-sm text-muted-foreground mt-1 space-y-1">
                 {customer ? (
                   <>
-                    <div className="font-mono text-xs mb-2">ID: {customer.id}</div>
-                    <div className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {customer.location}</div>
-                    <div className="flex items-center gap-1.5"><Phone className="h-3 w-3" /> {customer.phone}</div>
-                    <div className="flex items-center gap-1.5"><Mail className="h-3 w-3" /> {customer.email}</div>
+                    <div className="font-mono text-xs mb-2">ID: {customer.cidRef}</div>
+                    {customer.location && <div className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {customer.location}</div>}
+                    {customer.phone && <div className="flex items-center gap-1.5"><Phone className="h-3 w-3" /> {customer.phone}</div>}
+                    {customer.email && <div className="flex items-center gap-1.5"><Mail className="h-3 w-3" /> {customer.email}</div>}
                   </>
                 ) : (
                   <div>Customer details unavailable.</div>
@@ -120,14 +147,16 @@ export default function InvoiceDetail() {
             </div>
             <div className="text-right">
               <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">Source BDO:</h3>
-              <Link href={`/bdo/${invoice.sourceBdo}`} className="font-mono font-bold text-primary hover:underline inline-block">{invoice.sourceBdo}</Link>
-              <div className="text-xs text-muted-foreground mt-1">Lead ID: {invoice.leadId}</div>
+              <Link href={`/bdo/${invoice.sourceBdoId}`} className="font-mono font-bold text-primary hover:underline inline-block">{invoice.sourceBdoId}</Link>
+              {invoice.leadRef && <div className="text-xs text-muted-foreground mt-1">Lead ID: {invoice.leadRef}</div>}
             </div>
           </div>
 
-          <div className="mb-4">
-            <h3 className="font-semibold text-lg">{invoice.planName}</h3>
-          </div>
+          {invoice.planName && (
+            <div className="mb-4">
+              <h3 className="font-semibold text-lg">{invoice.planName}</h3>
+            </div>
+          )}
 
           <Table>
             <TableHeader>
@@ -169,10 +198,10 @@ export default function InvoiceDetail() {
               </div>
             </div>
           </div>
-          
+
           <div className="pt-6 text-xs text-muted-foreground flex justify-between items-center">
             <div>Created by: System Auto-Gen</div>
-            <div>{invoice.approvedBy && `Approved by: ${invoice.approvedBy} | `}{invoice.issuedAt && `Issued: ${format(new Date(invoice.issuedAt), 'MMM d, yyyy')}`}</div>
+            <div>{invoice.approvedByName && `Approved by: ${invoice.approvedByName} | `}{invoice.issuedAt && `Issued: ${format(new Date(invoice.issuedAt), 'MMM d, yyyy')}`}</div>
           </div>
         </CardContent>
         <div className="bg-muted/30 p-8 border-t text-sm text-muted-foreground text-center">
