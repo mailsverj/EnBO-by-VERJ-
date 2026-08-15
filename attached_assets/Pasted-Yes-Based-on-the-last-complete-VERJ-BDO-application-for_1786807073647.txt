@@ -1,0 +1,141 @@
+Yes. Based on the last complete VERJ BDO application form you shared, here is the consolidated field list, with the new banking fields added.
+
+VERJ BuDOM — BDO Application Form
+
+1. Personal Information
+
+1. Name
+2. Title
+3. Date of Birth
+4. Residential Address
+5. Phone
+6. WhatsApp Number
+7. Email Address
+
+2. Business / Operating Information
+
+8. Which area(s) would you be covering?
+9. Do you have a shop/office space where you’ll be operating from?
+10. Shop/Office Address
+11. What is the shop/office currently being used for?
+12. Would you like to get a VERJ SOLAR flex/sticker to display there?
+
+3. Employment & Experience
+
+13. Current Occupation
+14. Name of Employer / Your Business Name (if self-employed)
+15. If you answered yes to the last question, what did you sell?
+16. Any Experience in Sales/Marketing
+17. Highest Educational Qualification
+
+4. Application Source
+
+18. How did you hear about this opportunity?
+
+5. KYC / Identity Verification
+
+19. Upload a Passport Photograph / Take a Selfie
+20. Upload Government-Issued ID
+21. Declaration
+
+Declaration text:
+
+I confirm that all information provided is true, accurate, and complete to the best of my knowledge. I understand that false information may have negative consequences.
+
+6. Banking Information — NEW
+
+22. Bank Name
+23. Bank Account Number
+24. Account Name
+
+These should be treated as sensitive BDO payment information.
+
+Banking edit rule
+
+The BDO should not be able to freely edit these fields after onboarding.
+
+Instead:
+
+* BDO can initially provide the details during application/onboarding.
+* Once onboarded, the banking fields become read-only to the BDO.
+* If the BDO needs to change them, they must request an update.
+* Chief Admin must explicitly unlock/promote the banking fields for editing.
+* Once Chief Admin enables the edit permission, the BDO can update the details.
+* After submission, the fields automatically return to read-only.
+* Every change should be recorded in the BuDOM Audit Trail.
+
+Example:
+
+Bank Account Change Request
+
+Current Bank: Access Bank
+Current Account: ****1234
+Requested New Bank: GTBank
+Requested Account: ****5678
+Requested by: VBDO-017
+Status: Pending Chief Admin Approval
+
+Chief Admin:
+
+[Allow Banking Details Edit]
+
+After the BDO changes the information:
+
+Banking details updated by VBDO-017
+Approved/Unlocked by: Chief Admin
+Date & Time: 15 Aug 2026
+Previous details: [protected]
+New details: [protected]
+
+This is particularly important because the banking information will eventually be connected to commission payments.
+
+⸻
+
+7. Official / System-Controlled Fields
+
+These should not be normal applicant-entered fields:
+
+25. Application Status
+26. DBO/BDO Status
+27. VBDO ID
+28. KYC Status
+29. KYC Resubmission — if retained
+30. Application Date
+31. Assessment Status
+32. Certification Status
+33. Assigned Engineer
+34. Onboarding Date
+
+The system/admin controls these fields.
+
+Recommended application-status progression
+
+Submitted → KYC Pending → Shortlisted → Assessment → Certified / Rejected
+
+Then, after certification:
+
+BDO Status: Inactive → Active
+
+When Chief Admin activates the BDO, BuDOM triggers the agreed onboarding process — credentials, login information and portal access.
+
+⸻
+
+Final structure
+
+So the form essentially has six applicant-facing sections:
+
+Personal Information
+↓
+Business / Operating Information
+↓
+Employment & Experience
+↓
+Application Source
+↓
+KYC & Declaration
+↓
+Banking Information
+
+And then a separate Official Use Only section containing the administrative/system fields.
+
+That keeps the application itself reasonably clean while ensuring the banking information is captured from day one and can later feed directly into BuDOM’s commission and accounting system.

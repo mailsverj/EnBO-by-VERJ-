@@ -6,9 +6,11 @@ export const bdoApplicationsTable = pgTable("bdo_applications", {
   id: serial("id").primaryKey(),
   refId: text("ref_id").notNull().unique(), // e.g. APP-001
   // Step 1 — Personal
+  title: text("title"),
   fullName: text("full_name").notNull(),
   email: text("email").notNull(),
   phone: text("phone").notNull(),
+  whatsappNumber: text("whatsapp_number"),
   gender: text("gender"),
   dob: text("dob"),
   state: text("state"),
@@ -28,7 +30,16 @@ export const bdoApplicationsTable = pgTable("bdo_applications", {
   guarantorPhone: text("guarantor_phone"),
   guarantorRelationship: text("guarantor_relationship"),
   guarantorAddress: text("guarantor_address"),
-  // Step 3 — Experience
+  // Step 2 — Business & Operating
+  coverageAreas: text("coverage_areas"),
+  hasOffice: text("has_office"),
+  officeAddress: text("office_address"),
+  officeCurrentUse: text("office_current_use"),
+  wantsVerjSticker: text("wants_verj_sticker"),
+  employerName: text("employer_name"),
+  hasSalesExperience: text("has_sales_experience"),
+  previousSalesDetail: text("previous_sales_detail"),
+  // Step 3 — KYC & Declaration
   referralSource: text("referral_source"),
   salesExperience: text("sales_experience"),
   statement: text("statement"),

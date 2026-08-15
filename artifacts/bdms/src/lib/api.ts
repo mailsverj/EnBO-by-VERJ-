@@ -120,30 +120,45 @@ export interface SafeUser {
 export interface Application {
   id: number;
   refId: string;
+  // Step 1
+  title: string | null;
   fullName: string;
   email: string;
   phone: string;
-  gender: string | null;
+  whatsappNumber: string | null;
   dob: string | null;
-  state: string | null;
-  lga: string | null;
   address: string | null;
-  education: string | null;
+  // Step 2
+  coverageAreas: string | null;
+  hasOffice: string | null;
+  officeAddress: string | null;
+  officeCurrentUse: string | null;
+  wantsVerjSticker: string | null;
   occupation: string | null;
+  employerName: string | null;
+  education: string | null;
+  hasSalesExperience: string | null;
+  previousSalesDetail: string | null;
+  salesExperience: string | null;
+  // Step 3
+  referralSource: string | null;
   photoUrl: string | null;
   idDocumentUrl: string | null;
-  nin: string | null;
-  bvn: string | null;
+  statement: string | null;
+  // Step 4
   bankName: string | null;
   accountNumber: string | null;
   accountName: string | null;
+  // Legacy fields (kept for existing records)
+  gender: string | null;
+  state: string | null;
+  lga: string | null;
+  nin: string | null;
+  bvn: string | null;
   guarantorName: string | null;
   guarantorPhone: string | null;
   guarantorRelationship: string | null;
   guarantorAddress: string | null;
-  referralSource: string | null;
-  salesExperience: string | null;
-  statement: string | null;
   kycStatus: string;
   assessmentStatus: string;
   assessmentScore: number | null;
