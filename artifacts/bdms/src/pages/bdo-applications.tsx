@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format } from 'date-fns';
 import {
   Eye, CheckCircle2, XCircle, RefreshCw, Power, Copy, ExternalLink,
-  Link2, Settings2, Loader2, Shield, ClipboardList, User, AlertTriangle
+  Link2, Settings2, Loader2, Shield, ClipboardList, User, AlertTriangle,
+  FileText, CreditCard, LockKeyhole, Award
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -268,7 +269,22 @@ export default function BdoApplications() {
                 {selectedApp.occupation && <div><div className="text-muted-foreground mb-0.5 text-xs">Occupation</div><div className="font-medium">{selectedApp.occupation}</div></div>}
                 {selectedApp.salesExperience && <div><div className="text-muted-foreground mb-0.5 text-xs">Sales Experience</div><div className="font-medium">{selectedApp.salesExperience}</div></div>}
                 {selectedApp.nin && <div><div className="text-muted-foreground mb-0.5 text-xs">NIN</div><div className="font-medium font-mono">{selectedApp.nin}</div></div>}
-                {selectedApp.bankName && <div className="col-span-2"><div className="text-muted-foreground mb-0.5 text-xs">Banking</div><div className="font-medium">{selectedApp.bankName} — {selectedApp.accountNumber} ({selectedApp.accountName})</div></div>}
+                {selectedApp.bankName && (
+                  <div className="col-span-2">
+                    <div className="text-muted-foreground mb-0.5 text-xs flex items-center gap-1.5">
+                      Banking
+                      {selectedApp.status === 'Activated' && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+                          <LockKeyhole className="h-2.5 w-2.5" /> Locked
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-medium">{selectedApp.bankName} — {selectedApp.accountNumber} ({selectedApp.accountName})</div>
+                    {selectedApp.status === 'Activated' && (
+                      <div className="text-xs text-muted-foreground mt-0.5">Banking details are read-only after activation. Contact Finance to request a change.</div>
+                    )}
+                  </div>
+                )}
                 {selectedApp.guarantorName && <div className="col-span-2"><div className="text-muted-foreground mb-0.5 text-xs">Guarantor</div><div className="font-medium">{selectedApp.guarantorName} ({selectedApp.guarantorRelationship}) · {selectedApp.guarantorPhone}</div></div>}
               </div>
 
@@ -308,12 +324,45 @@ export default function BdoApplications() {
                 </div>
               )}
 
-              {/* Activated credentials */}
+              {/* Activated credentials + Documents */}
               {selectedApp.status === 'Activated' && selectedApp.generatedUsername && (
-                <div className="border rounded-lg p-3 bg-green-50 border-green-200 space-y-1">
-                  <div className="text-xs font-semibold text-green-800 uppercase tracking-wider">BDO Account Active</div>
-                  <div className="text-sm text-green-700">VBDO ID: <span className="font-mono font-bold">{selectedApp.generatedUsername}</span></div>
-                  <div className="text-xs text-green-600">Activated {selectedApp.activatedAt ? format(new Date(selectedApp.activatedAt), 'MMM d, yyyy') : ''}</div>
+                <div className="space-y-3">
+                  <div className="border rounded-lg p-3 bg-green-50 border-green-200 space-y-1">
+                    <div className="text-xs font-semibold text-green-800 uppercase tracking-wider">BDO Account Active</div>
+                    <div className="text-sm text-green-700">VBDO ID: <span className="font-mono font-bold">{selectedApp.generatedUsername}</span></div>
+                    <div className="text-xs text-green-600">Activated {selectedApp.activatedAt ? format(new Date(selectedApp.activatedAt), 'MMM d, yyyy') : ''}</div>
+                  </div>
+                  {/* Official Documents */}
+                  <div className="border rounded-lg p-3 bg-muted/30 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Award className="h-3.5 w-3.5" /> Official Documents
+                    </div>
+                    <p className="text-xs text-muted-foreground">Click to open in a new tab, then use your browser's Print → Save as PDF.</p>
+                    <div className="flex gap-2 flex-wrap">
+                      <a
+                        href={api.applications.certificateUrl(selectedApp.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-border bg-white hover:bg-muted/50 rounded-md px-3 py-1.5 transition-colors">
+                          <FileText className="h-3.5 w-3.5 text-primary" />
+                          Certificate of Appointment
+                          <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                      </a>
+                      <a
+                        href={api.applications.workIdUrl(selectedApp.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-border bg-white hover:bg-muted/50 rounded-md px-3 py-1.5 transition-colors">
+                          <CreditCard className="h-3.5 w-3.5 text-primary" />
+                          VERJ Work ID Card
+                          <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                      </a>
+                    </div>
+                  </div>
                 </div>
               )}
 

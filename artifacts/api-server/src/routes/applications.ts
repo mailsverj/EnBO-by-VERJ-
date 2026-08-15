@@ -72,8 +72,27 @@ router.get("/applications/:id", requireAuth, requireRoles("Chief Admin", "Super 
 // Admin: update application (general patch)
 router.patch("/applications/:id", requireAuth, requireRoles("Chief Admin", "Super Admin", "Recruitment/Admin", "Management"), async (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const { status, adminNotes, assignedEngineerId, generatedUsername } = req.body as Record<string, string>;
+  const body = req.body as Record<string, string>;
 
+  // Fetch current application to check activation status
+  const [current] = await db.select({ status: bdoApplicationsTable.status })
+    .from(bdoApplicationsTable).where(eq(bdoApplicationsTable.id, id)).limit(1);
+  if (!current) { res.status(404).json({ error: "Not found" }); return; }
+
+  // Protect banking fields once activated
+  const BANKING_FIELDS = ["bankName", "accountNumber", "accountName"];
+  if (current.status === "Activated") {
+    const attempted = BANKING_FIELDS.filter(f => body[f] !== undefined);
+    if (attempted.length > 0) {
+      res.status(403).json({
+        error: "Banking details are locked after activation and cannot be changed. Contact the Finance team to request an update.",
+        lockedFields: attempted,
+      });
+      return;
+    }
+  }
+
+  const { status, adminNotes, assignedEngineerId, generatedUsername } = body;
   const updateData: Partial<typeof bdoApplicationsTable.$inferInsert> = { updatedAt: new Date() };
   if (status) updateData.status = status;
   if (adminNotes !== undefined) updateData.adminNotes = adminNotes;

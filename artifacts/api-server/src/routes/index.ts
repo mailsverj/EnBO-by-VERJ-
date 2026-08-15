@@ -14,6 +14,7 @@ import expensesRouter from "./expenses.js";
 import financeRouter from "./finance.js";
 import assessmentRouter from "./assessment.js";
 import broadcastsRouter from "./broadcasts.js";
+import documentsRouter from "./documents.js";
 
 
 const router: IRouter = Router();
@@ -33,5 +34,6 @@ router.use(commissionsRouter);
 router.use(expensesRouter);
 router.use(financeRouter);
 router.use(broadcastsRouter);
+router.use(documentsRouter);
 
 export default router;

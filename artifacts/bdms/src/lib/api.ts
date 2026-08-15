@@ -39,6 +39,8 @@ export const api = {
       request<{ application: Application; credentials: { vbdoId: string; username: string; defaultPassword: string; email: string } }>(`/applications/${id}/activate`, { method: "PATCH", body: JSON.stringify({}) }),
     reject: (id: number, reason?: string) =>
       request<{ application: Application }>(`/applications/${id}/reject`, { method: "PATCH", body: JSON.stringify({ reason }) }),
+    certificateUrl: (id: number) => `${BASE}/api/documents/certificate/${id}`,
+    workIdUrl: (id: number) => `${BASE}/api/documents/work-id/${id}`,
   },
   broadcasts: {
     list: () => request<{ broadcasts: Broadcast[] }>("/broadcasts"),
