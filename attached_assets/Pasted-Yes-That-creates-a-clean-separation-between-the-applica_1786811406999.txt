@@ -1,0 +1,203 @@
+Yes. That creates a clean separation between the applicant onboarding account and the official BDO account.
+
+Updated BuDOM Application → Activation Workflow
+
+1. Application Submitted
+
+Applicant completes the BDO application.
+
+Status: Submitted
+
+⸻
+
+2. KYC Review
+
+VERJ Admin manually reviews the selfie/passport and government ID.
+
+Status: KYC Pending → KYC Verified
+
+If corrections are required:
+
+KYC Resubmission Required
+
+⸻
+
+3. Admin Clicks SHORTLIST
+
+When Admin clicks Shortlist:
+
+* Application status → Shortlisted
+* Applicant receives an onboarding message via Email + WhatsApp
+* Message contains one onboarding portal link
+* Applicant receives/uses onboarding credentials to access the portal
+* The applicant can access:
+    * Train Online
+    * Download Workbook
+    * Take Assessment
+
+Important:
+
+The Onboarding Portal account remains active only for the assessment/onboarding process.
+
+⸻
+
+4. Applicant Takes Assessment
+
+Maximum:
+
+2 attempts
+
+Pass on either attempt → Assessment Passed
+
+Fail attempt 1 → Attempt 2 available
+
+Fail attempt 2 →
+
+* Assessment locked
+* Applicant logged out
+* Onboarding access deactivated
+* Farewell message displayed
+* Applicant is advised to contact VERJ SOLAR if they wish to request another opportunity
+
+Chief Admin can override the two-attempt restriction if VERJ decides to give the applicant another chance.
+
+⸻
+
+5. Chief Admin Activates BDO
+
+After the applicant passes, Chief Admin reviews the record and clicks:
+
+ACTIVATE BDO
+
+This becomes the decisive transition from Applicant to BDO.
+
+BuDOM automatically:
+
+* Changes status to Active
+* Generates/confirms VBDO ID
+* Deactivates the applicant’s onboarding portal account
+* Invalidates the onboarding login credentials
+* Generates the new BDO login credentials
+* Creates/activates the official BDO portal account
+* Generates the BDO certificate
+* Generates the VERJ work ID
+* Applies the VERJ MD’s signature to both
+* Sets the issuance date to the activation date
+* Makes the certificate and ID downloadable from the BDO profile
+
+⸻
+
+6. New BDO Login Details
+
+The newly activated BDO receives a new login message via Email + WhatsApp.
+
+It contains:
+
+* BuDOM BDO Portal link
+* New username
+* New/default password
+* VBDO ID
+* Basic login instructions
+
+The applicant’s old onboarding credentials must not work after activation.
+
+They now access:
+
+BuDOM by VERJ — BDO Portal
+
+⸻
+
+7. BDO Profile Documents
+
+The BDO profile contains:
+
+VBDO ID: VBDO-017
+Status: Active
+Date Activated: 15 Aug 2026
+
+Documents
+
+* Download Certificate
+* Download VERJ Work ID
+
+Both documents automatically carry the VERJ MD’s signature and:
+
+Date of Issue: 15 Aug 2026
+
+⸻
+
+Final Lifecycle
+
+Application
+
+↓
+Submitted
+
+↓
+KYC Pending
+
+↓
+KYC Verified
+
+↓
+
+SHORTLISTED
+
+↓
+Onboarding Portal Activated
+
+↓
+Applicant receives ONE portal link
+
+↓
+Login
+
+↓
+Train Online / Download Workbook / Assessment
+
+↓
+Assessment — Attempt 1
+
+↓
+Pass → Continue
+
+Fail → Attempt 2
+
+↓
+Pass → Continue
+
+Fail → Locked + Logout + Farewell
+
+↓
+
+CHIEF ADMIN CLICKS ACTIVATE
+
+↓
+Onboarding Account Deactivated
+
+↓
+Old Credentials Invalidated
+
+↓
+VBDO ID + New BDO Account Created
+
+↓
+New BDO Login Credentials Sent
+
+↓
+Certificate + Work ID Generated
+
+↓
+MD Signature Applied
+
+↓
+Issuance Date = Activation Date
+
+↓
+
+ACTIVE BDO
+
+↓
+BuDOM BDO Portal
+
+This gives BuDOM a very clear security boundary: the onboarding account is temporary; the BDO account is the permanent operational account.

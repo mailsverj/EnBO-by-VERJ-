@@ -31,6 +31,9 @@ import InvoiceDetail from '@/pages/invoice-detail';
 import Commission from '@/pages/commission';
 import Finance from '@/pages/finance';
 import Settings from '@/pages/settings';
+import Training from '@/pages/training';
+import TrainingWorkbook from '@/pages/training-workbook';
+import Broadcasts from '@/pages/broadcasts';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -46,12 +49,14 @@ function Router() {
   }, []);
 
   // Public — no auth, no shell
-  if (location.startsWith('/apply') || location.startsWith('/assessment')) {
+  if (location.startsWith('/apply') || location.startsWith('/assessment') || location.startsWith('/training')) {
     return (
       <RoutedErrorBoundary>
         <Switch>
           <Route path="/apply" component={BdoApply} />
           <Route path="/assessment" component={Assessment} />
+          <Route path="/training/workbook" component={TrainingWorkbook} />
+          <Route path="/training" component={Training} />
         </Switch>
       </RoutedErrorBoundary>
     );
@@ -105,6 +110,7 @@ function Router() {
           <Route path="/finance" component={Finance} />
 
           <Route path="/settings" component={Settings} />
+          <Route path="/broadcasts" component={Broadcasts} />
 
           <Route component={NotFound} />
         </Switch>

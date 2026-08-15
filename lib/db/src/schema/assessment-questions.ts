@@ -7,6 +7,7 @@ export const assessmentQuestionsTable = pgTable("assessment_questions", {
   options: jsonb("options").notNull().$type<{ label: string; value: string }[]>(),
   correctOption: text("correct_option").notNull(),
   points: integer("points").notNull().default(1),
+  marks: integer("marks").notNull().default(3),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });

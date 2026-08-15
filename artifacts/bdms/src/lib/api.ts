@@ -40,6 +40,18 @@ export const api = {
     reject: (id: number, reason?: string) =>
       request<{ application: Application }>(`/applications/${id}/reject`, { method: "PATCH", body: JSON.stringify({ reason }) }),
   },
+  broadcasts: {
+    list: () => request<{ broadcasts: Broadcast[] }>("/broadcasts"),
+    unreadCount: () => request<{ unread: number }>("/broadcasts/unread-count"),
+    send: (data: { title: string; message: string; targetRoles: string }) =>
+      request<{ ok: boolean; broadcast: Broadcast }>("/broadcasts", { method: "POST", body: JSON.stringify(data) }),
+    markRead: (id: number) =>
+      request<{ ok: boolean }>(`/broadcasts/${id}/read`, { method: "PATCH", body: JSON.stringify({}) }),
+    markAllRead: () =>
+      request<{ ok: boolean }>("/broadcasts/read-all", { method: "PATCH", body: JSON.stringify({}) }),
+    delete: (id: number) =>
+      request<{ ok: boolean }>(`/broadcasts/${id}`, { method: "DELETE" }),
+  },
   bdos: {
     list: () => request<{ bdos: Bdo[] }>("/bdos"),
     get: (vbdoId: string) => request<{ bdo: Bdo }>(`/bdos/${vbdoId}`),
@@ -383,4 +395,14 @@ export interface FinanceSummary {
   paidInvoiceCount: number;
   recentInvoices: Invoice[];
   recentExpenses: Expense[];
+}
+
+export interface Broadcast {
+  id: number;
+  title: string;
+  message: string;
+  targetRoles: string;
+  sentByName: string | null;
+  createdAt: string;
+  readAt: string | null;
 }

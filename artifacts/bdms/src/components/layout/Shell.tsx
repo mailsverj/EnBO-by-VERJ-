@@ -1,18 +1,29 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/store/auth';
+import { useQuery } from '@tanstack/react-query';
 import {
   LayoutDashboard, Users, FileText, UserSquare2,
   Settings, LogOut, Briefcase, FileSpreadsheet,
-  Calculator, Banknote, ShieldCheck, HardHat, FileDigit, Loader2
+  Calculator, Banknote, ShieldCheck, HardHat, FileDigit, Loader2,
+  BookOpen, Megaphone
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import logoPath from '@assets/Copy_of_Modern_Cabinet_Furniture_Product_1786754353697.png';
+import { api } from '@/lib/api';
 
 export function Sidebar() {
   const [location, navigate] = useLocation();
   const { user, logout } = useAuth();
+
+  const { data: unreadData } = useQuery({
+    queryKey: ['broadcasts', 'unread-count'],
+    queryFn: () => api.broadcasts.unreadCount(),
+    refetchInterval: 60_000,
+    enabled: !!user,
+  });
+  const unreadCount = unreadData?.unread ?? 0;
 
   if (!user) return null;
 
@@ -40,6 +51,10 @@ export function Sidebar() {
     { path: '/invoicing', icon: FileSpreadsheet, label: 'Invoices', group: 'Finance', roles: ['Super Admin', 'Chief Admin', 'Finance', 'Management', 'Sales Admin', 'Sales'] },
     { path: '/commission', icon: Banknote, label: 'Commission Ledger', group: 'Finance', roles: ['Super Admin', 'Chief Admin', 'Finance', 'Management', 'BDO', 'Sales'] },
     { path: '/finance', icon: ShieldCheck, label: 'Accounting', group: 'Finance', roles: ['Super Admin', 'Chief Admin', 'Finance', 'Management', 'Sales'] },
+
+    // Training & Comms
+    { path: '/training', icon: BookOpen, label: 'Training Portal', group: 'Training & Comms', roles: ['Super Admin', 'Chief Admin', 'Recruitment/Admin', 'Management', 'BDO', 'Technical Officer', 'Lead Technical Officer', 'Engineer', 'Sales Admin', 'Finance'] },
+    { path: '/broadcasts', icon: Megaphone, label: 'Broadcasts', group: 'Training & Comms', roles: ['Super Admin', 'Chief Admin', 'Recruitment/Admin', 'Management', 'BDO', 'Technical Officer', 'Lead Technical Officer', 'Engineer', 'Sales Admin', 'Finance'] },
 
     // Settings
     { path: '/settings', icon: Settings, label: 'Settings', group: 'System', roles: ['Super Admin', 'Chief Admin', 'Management'] },
@@ -96,7 +111,12 @@ export function Sidebar() {
                   className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${location === link.path ? 'bg-primary text-primary-foreground font-medium shadow-sm' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'}`}
                 >
                   <link.icon className="h-4 w-4" />
-                  <span className="text-sm">{link.label}</span>
+                  <span className="text-sm flex-1">{link.label}</span>
+                  {link.path === '/broadcasts' && unreadCount > 0 && (
+                    <span className="ml-auto text-[10px] font-bold bg-red-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>

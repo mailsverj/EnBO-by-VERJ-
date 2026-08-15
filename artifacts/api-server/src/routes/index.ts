@@ -13,6 +13,8 @@ import commissionsRouter from "./commissions.js";
 import expensesRouter from "./expenses.js";
 import financeRouter from "./finance.js";
 import assessmentRouter from "./assessment.js";
+import broadcastsRouter from "./broadcasts.js";
+
 
 const router: IRouter = Router();
 
@@ -30,5 +32,6 @@ router.use(invoicesRouter);
 router.use(commissionsRouter);
 router.use(expensesRouter);
 router.use(financeRouter);
+router.use(broadcastsRouter);
 
 export default router;
