@@ -56,9 +56,16 @@ export function Sidebar() {
 
   return (
     <div className="w-64 bg-sidebar border-r border-sidebar-border h-screen flex flex-col fixed left-0 top-0 z-40 shadow-sm">
-      <div className="h-16 flex items-center px-6 border-b border-sidebar-border bg-sidebar">
-        <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-          <img src={logoPath} alt="VERJ SOLAR" className="h-10 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }} />
+      <div className="h-16 flex items-center px-5 border-b border-sidebar-border bg-sidebar gap-3">
+        <img
+          src={logoPath}
+          alt="VERJ"
+          className="h-8 object-contain flex-shrink-0"
+          style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
+        />
+        <div className="min-w-0">
+          <div className="text-sidebar-primary font-black text-lg leading-none tracking-tight">BuDOM</div>
+          <div className="text-sidebar-foreground/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none mt-0.5">by VERJ</div>
         </div>
       </div>
       

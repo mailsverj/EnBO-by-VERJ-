@@ -14,17 +14,17 @@ interface Appliance {
   name: string;
   qty: number;
   wattage: number;
-  hours: number;
+  hoursDay: number;
+  hoursNight: number;
 }
 
 export default function EngineeringCalculator() {
   const { canSeePrices } = useAuth();
   const [appliances, setAppliances] = useState<Appliance[]>([
-    { id: '1', name: 'Lighting', qty: 10, wattage: 15, hours: 12 },
-    { id: '2', name: 'Television', qty: 2, wattage: 120, hours: 8 },
-    { id: '3', name: 'Refrigerator', qty: 1, wattage: 150, hours: 24 }
+    { id: '1', name: 'Lighting', qty: 10, wattage: 15, hoursDay: 12, hoursNight: 12 },
+    { id: '2', name: 'Television', qty: 2, wattage: 120, hoursDay: 8, hoursNight: 4 },
+    { id: '3', name: 'Refrigerator', qty: 1, wattage: 150, hoursDay: 12, hoursNight: 12 }
   ]);
-  const [backupHours, setBackupHours] = useState(6);
   const [selectedInverterSku, setSelectedInverterSku] = useState('');
   const [selectedBatterySku, setSelectedBatterySku] = useState('');
   const [selectedBatteryQty, setSelectedBatteryQty] = useState<number | ''>('');
@@ -41,7 +41,7 @@ export default function EngineeringCalculator() {
   const [batCableLength, setBatCableLength] = useState<number | ''>(5);
 
   const addAppliance = () => {
-    setAppliances([...appliances, { id: Date.now().toString(), name: '', qty: 1, wattage: 0, hours: 0 }]);
+    setAppliances([...appliances, { id: Date.now().toString(), name: '', qty: 1, wattage: 0, hoursDay: 0, hoursNight: 0 }]);
   };
 
   const updateAppliance = (id: string, field: keyof Appliance, value: string | number) => {
@@ -54,7 +54,8 @@ export default function EngineeringCalculator() {
 
   // Calculations
   const totalLoad = appliances.reduce((sum, a) => sum + (a.qty * a.wattage), 0);
-  const totalEnergy = appliances.reduce((sum, a) => sum + (a.qty * a.wattage * a.hours), 0);
+  const totalDayEnergy = appliances.reduce((sum, a) => sum + (a.qty * a.wattage * a.hoursDay), 0);
+  const totalNightEnergy = appliances.reduce((sum, a) => sum + (a.qty * a.wattage * a.hoursNight), 0);
 
   function getRequiredInverterKW(loadW: number): number {
     if (loadW <= 500) return 4;
@@ -65,9 +66,19 @@ export default function EngineeringCalculator() {
     return 96;
   }
 
-  const batteryWh = totalLoad * backupHours * 1.25;
+  const batteryWh = totalNightEnergy * 1.25;
   const batteryKWh = batteryWh / 1000;
-  const pvKWp = ((batteryKWh * 1000 / 6) + totalLoad) * 1.67 / 1000;
+
+  function selectBatteryConfig(requiredKWh: number): { moduleKWh: number; qty: number } {
+    const tiers = [5, 10, 16, 32, 48];
+    for (const tier of tiers) {
+      if (requiredKWh <= tier) return { moduleKWh: tier, qty: 1 };
+    }
+    const moduleSize = 16;
+    return { moduleKWh: moduleSize, qty: Math.ceil(requiredKWh / moduleSize) };
+  }
+  const batteryConfig = selectBatteryConfig(batteryKWh);
+  const pvKWp = ((batteryConfig.moduleKWh * batteryConfig.qty / 6) + (totalLoad / 1000)) * 1.67;
 
   let requiredInverterKW = getRequiredInverterKW(totalLoad);
   while (pvKWp > requiredInverterKW) {
@@ -89,14 +100,17 @@ export default function EngineeringCalculator() {
       .sort((a, b) => (a.capacityKW ?? 0) - (b.capacityKW ?? 0));
     const autoInverter = suitableInverters[0] || null;
 
-    const autoBattery = batteries.sort((a, b) => (b.capacityKWh ?? 0) - (a.capacityKWh ?? 0))[0];
-    const defaultAutoBatteryQty = autoBattery ? Math.ceil(batteryKWh / (autoBattery.capacityKWh ?? 1)) : 1;
+    const autoBattery = batteries
+      .filter(b => (b.capacityKWh ?? 0) >= batteryConfig.moduleKWh * 0.8)
+      .sort((a, b) => Math.abs((a.capacityKWh ?? 0) - batteryConfig.moduleKWh) - Math.abs((b.capacityKWh ?? 0) - batteryConfig.moduleKWh))[0]
+      || batteries.sort((a, b) => (b.capacityKWh ?? 0) - (a.capacityKWh ?? 0))[0];
+    const defaultAutoBatteryQty = batteryConfig.qty;
 
     const autoPanel = panels.sort((a, b) => (b.capacityW ?? 0) - (a.capacityW ?? 0))[0];
     const defaultAutoPanelQty = autoPanel ? Math.ceil((pvKWp * 1000) / (autoPanel.capacityW ?? 1)) : 0;
     
     return { autoInverter, autoBattery, defaultAutoBatteryQty, autoPanel, defaultAutoPanelQty };
-  }, [inverters, batteries, panels, requiredInverterKW, batteryKWh, pvKWp]);
+  }, [inverters, batteries, panels, requiredInverterKW, batteryConfig, pvKWp]);
 
   const activeInverterSku = manualInverterOverride && selectedInverterSku ? selectedInverterSku : autoInverter?.sku || '';
   const activeInverter = inverters.find(i => i.sku === activeInverterSku);
@@ -134,11 +148,13 @@ export default function EngineeringCalculator() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[30%]">Appliance</TableHead>
+                    <TableHead className="w-[28%]">Appliance</TableHead>
                     <TableHead>Qty</TableHead>
                     <TableHead>Watts (W)</TableHead>
-                    <TableHead>Hours/Day</TableHead>
-                    <TableHead className="text-right">Total Wh</TableHead>
+                    <TableHead>Hrs/Day</TableHead>
+                    <TableHead>Hrs/Night</TableHead>
+                    <TableHead className="text-right">Day Wh</TableHead>
+                    <TableHead className="text-right">Night Wh</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -155,10 +171,16 @@ export default function EngineeringCalculator() {
                         <Input type="number" min="0" value={app.wattage || ''} onChange={(e) => updateAppliance(app.id, 'wattage', parseInt(e.target.value) || 0)} />
                       </TableCell>
                       <TableCell>
-                        <Input type="number" min="0" max="24" value={app.hours || ''} onChange={(e) => updateAppliance(app.id, 'hours', parseInt(e.target.value) || 0)} />
+                        <Input type="number" min="0" max="24" value={app.hoursDay || ''} onChange={(e) => updateAppliance(app.id, 'hoursDay', parseInt(e.target.value) || 0)} />
+                      </TableCell>
+                      <TableCell>
+                        <Input type="number" min="0" max="24" value={app.hoursNight || ''} onChange={(e) => updateAppliance(app.id, 'hoursNight', parseInt(e.target.value) || 0)} />
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {app.qty * app.wattage * app.hours}
+                        {(app.qty * app.wattage * app.hoursDay).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-amber-600">
+                        {(app.qty * app.wattage * app.hoursNight).toLocaleString()}
                       </TableCell>
                       <TableCell>
                         <Button variant="ghost" size="icon" onClick={() => removeAppliance(app.id)} className="text-destructive hover:bg-destructive/10">
@@ -172,13 +194,6 @@ export default function EngineeringCalculator() {
               <Button variant="outline" size="sm" onClick={addAppliance} className="mt-4 w-full border-dashed">
                 <Plus className="h-4 w-4 mr-2" /> Add Row
               </Button>
-              
-              <div className="mt-6 pt-6 border-t border-border grid grid-cols-2 sm:grid-cols-4 gap-4 items-center">
-                <div className="col-span-2 sm:col-span-1">
-                  <Label>Backup Hours</Label>
-                  <Input type="number" value={backupHours} onChange={(e) => setBackupHours(Number(e.target.value))} min={1} />
-                </div>
-              </div>
             </CardContent>
           </Card>
 
@@ -289,17 +304,22 @@ export default function EngineeringCalculator() {
                 </div>
                 <div className="space-y-1">
                   <div className="text-xs text-muted-foreground uppercase tracking-wider">Daily Energy</div>
-                  <div className="text-2xl font-bold">{totalEnergy.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">Wh</span></div>
+                  <div className="text-2xl font-bold">{totalDayEnergy.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">Wh</span></div>
                 </div>
               </div>
 
               <div className="space-y-4 pt-4 border-t border-dashed border-border">
                 <div className="flex justify-between items-center p-3 rounded-md bg-muted/40 border">
                   <div>
-                    <span className="block text-sm font-medium">Battery Required</span>
-                    <span className="block text-xs text-muted-foreground">{totalLoad}W × {backupHours}h × 1.25</span>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Night Energy × 1.25</div>
+                    <div className="text-2xl font-bold">{batteryConfig.moduleKWh * batteryConfig.qty} kWh</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {(totalNightEnergy / 1000).toFixed(2)} kWh night-time × 1.25 = {batteryKWh.toFixed(2)} kWh required
+                    </div>
+                    <div className="text-xs font-medium text-amber-600 mt-0.5">
+                      → {batteryConfig.qty}× {batteryConfig.moduleKWh} kWh module{batteryConfig.qty > 1 ? 's' : ''} selected
+                    </div>
                   </div>
-                  <span className="font-bold text-primary">{batteryKWh.toFixed(2)} kWh</span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-md bg-muted/40 border">
                   <span className="text-sm font-medium">PV Required</span>

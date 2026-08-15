@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { mockBdoApplications, mockUsers } from '@/data/mock';
 import { format } from 'date-fns';
-import { Eye, CheckCircle2, XCircle, RefreshCw, Power } from 'lucide-react';
+import { Eye, CheckCircle2, XCircle, RefreshCw, Power, Copy, ExternalLink, Link2, Settings2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -21,6 +21,39 @@ export default function BdoApplications() {
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
   const [isActivateOpen, setIsActivateOpen] = useState(false);
   const { toast } = useToast();
+
+  const [formSettingsOpen, setFormSettingsOpen] = useState(false);
+
+  const defaultFormConfig = [
+    { key: 'fullName', label: 'Full Name', step: 1, enabled: true, required: true },
+    { key: 'email', label: 'Email Address', step: 1, enabled: true, required: true },
+    { key: 'phone', label: 'Phone Number', step: 1, enabled: true, required: true },
+    { key: 'gender', label: 'Gender', step: 1, enabled: true, required: true },
+    { key: 'dob', label: 'Date of Birth', step: 1, enabled: true, required: true },
+    { key: 'state', label: 'State of Residence', step: 1, enabled: true, required: true },
+    { key: 'lga', label: 'LGA', step: 1, enabled: true, required: false },
+    { key: 'address', label: 'Home Address', step: 1, enabled: true, required: true },
+    { key: 'nin', label: 'NIN', step: 2, enabled: true, required: true },
+    { key: 'bvn', label: 'BVN', step: 2, enabled: true, required: true },
+    { key: 'bankName', label: 'Bank Name', step: 2, enabled: true, required: true },
+    { key: 'accountNumber', label: 'Account Number', step: 2, enabled: true, required: true },
+    { key: 'accountName', label: 'Account Name', step: 2, enabled: true, required: true },
+    { key: 'guarantorName', label: 'Guarantor Name', step: 2, enabled: true, required: true },
+    { key: 'guarantorPhone', label: 'Guarantor Phone', step: 2, enabled: true, required: true },
+    { key: 'guarantorRelationship', label: 'Guarantor Relationship', step: 2, enabled: true, required: true },
+    { key: 'guarantorAddress', label: 'Guarantor Address', step: 2, enabled: false, required: false },
+    { key: 'referralSource', label: 'How did you hear about VERJ?', step: 3, enabled: true, required: true },
+    { key: 'salesExperience', label: 'Sales Experience', step: 3, enabled: true, required: true },
+    { key: 'statement', label: 'Why do you want to be a VERJ BDO?', step: 3, enabled: true, required: true },
+  ];
+  const [formConfig, setFormConfig] = useState(defaultFormConfig);
+
+  const copyFormLink = () => {
+    const base = window.location.origin + (import.meta.env.BASE_URL || '/');
+    const url = base.replace(/\/$/, '') + '/apply';
+    navigator.clipboard.writeText(url);
+    toast({ title: 'Form link copied!', description: url });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -57,6 +90,14 @@ export default function BdoApplications() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">BDO Applications</h1>
           <p className="text-muted-foreground mt-1">Review and process prospective Business Development Officers.</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={copyFormLink}>
+            <Link2 className="h-4 w-4 mr-2" /> Copy Form Link
+          </Button>
+          <Button variant="outline" onClick={() => setFormSettingsOpen(true)}>
+            <Settings2 className="h-4 w-4 mr-2" /> Form Settings
+          </Button>
         </div>
       </div>
 
@@ -243,6 +284,68 @@ export default function BdoApplications() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsActivateOpen(false)}>Cancel</Button>
             <Button onClick={handleActivate} className="bg-green-600 hover:bg-green-700">Activate BDO</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={formSettingsOpen} onOpenChange={setFormSettingsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Application Form Settings</DialogTitle>
+            <DialogDescription>Configure the BDO application form fields. Disabled fields won't appear to applicants.</DialogDescription>
+          </DialogHeader>
+          
+          <div className="bg-muted rounded-lg p-3 flex items-center gap-3">
+            <span className="text-sm text-muted-foreground flex-1 font-mono truncate">{window.location.origin}{import.meta.env.BASE_URL}apply</span>
+            <Button size="sm" variant="outline" onClick={copyFormLink}>
+              <Copy className="h-3 w-3 mr-1" /> Copy
+            </Button>
+            <Button size="sm" variant="outline" asChild>
+              <a href="/apply" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-3 w-3 mr-1" /> Open
+              </a>
+            </Button>
+          </div>
+
+          {[1, 2, 3].map(step => (
+            <div key={step} className="space-y-2">
+              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b pb-1">
+                Step {step}: {step === 1 ? 'Personal Information' : step === 2 ? 'Identity & Banking' : 'Experience & Declaration'}
+              </h4>
+              <div className="space-y-2">
+                {formConfig.filter(f => f.step === step).map(field => (
+                  <div key={field.key} className="flex items-center justify-between py-1.5">
+                    <span className="text-sm font-medium">{field.label}</span>
+                    <div className="flex items-center gap-6">
+                      <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={field.enabled}
+                          onCheckedChange={(checked) => setFormConfig(prev =>
+                            prev.map(f => f.key === field.key ? { ...f, enabled: !!checked, required: !!checked ? f.required : false } : f)
+                          )}
+                        />
+                        Show
+                      </label>
+                      <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={field.required}
+                          disabled={!field.enabled}
+                          onCheckedChange={(checked) => setFormConfig(prev =>
+                            prev.map(f => f.key === field.key ? { ...f, required: !!checked } : f)
+                          )}
+                        />
+                        Required
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={copyFormLink}><Link2 className="h-4 w-4 mr-2" /> Copy Link</Button>
+            <Button onClick={() => setFormSettingsOpen(false)}>Save Settings</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

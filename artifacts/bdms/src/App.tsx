@@ -10,6 +10,7 @@ import { Shell } from '@/components/layout/Shell';
 
 // Pages
 import Login from '@/pages/login';
+import BdoApply from '@/pages/bdo-apply';
 import Dashboard from '@/pages/dashboard';
 import BdoApplications from '@/pages/bdo-applications';
 import BdoDirectory from '@/pages/bdo-directory';
@@ -31,6 +32,18 @@ import Settings from '@/pages/settings';
 const queryClient = new QueryClient();
 
 function Router() {
+  const [location] = useLocation();
+
+  if (location === '/apply' || location.startsWith('/apply')) {
+    return (
+      <RoutedErrorBoundary>
+        <Switch>
+          <Route path="/apply" component={BdoApply} />
+        </Switch>
+      </RoutedErrorBoundary>
+    );
+  }
+
   return (
     <RoutedErrorBoundary>
       <Shell>
