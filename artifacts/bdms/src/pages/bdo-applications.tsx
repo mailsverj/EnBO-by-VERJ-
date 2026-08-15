@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,9 +8,10 @@ import { format } from 'date-fns';
 import {
   Eye, CheckCircle2, XCircle, RefreshCw, Power, Copy, ExternalLink,
   Link2, Settings2, Loader2, Shield, ClipboardList, User, AlertTriangle,
-  FileText, CreditCard, LockKeyhole, Award
+  FileText, CreditCard, LockKeyhole, Award, X
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -59,6 +60,36 @@ export default function BdoApplications() {
   const [kycNote, setKycNote] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [credentials, setCredentials] = useState<{ vbdoId: string; defaultPassword: string } | null>(null);
+
+  // Filters
+  const [filterState, setFilterState] = useState('');
+  const [filterLga, setFilterLga] = useState('');
+  const [filterSearch, setFilterSearch] = useState('');
+
+  const stateOptions = useMemo(() =>
+    [...new Set(apps.map(a => a.state).filter(Boolean))].sort() as string[]
+  , [apps]);
+
+  const lgaOptions = useMemo(() =>
+    [...new Set(apps.filter(a => !filterState || a.state === filterState).map(a => a.lga).filter(Boolean))].sort() as string[]
+  , [apps, filterState]);
+
+  const filtered = useMemo(() => apps.filter(a => {
+    if (filterState && a.state !== filterState) return false;
+    if (filterLga && a.lga !== filterLga) return false;
+    if (filterSearch) {
+      const q = filterSearch.toLowerCase();
+      return (
+        a.fullName?.toLowerCase().includes(q) ||
+        a.email?.toLowerCase().includes(q) ||
+        a.refId?.toLowerCase().includes(q) ||
+        a.phone?.toLowerCase().includes(q)
+      );
+    }
+    return true;
+  }), [apps, filterState, filterLga, filterSearch]);
+
+  const clearFilters = () => { setFilterState(''); setFilterLga(''); setFilterSearch(''); };
 
   const statusColor = (s: string) => {
     if (s === 'Activated') return 'bg-green-100 text-green-800 border-green-200';
@@ -170,6 +201,40 @@ export default function BdoApplications() {
         ))}
       </div>
 
+      {/* Search & filter bar */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <Input
+          placeholder="Search by name, email, ref, phone…"
+          value={filterSearch}
+          onChange={e => setFilterSearch(e.target.value)}
+          className="w-64"
+        />
+        <Select value={filterState} onValueChange={v => { setFilterState(v); setFilterLga(''); }}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="All States" />
+          </SelectTrigger>
+          <SelectContent>
+            {stateOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterLga} onValueChange={setFilterLga} disabled={!filterState}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder={filterState ? 'All LGAs' : 'Select state first'} />
+          </SelectTrigger>
+          <SelectContent>
+            {lgaOptions.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        {(filterState || filterLga || filterSearch) && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1.5 text-muted-foreground">
+            <X className="h-3.5 w-3.5" /> Clear filters
+          </Button>
+        )}
+        <span className="ml-auto text-sm text-muted-foreground">
+          {filtered.length} of {apps.length} application{apps.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
@@ -191,12 +256,14 @@ export default function BdoApplications() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {apps.length === 0 && (
+                {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">No applications yet.</TableCell>
+                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                      {apps.length === 0 ? 'No applications yet.' : 'No applications match your filters.'}
+                    </TableCell>
                   </TableRow>
                 )}
-                {apps.map(app => (
+                {filtered.map(app => (
                   <TableRow key={app.id}>
                     <TableCell className="font-mono text-xs text-muted-foreground">{app.refId}</TableCell>
                     <TableCell>
