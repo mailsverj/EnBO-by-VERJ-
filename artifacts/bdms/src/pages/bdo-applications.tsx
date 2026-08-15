@@ -141,8 +141,19 @@ export default function BdoApplications() {
 
   const handleShortlist = async () => {
     if (!selectedApp) return;
-    await shortlistMut.mutateAsync(selectedApp.id);
-    toast({ title: `${selectedApp.fullName} shortlisted`, description: 'Assessment link is now available.' });
+    const result = await shortlistMut.mutateAsync(selectedApp.id);
+    if (result.emailSent) {
+      toast({
+        title: `${selectedApp.fullName} shortlisted`,
+        description: `Assessment link emailed to ${selectedApp.email} automatically.`,
+      });
+    } else {
+      toast({
+        title: `${selectedApp.fullName} shortlisted`,
+        description: `Could not send email automatically (${result.emailError ?? 'unknown error'}). Use the manual copy link below.`,
+        variant: 'destructive',
+      });
+    }
     setSelectedApp(null);
   };
 

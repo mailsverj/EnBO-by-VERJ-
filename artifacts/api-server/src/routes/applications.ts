@@ -4,6 +4,7 @@ import { bdoApplicationsTable, bdosTable, usersTable } from "@workspace/db/schem
 import { eq, desc } from "drizzle-orm";
 import { requireAuth, requireRoles } from "../middleware/auth.js";
 import bcrypt from "bcryptjs";
+import { sendAssessmentEmail, assessmentUrl } from "../lib/email.js";
 
 const router = Router();
 
@@ -146,7 +147,19 @@ router.patch("/applications/:id/shortlist", requireAuth, requireRoles("Chief Adm
     updatedAt: new Date(),
   }).where(eq(bdoApplicationsTable.id, id)).returning();
 
-  res.json({ application: updated });
+  // Auto-send assessment link email (non-blocking — don't fail the shortlist if email errors)
+  const emailResult = await sendAssessmentEmail({
+    name: app.fullName,
+    email: app.email,
+    refId: app.refId,
+  });
+
+  res.json({
+    application: updated,
+    emailSent: emailResult.ok,
+    emailError: emailResult.error ?? null,
+    assessmentLink: assessmentUrl(app.refId),
+  });
 });
 
 // Chief Admin: activate BDO (creates user + BDO records)

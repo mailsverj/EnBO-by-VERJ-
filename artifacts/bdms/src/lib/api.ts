@@ -34,7 +34,7 @@ export const api = {
     updateKyc: (id: number, kycStatus: string, adminNotes?: string) =>
       request<{ application: Application }>(`/applications/${id}/kyc`, { method: "PATCH", body: JSON.stringify({ kycStatus, adminNotes }) }),
     shortlist: (id: number) =>
-      request<{ application: Application }>(`/applications/${id}/shortlist`, { method: "PATCH", body: JSON.stringify({}) }),
+      request<{ application: Application; emailSent: boolean; emailError: string | null; assessmentLink: string }>(`/applications/${id}/shortlist`, { method: "PATCH", body: JSON.stringify({}) }),
     activate: (id: number) =>
       request<{ application: Application; credentials: { vbdoId: string; username: string; defaultPassword: string; email: string } }>(`/applications/${id}/activate`, { method: "PATCH", body: JSON.stringify({}) }),
     reject: (id: number, reason?: string) =>
