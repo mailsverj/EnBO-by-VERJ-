@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,13 +38,42 @@ const EDUCATION_LEVELS = [
   'Primary','Secondary (WAEC/NECO)','OND/NCE','HND/BSc','MSc/MBA','PhD','Other',
 ];
 
+const DRAFT_KEY = 'budom_bdo_apply_v1';
+
+const DEFAULT_FORM = {
+  // Step 1 — Personal Information
+  title: '', surname: '', otherNames: '', dob: '',
+  streetAddress: '', city: '', state: '',
+  phone: '', whatsappNumber: '', email: '',
+  // Step 2 — Business & Experience
+  coverageAreas: '', hasOffice: '', officeAddress: '', officeCurrentUse: '',
+  wantsVerjSticker: '', occupation: '', employerName: '',
+  hasSalesExperience: '', previousSalesDetail: '', salesExperience: '', education: '',
+  // Step 3 — KYC & Declaration
+  referralSource: '', photoUrl: '', idDocumentUrl: '', declaration: false,
+  // Step 4 — Banking
+  bankName: '', accountNumber: '', accountName: '',
+};
+
+function loadDraft(): { formData: typeof DEFAULT_FORM; step: number } | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
 export default function BdoApply() {
-  const [step, setStep] = useState(1);
+  const draft = useRef(loadDraft());
+  const hasDraft = draft.current !== null;
+
+  const [step, setStep] = useState(draft.current?.step ?? 1);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [refId, setRefId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [draftRestored] = useState(hasDraft);
   const cardRef = useRef<HTMLDivElement>(null);
   const photoUploadRef = useRef<HTMLInputElement>(null);
   const photoCameraRef = useRef<HTMLInputElement>(null);
@@ -64,40 +93,24 @@ export default function BdoApply() {
     update(field, dataUrl);
   };
 
-  const [formData, setFormData] = useState({
-    // Step 1 — Personal Information
-    title: '',
-    surname: '',
-    otherNames: '',
-    dob: '',
-    streetAddress: '',
-    city: '',
-    state: '',
-    phone: '',
-    whatsappNumber: '',
-    email: '',
-    // Step 2 — Business & Experience
-    coverageAreas: '',
-    hasOffice: '',
-    officeAddress: '',
-    officeCurrentUse: '',
-    wantsVerjSticker: '',
-    occupation: '',
-    employerName: '',
-    hasSalesExperience: '',
-    previousSalesDetail: '',
-    salesExperience: '',
-    education: '',
-    // Step 3 — KYC & Declaration
-    referralSource: '',
-    photoUrl: '',
-    idDocumentUrl: '',
-    declaration: false,
-    // Step 4 — Banking
-    bankName: '',
-    accountNumber: '',
-    accountName: '',
-  });
+  const [formData, setFormData] = useState<typeof DEFAULT_FORM>(
+    draft.current ? { ...DEFAULT_FORM, ...draft.current.formData } : DEFAULT_FORM
+  );
+
+  // Auto-save on every change
+  useEffect(() => {
+    try {
+      // Try saving with images first; fall back to saving without them on quota error
+      const payload = { step, formData };
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+      } catch {
+        // Strip base64 images if quota exceeded and retry
+        const slim = { step, formData: { ...formData, photoUrl: '', idDocumentUrl: '' } };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(slim));
+      }
+    } catch { /* silently ignore */ }
+  }, [formData, step]);
 
   const update = (key: keyof typeof formData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [key]: value }));
@@ -177,6 +190,7 @@ export default function BdoApply() {
       });
       const json = await res.json() as { ok?: boolean; refId?: string; error?: string };
       if (!res.ok) throw new Error(json.error ?? 'Submission failed');
+      localStorage.removeItem(DRAFT_KEY);
       setRefId(json.refId ?? '');
       setSubmitted(true);
     } catch (err) {
@@ -240,6 +254,14 @@ export default function BdoApply() {
           <p className="text-muted-foreground mt-1">Join VERJ as a Business Development Officer and redefine your limit.</p>
         </div>
 
+        {/* Draft restored banner */}
+        {draftRestored && (
+          <div className="mb-5 flex items-center gap-2 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+            <CheckCircle2 className="h-4 w-4 text-amber-600 flex-shrink-0" />
+            <span>Your previous progress has been restored. Pick up right where you left off.</span>
+          </div>
+        )}
+
         {/* Step progress */}
         <div className="mb-8 space-y-3">
           <div className="flex gap-1.5">
@@ -249,7 +271,10 @@ export default function BdoApply() {
           </div>
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</span>
-            <span>{Math.round(((step - 1) / TOTAL_STEPS) * 100)}% complete</span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
+              Draft auto-saved
+            </span>
           </div>
         </div>
 
