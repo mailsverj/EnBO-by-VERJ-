@@ -21,6 +21,8 @@ export default function BdoApply() {
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '', email: '', phone: '', gender: '', dob: '', state: '', lga: '', address: '',
+    education: '', occupation: '',
+    photoUrl: '', idDocumentUrl: '',
     nin: '', bvn: '', bankName: '', accountNumber: '', accountName: '', guarantorName: '', guarantorPhone: '', guarantorRelationship: '', guarantorAddress: '',
     referralSource: '', salesExperience: '', statement: '', consent: false
   });
@@ -225,11 +227,44 @@ export default function BdoApply() {
                   <Textarea value={formData.address} onChange={e => updateForm('address', e.target.value)} placeholder="Full street address" className="resize-none" />
                   {err('address')}
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label>Highest Level of Education</Label>
+                    <Select value={formData.education} onValueChange={v => updateForm('education', v)}>
+                      <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
+                      <SelectContent>
+                        {['Primary','Secondary (WAEC/NECO)','OND/NCE','HND/BSc','MSc/MBA','PhD','Other'].map(l => (
+                          <SelectItem key={l} value={l}>{l}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Current Occupation</Label>
+                    <Input value={formData.occupation} onChange={e => updateForm('occupation', e.target.value)} placeholder="e.g. Sales Rep, Student, Freelancer" />
+                  </div>
+                </div>
               </div>
             )}
 
             {step === 2 && (
               <div className="space-y-8">
+                <div className="space-y-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground border-b pb-2">KYC Documents</h3>
+                  <p className="text-sm text-muted-foreground">Upload your documents to Google Drive, Dropbox, or any shareable link and paste the links below. Ensure they are set to "Anyone with the link can view".</p>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <Label>Selfie / Passport Photograph (link)</Label>
+                      <Input value={formData.photoUrl} onChange={e => updateForm('photoUrl', e.target.value)} placeholder="https://drive.google.com/..." />
+                      <p className="text-xs text-muted-foreground">Clear, recent, face-forward photo. No sunglasses or hats.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Government-issued ID (link)</Label>
+                      <Input value={formData.idDocumentUrl} onChange={e => updateForm('idDocumentUrl', e.target.value)} placeholder="https://drive.google.com/..." />
+                      <p className="text-xs text-muted-foreground">NIN slip, International Passport, Driver's Licence, or Voter's Card.</p>
+                    </div>
+                  </div>
+                </div>
                 <div className="space-y-6">
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground border-b pb-2">Identification</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

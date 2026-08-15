@@ -31,6 +31,14 @@ export const api = {
       request<{ ok: boolean; refId: string }>("/applications", { method: "POST", body: JSON.stringify(data) }),
     update: (id: number, data: Partial<Application>) =>
       request<{ application: Application }>(`/applications/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    updateKyc: (id: number, kycStatus: string, adminNotes?: string) =>
+      request<{ application: Application }>(`/applications/${id}/kyc`, { method: "PATCH", body: JSON.stringify({ kycStatus, adminNotes }) }),
+    shortlist: (id: number) =>
+      request<{ application: Application }>(`/applications/${id}/shortlist`, { method: "PATCH", body: JSON.stringify({}) }),
+    activate: (id: number) =>
+      request<{ application: Application; credentials: { vbdoId: string; username: string; defaultPassword: string; email: string } }>(`/applications/${id}/activate`, { method: "PATCH", body: JSON.stringify({}) }),
+    reject: (id: number, reason?: string) =>
+      request<{ application: Application }>(`/applications/${id}/reject`, { method: "PATCH", body: JSON.stringify({ reason }) }),
   },
   bdos: {
     list: () => request<{ bdos: Bdo[] }>("/bdos"),
@@ -120,6 +128,10 @@ export interface Application {
   state: string | null;
   lga: string | null;
   address: string | null;
+  education: string | null;
+  occupation: string | null;
+  photoUrl: string | null;
+  idDocumentUrl: string | null;
   nin: string | null;
   bvn: string | null;
   bankName: string | null;
@@ -132,6 +144,13 @@ export interface Application {
   referralSource: string | null;
   salesExperience: string | null;
   statement: string | null;
+  kycStatus: string;
+  assessmentStatus: string;
+  assessmentScore: number | null;
+  assessmentTotal: number | null;
+  assessmentPassed: boolean | null;
+  assessmentCompletedAt: string | null;
+  shortlistedAt: string | null;
   status: string;
   adminNotes: string | null;
   assignedEngineerId: string | null;

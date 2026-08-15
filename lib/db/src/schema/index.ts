@@ -8,3 +8,4 @@ export * from "./designs";
 export * from "./inventory";
 export * from "./invoices";
 export * from "./expenses";
+export * from "./assessment-questions";

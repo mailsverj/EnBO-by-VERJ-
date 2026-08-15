@@ -1,0 +1,319 @@
+VERJ BuDOM — BDO Application → Assessment → Activation Workflow
+
+The workflow should be simple, controlled, and largely automated.
+
+1. Applicant opens BDO Application
+
+Applicant completes the VERJ BuDOM BDO Application Form.
+
+They provide:
+
+* Personal information
+* Contact information
+* Business/operating information
+* Sales/marketing experience
+* Education/occupation
+* Application source
+* Selfie/passport photograph
+* Government-issued ID
+* Bank name
+* Bank account number
+* Account name
+* Declaration
+
+Applicant submits the application.
+
+Status automatically becomes:
+
+Submitted
+
+The applicant receives a submission confirmation.
+
+⸻
+
+2. Application enters BuDOM Admin
+
+The application appears in the BDO Applications section.
+
+Admin can view:
+
+* Applicant profile
+* Application details
+* KYC documents
+* Banking information
+* Application date
+* Application status
+* Assessment status
+
+Applicant’s banking information is protected and is not freely editable after submission.
+
+⸻
+
+3. Manual KYC Review
+
+VERJ Admin manually reviews:
+
+* Selfie/passport photograph
+* Government-issued ID
+* Name/details consistency
+* Other required information
+
+BuDOM should not automatically decide whether an ID or selfie is genuine.
+
+KYC is manually verified by VERJ.
+
+Admin selects:
+
+KYC Pending
+
+while verification is ongoing.
+
+If satisfactory:
+
+KYC Verified
+
+If something needs correction:
+
+KYC Resubmission Required
+
+The resubmission option should allow VERJ Admin to push the applicant back to submit a new selfie/ID.
+
+⸻
+
+4. Shortlisting
+
+Once KYC and the initial application review are satisfactory, Admin selects:
+
+Shortlisted
+
+BuDOM then moves the applicant to the assessment stage.
+
+The applicant receives the assessment instructions containing:
+
+* VERJ BDO Training Workbook
+* Assessment link
+* Instructions to study the workbook
+* Requirement to complete the assessment independently
+
+⸻
+
+5. Applicant Studies Training Workbook
+
+Applicant reviews the official:
+
+VERJ SOLAR BDO Training Workbook
+
+The workbook covers:
+
+* Sales
+* Marketing
+* Solar fundamentals
+* Customer needs assessment
+* Basic technical knowledge
+* VERJ processes
+* Professional conduct
+* Commission principles
+
+⸻
+
+6. Applicant Takes Assessment
+
+Applicant completes the BDO assessment.
+
+Assessment result is recorded against the applicant.
+
+BuDOM should capture:
+
+* Assessment status
+* Score
+* Date completed
+* Pass/fail result
+
+The applicant should not manually determine their own result.
+
+⸻
+
+7. Assessment Decision
+
+If the applicant does not meet the required score:
+
+Assessment: Failed
+
+Admin can reject the application or handle it according to VERJ’s recruitment policy.
+
+If the applicant passes:
+
+Assessment: Passed
+
+The applicant becomes eligible for activation.
+
+⸻
+
+8. Chief Admin Activates BDO
+
+This is an important control point.
+
+Passing the assessment does NOT automatically activate the BDO.
+
+The Chief Admin reviews the application and assessment result and manually turns:
+
+BDO Active: OFF → ON
+
+This is the final authorization.
+
+⸻
+
+9. BuDOM Creates/Activates BDO Account
+
+Once Chief Admin activates the BDO:
+
+BuDOM automatically:
+
+* Generates/assigns the BDO’s VBDO ID
+* Creates the BDO portal account
+* Generates the initial/default password
+* Assigns username/login credentials
+* Changes BDO status to Active
+* Grants BDO portal access
+
+Example:
+
+VBDO ID: VBDO-017
+Username: VBDO-017
+Status: Active
+
+⸻
+
+10. Automated Activation Notification
+
+Immediately after activation, BuDOM sends the BDO:
+
+Email + WhatsApp notification
+
+Containing:
+
+* Congratulations/activation message
+* BDO ID
+* Username
+* Default password
+* BuDOM login link
+* Basic instruction to log in and change the default password
+
+The BDO can then access:
+
+BuDOM by VERJ — BDO Portal
+
+⸻
+
+11. BDO Enters Portal
+
+After login, the BDO sees their own dashboard.
+
+Initial sections can include:
+
+* Dashboard
+* My Profile
+* My Leads
+* Customers
+* Activities
+* Follow-ups
+* Designs
+* Invoices
+* Sales
+* Commission
+* Notifications
+
+The BDO can now begin generating and managing leads.
+
+⸻
+
+Complete Workflow
+
+Application Form
+
+↓
+
+Submitted
+
+↓
+
+Admin Review
+
+↓
+
+KYC Pending
+
+↓
+
+KYC Verified
+
+↓
+
+Shortlisted
+
+↓
+
+Training Workbook
+
+↓
+
+Assessment
+
+↓
+
+Assessment Passed
+
+↓
+
+Chief Admin Review
+
+↓
+
+BDO Active = ON
+
+↓
+
+VBDO ID + Account Created/Activated
+
+↓
+
+Username + Default Password Generated
+
+↓
+
+Email + WhatsApp Activation Notification
+
+↓
+
+BDO Logs into BuDOM
+
+↓
+
+BDO IS ACTIVE
+
+⸻
+
+Important separation of responsibilities
+
+Applicant controls:
+
+* Application submission
+* KYC information
+* Assessment
+
+Admin controls:
+
+* KYC verification
+* Shortlisting
+* Assessment review
+* Activation
+
+Chief Admin controls:
+
+* Final BDO activation
+* Banking-detail edit authorization
+* User permissions
+* Roles
+* Other sensitive administrative controls
+
+This gives BuDOM a clean application → verification → assessment → authorization → activation pipeline without allowing an applicant to activate themselves simply by passing the assessment.

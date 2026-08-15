@@ -12,11 +12,13 @@ import invoicesRouter from "./invoices.js";
 import commissionsRouter from "./commissions.js";
 import expensesRouter from "./expenses.js";
 import financeRouter from "./finance.js";
+import assessmentRouter from "./assessment.js";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(authRouter);
+router.use(assessmentRouter);
 router.use(applicationsRouter);
 router.use(usersRouter);
 router.use(bdosRouter);

@@ -13,6 +13,7 @@ import { useAuth } from '@/store/auth';
 // Pages
 import Login from '@/pages/login';
 import BdoApply from '@/pages/bdo-apply';
+import Assessment from '@/pages/assessment';
 import Dashboard from '@/pages/dashboard';
 import BdoApplications from '@/pages/bdo-applications';
 import BdoDirectory from '@/pages/bdo-directory';
@@ -45,11 +46,12 @@ function Router() {
   }, []);
 
   // Public — no auth, no shell
-  if (location.startsWith('/apply')) {
+  if (location.startsWith('/apply') || location.startsWith('/assessment')) {
     return (
       <RoutedErrorBoundary>
         <Switch>
           <Route path="/apply" component={BdoApply} />
+          <Route path="/assessment" component={Assessment} />
         </Switch>
       </RoutedErrorBoundary>
     );
