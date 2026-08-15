@@ -456,15 +456,8 @@ export default function BdoApplications() {
                   </Button>
                 )}
 
-                {/* Step 1: Begin KYC */}
-                {selectedApp.status === 'Submitted' && (
-                  <Button size="sm" variant="outline" onClick={() => handleKyc('KYC Pending')} disabled={kycMut.isPending}>
-                    <Shield className="h-3.5 w-3.5 mr-1.5" /> Begin KYC Review
-                  </Button>
-                )}
-
-                {/* Step 2: KYC actions */}
-                {selectedApp.kycStatus === 'KYC Pending' && selectedApp.status !== 'Shortlisted' && !['Assessment Passed','Assessment Failed','Activated'].includes(selectedApp.status) && (
+                {/* KYC actions — visible while KYC is pending or resubmission was requested */}
+                {['KYC Pending', 'KYC Resubmission Required'].includes(selectedApp.kycStatus) && !['Shortlisted','Assessment Passed','Assessment Failed','Activated','Rejected'].includes(selectedApp.status) && (
                   <>
                     <Button size="sm" variant="outline" className="border-amber-300 text-amber-700" onClick={() => handleKyc('KYC Resubmission Required')} disabled={kycMut.isPending}>
                       <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Request Resubmission

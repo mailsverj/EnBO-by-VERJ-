@@ -48,7 +48,7 @@ router.post("/applications", async (req, res) => {
     accountName: body.accountName,
     // System defaults
     status: "Submitted",
-    kycStatus: "Not Started",
+    kycStatus: "KYC Pending",
     assessmentStatus: "Not Started",
   }).returning();
 
