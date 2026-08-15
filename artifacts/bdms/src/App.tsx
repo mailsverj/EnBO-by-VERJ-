@@ -19,6 +19,7 @@ import LeadDetail from '@/pages/lead-detail';
 import Customers from '@/pages/customers';
 import CustomerProfile from '@/pages/customer-profile';
 import EngineeringDesigns from '@/pages/engineering-designs';
+import EngineeringQueue from '@/pages/engineering-queue';
 import EngineeringCalculator from '@/pages/engineering-calculator';
 import Inventory from '@/pages/inventory';
 import Invoices from '@/pages/invoices';
@@ -47,6 +48,7 @@ function Router() {
           <Route path="/customers" component={Customers} />
           <Route path="/customers/:id" component={CustomerProfile} />
           
+          <Route path="/engineering/queue" component={EngineeringQueue} />
           <Route path="/engineering/designs" component={EngineeringDesigns} />
           <Route path="/engineering/calculator" component={EngineeringCalculator} />
           

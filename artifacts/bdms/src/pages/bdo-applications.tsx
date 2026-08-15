@@ -1,27 +1,35 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { mockBdoApplications } from '@/data/mock';
+import { mockBdoApplications, mockUsers } from '@/data/mock';
 import { format } from 'date-fns';
-import { Eye, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
+import { Eye, CheckCircle2, XCircle, RefreshCw, Power } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 
 export default function BdoApplications() {
   const [apps, setApps] = useState(mockBdoApplications);
   const [selectedApp, setSelectedApp] = useState<typeof mockBdoApplications[0] | null>(null);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
+  const [isActivateOpen, setIsActivateOpen] = useState(false);
+  const { toast } = useToast();
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Submitted': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'KYC Pending': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
-      case 'Shortlisted': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'Rejected': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Submitted': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'KYC Pending': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'Shortlisted': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'Activated': return 'bg-green-100 text-green-800 border-green-200';
+      case 'Rejected': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -29,10 +37,22 @@ export default function BdoApplications() {
     setApps(apps.map(a => a.id === id ? { ...a, status } : a));
     setIsRejectOpen(false);
     setIsResubmitOpen(false);
+    setIsActivateOpen(false);
+  };
+
+  const handleActivate = () => {
+    if (selectedApp) {
+      updateStatus(selectedApp.id, 'Activated');
+      toast({
+        title: 'BDO Account Created',
+        description: `${selectedApp.name} has been successfully activated as a BDO.`,
+      });
+      setSelectedApp(null);
+    }
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">BDO Applications</h1>
@@ -64,7 +84,7 @@ export default function BdoApplications() {
                   <TableCell>{app.location}</TableCell>
                   <TableCell>{format(new Date(app.date), 'MMM d, yyyy')}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className={`hover:bg-transparent ${getStatusColor(app.status)}`}>
+                    <Badge variant="outline" className={`${getStatusColor(app.status)}`}>
                       {app.status}
                     </Badge>
                   </TableCell>
@@ -80,7 +100,7 @@ export default function BdoApplications() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!selectedApp && !isRejectOpen && !isResubmitOpen} onOpenChange={() => setSelectedApp(null)}>
+      <Dialog open={!!selectedApp && !isRejectOpen && !isResubmitOpen && !isActivateOpen} onOpenChange={(o) => !o && setSelectedApp(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Application Details: {selectedApp?.name}</DialogTitle>
@@ -119,12 +139,12 @@ export default function BdoApplications() {
               </div>
 
               <div className="flex justify-end gap-2 pt-4 border-t">
-                {selectedApp.status !== 'Rejected' && (
+                {selectedApp.status !== 'Rejected' && selectedApp.status !== 'Activated' && (
                   <Button variant="destructive" onClick={() => setIsRejectOpen(true)}>
                     <XCircle className="h-4 w-4 mr-2" /> Reject
                   </Button>
                 )}
-                {selectedApp.status !== 'Submitted' && selectedApp.status !== 'Rejected' && (
+                {selectedApp.status !== 'Submitted' && selectedApp.status !== 'Rejected' && selectedApp.status !== 'Activated' && (
                   <Button variant="outline" onClick={() => setIsResubmitOpen(true)}>
                     <RefreshCw className="h-4 w-4 mr-2" /> Request Resubmission
                   </Button>
@@ -135,8 +155,13 @@ export default function BdoApplications() {
                   </Button>
                 )}
                 {selectedApp.status === 'KYC Pending' && (
-                  <Button className="bg-green-600 hover:bg-green-700" onClick={() => updateStatus(selectedApp.id, 'Shortlisted')}>
+                  <Button className="bg-purple-600 hover:bg-purple-700" onClick={() => updateStatus(selectedApp.id, 'Shortlisted')}>
                     <CheckCircle2 className="h-4 w-4 mr-2" /> Approve & Shortlist
+                  </Button>
+                )}
+                {selectedApp.status === 'Shortlisted' && (
+                  <Button className="bg-green-600 hover:bg-green-700" onClick={() => setIsActivateOpen(true)}>
+                    <Power className="h-4 w-4 mr-2" /> Activate BDO
                   </Button>
                 )}
               </div>
@@ -169,6 +194,55 @@ export default function BdoApplications() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsResubmitOpen(false)}>Cancel</Button>
             <Button onClick={() => selectedApp && updateStatus(selectedApp.id, 'Submitted')}>Send Request</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isActivateOpen} onOpenChange={setIsActivateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Activate BDO Account</DialogTitle>
+            <DialogDescription>Finalise account creation for {selectedApp?.name}.</DialogDescription>
+          </DialogHeader>
+          {selectedApp && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Generated Username</Label>
+                  <Input value={`vbdo.${selectedApp.name.split(' ')[0].toLowerCase()}.${Math.floor(Math.random() * 9000 + 1000)}`} readOnly className="bg-muted" />
+                </div>
+                <div className="space-y-1">
+                  <Label>Temporary Password</Label>
+                  <Input value={`VERJ@${Math.floor(Math.random() * 900000 + 100000)}`} readOnly className="bg-muted" />
+                </div>
+              </div>
+              <div className="space-y-2 pt-2">
+                <Label>Assigned Engineer</Label>
+                <Select>
+                  <SelectTrigger><SelectValue placeholder="Select supervising engineer" /></SelectTrigger>
+                  <SelectContent>
+                    {mockUsers.filter(u => u.roles.includes('Engineer') || u.roles.includes('Lead Technical Officer')).map(eng => (
+                      <SelectItem key={eng.id} value={eng.id}>{eng.name} ({eng.roles[0]})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-3 pt-4 border-t">
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="notify-email" defaultChecked />
+                  <Label htmlFor="notify-email" className="font-normal cursor-pointer">Send welcome email with credentials</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="notify-whatsapp" defaultChecked />
+                  <Label htmlFor="notify-whatsapp" className="font-normal cursor-pointer">Send WhatsApp notification</Label>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground pt-2">This will create the BDO account and notify them via email and WhatsApp.</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsActivateOpen(false)}>Cancel</Button>
+            <Button onClick={handleActivate} className="bg-green-600 hover:bg-green-700">Activate BDO</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

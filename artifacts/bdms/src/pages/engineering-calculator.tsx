@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, Calculator as CalcIcon, Save } from 'lucide-react';
+import { Plus, Trash2, Calculator as CalcIcon, Save, AlertTriangle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { mockLeads } from '@/data/mock';
+import { mockLeads, mockInventory } from '@/data/mock';
+import { useAuth } from '@/store/auth';
 
 interface Appliance {
   id: string;
@@ -17,11 +18,27 @@ interface Appliance {
 }
 
 export default function EngineeringCalculator() {
+  const { canSeePrices } = useAuth();
   const [appliances, setAppliances] = useState<Appliance[]>([
     { id: '1', name: 'Lighting', qty: 10, wattage: 15, hours: 12 },
     { id: '2', name: 'Television', qty: 2, wattage: 120, hours: 8 },
     { id: '3', name: 'Refrigerator', qty: 1, wattage: 150, hours: 24 }
   ]);
+  const [backupHours, setBackupHours] = useState(6);
+  const [selectedInverterSku, setSelectedInverterSku] = useState('');
+  const [selectedBatterySku, setSelectedBatterySku] = useState('');
+  const [selectedBatteryQty, setSelectedBatteryQty] = useState<number | ''>('');
+  const [selectedPanelSku, setSelectedPanelSku] = useState('');
+  const [selectedPanelQty, setSelectedPanelQty] = useState<number | ''>('');
+  const [manualInverterOverride, setManualInverterOverride] = useState(false);
+  const [linkedLeadId, setLinkedLeadId] = useState('');
+
+  const [pvCableSize, setPvCableSize] = useState('6mm²');
+  const [pvCableLength, setPvCableLength] = useState<number | ''>(50);
+  const [acCableSize, setAcCableSize] = useState('16mm²');
+  const [acCableLength, setAcCableLength] = useState<number | ''>(20);
+  const [batCableSize, setBatCableSize] = useState('50mm²');
+  const [batCableLength, setBatCableLength] = useState<number | ''>(5);
 
   const addAppliance = () => {
     setAppliances([...appliances, { id: Date.now().toString(), name: '', qty: 1, wattage: 0, hours: 0 }]);
@@ -36,15 +53,65 @@ export default function EngineeringCalculator() {
   };
 
   // Calculations
-  const totalPower = appliances.reduce((sum, a) => sum + (a.qty * a.wattage), 0);
+  const totalLoad = appliances.reduce((sum, a) => sum + (a.qty * a.wattage), 0);
   const totalEnergy = appliances.reduce((sum, a) => sum + (a.qty * a.wattage * a.hours), 0);
+
+  function getRequiredInverterKW(loadW: number): number {
+    if (loadW <= 500) return 4;
+    if (loadW <= 3000) return 6;
+    if (loadW <= 6000) return 12;
+    if (loadW <= 12000) return 24;
+    if (loadW <= 24000) return 48;
+    return 96;
+  }
+
+  const batteryWh = totalLoad * backupHours * 1.25;
+  const batteryKWh = batteryWh / 1000;
+  const pvKWp = ((batteryKWh * 1000 / 6) + totalLoad) * 1.67 / 1000;
+
+  let requiredInverterKW = getRequiredInverterKW(totalLoad);
+  while (pvKWp > requiredInverterKW) {
+    if (requiredInverterKW === 4) requiredInverterKW = 6;
+    else if (requiredInverterKW === 6) requiredInverterKW = 12;
+    else if (requiredInverterKW === 12) requiredInverterKW = 24;
+    else if (requiredInverterKW === 24) requiredInverterKW = 48;
+    else if (requiredInverterKW === 48) requiredInverterKW = 96;
+    else break;
+  }
+
+  const inverters = useMemo(() => mockInventory.filter(i => i.category === 'Inverter'), []);
+  const batteries = useMemo(() => mockInventory.filter(i => i.category === 'Battery'), []);
+  const panels = useMemo(() => mockInventory.filter(i => i.category === 'Solar Panel'), []);
+
+  const { autoInverter, autoBattery, defaultAutoBatteryQty, autoPanel, defaultAutoPanelQty } = useMemo(() => {
+    const suitableInverters = inverters
+      .filter(i => (i.capacityKW ?? 0) >= requiredInverterKW && (i.capacityKW ?? 0) - requiredInverterKW <= 5)
+      .sort((a, b) => (a.capacityKW ?? 0) - (b.capacityKW ?? 0));
+    const autoInverter = suitableInverters[0] || null;
+
+    const autoBattery = batteries.sort((a, b) => (b.capacityKWh ?? 0) - (a.capacityKWh ?? 0))[0];
+    const defaultAutoBatteryQty = autoBattery ? Math.ceil(batteryKWh / (autoBattery.capacityKWh ?? 1)) : 1;
+
+    const autoPanel = panels.sort((a, b) => (b.capacityW ?? 0) - (a.capacityW ?? 0))[0];
+    const defaultAutoPanelQty = autoPanel ? Math.ceil((pvKWp * 1000) / (autoPanel.capacityW ?? 1)) : 0;
+    
+    return { autoInverter, autoBattery, defaultAutoBatteryQty, autoPanel, defaultAutoPanelQty };
+  }, [inverters, batteries, panels, requiredInverterKW, batteryKWh, pvKWp]);
+
+  const activeInverterSku = manualInverterOverride && selectedInverterSku ? selectedInverterSku : autoInverter?.sku || '';
+  const activeInverter = inverters.find(i => i.sku === activeInverterSku);
   
-  const recommendedInverter = totalPower * 1.25; // 25% safety margin
-  const recommendedBattery = (totalEnergy * 1.5) / 1000; // kWh, 50% extra for Depth of Discharge
-  const recommendedPV = (totalEnergy / 4) / 1000; // kWp, assuming 4 peak sun hours
+  const activeBatterySku = selectedBatterySku || autoBattery?.sku || '';
+  const activeBattery = batteries.find(i => i.sku === activeBatterySku);
+  const activeBatteryQty = selectedBatteryQty !== '' ? selectedBatteryQty : defaultAutoBatteryQty;
+
+  const activePanelSku = selectedPanelSku || autoPanel?.sku || '';
+  const activePanel = panels.find(i => i.sku === activePanelSku);
+  const activePanelQty = selectedPanelQty !== '' ? selectedPanelQty : defaultAutoPanelQty;
+  const totalInstalledPV = activePanel ? (activePanelQty * (activePanel.capacityW ?? 0)) / 1000 : 0;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">System Calculator</h1>
@@ -56,8 +123,8 @@ export default function EngineeringCalculator() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-7 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Load Profile</CardTitle>
@@ -105,45 +172,79 @@ export default function EngineeringCalculator() {
               <Button variant="outline" size="sm" onClick={addAppliance} className="mt-4 w-full border-dashed">
                 <Plus className="h-4 w-4 mr-2" /> Add Row
               </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card className="border-primary/20 shadow-md">
-            <CardHeader className="bg-primary/5 pb-4 border-b">
-              <CardTitle className="flex items-center gap-2">
-                <CalcIcon className="h-5 w-5 text-primary" /> Analysis Results
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Peak Load</div>
-                  <div className="text-2xl font-bold">{totalPower.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">W</span></div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Daily Energy</div>
-                  <div className="text-2xl font-bold">{totalEnergy.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">Wh</span></div>
+              
+              <div className="mt-6 pt-6 border-t border-border grid grid-cols-2 sm:grid-cols-4 gap-4 items-center">
+                <div className="col-span-2 sm:col-span-1">
+                  <Label>Backup Hours</Label>
+                  <Input type="number" value={backupHours} onChange={(e) => setBackupHours(Number(e.target.value))} min={1} />
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-4 pt-4 border-t border-dashed border-border">
-                <h4 className="text-sm font-semibold">Recommended Sizing</h4>
-                
-                <div className="flex justify-between items-center bg-muted/40 p-3 rounded-md border">
-                  <span className="text-sm font-medium">Inverter Size</span>
-                  <span className="font-bold text-primary">{(recommendedInverter / 1000).toFixed(1)} kVA</span>
+          <Card>
+            <CardHeader>
+              <CardTitle>Cable Sizing</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold">PV Cable</h4>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Size</Label>
+                    <Select value={pvCableSize} onValueChange={setPvCableSize}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="4mm²">4mm²</SelectItem>
+                        <SelectItem value="6mm²">6mm²</SelectItem>
+                        <SelectItem value="10mm²">10mm²</SelectItem>
+                        <SelectItem value="16mm²">16mm²</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Length (m)</Label>
+                    <Input type="number" value={pvCableLength} onChange={e => setPvCableLength(Number(e.target.value))} />
+                  </div>
                 </div>
-                
-                <div className="flex justify-between items-center bg-muted/40 p-3 rounded-md border">
-                  <span className="text-sm font-medium">Battery Bank</span>
-                  <span className="font-bold text-primary">{recommendedBattery.toFixed(1)} kWh</span>
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold">AC Cable</h4>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Size</Label>
+                    <Select value={acCableSize} onValueChange={setAcCableSize}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="6mm²">6mm²</SelectItem>
+                        <SelectItem value="10mm²">10mm²</SelectItem>
+                        <SelectItem value="16mm²">16mm²</SelectItem>
+                        <SelectItem value="25mm²">25mm²</SelectItem>
+                        <SelectItem value="35mm²">35mm²</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Length (m)</Label>
+                    <Input type="number" value={acCableLength} onChange={e => setAcCableLength(Number(e.target.value))} />
+                  </div>
                 </div>
-                
-                <div className="flex justify-between items-center bg-muted/40 p-3 rounded-md border">
-                  <span className="text-sm font-medium">PV Array</span>
-                  <span className="font-bold text-primary">{recommendedPV.toFixed(1)} kWp</span>
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold">Battery Cable</h4>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Size</Label>
+                    <Select value={batCableSize} onValueChange={setBatCableSize}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="25mm²">25mm²</SelectItem>
+                        <SelectItem value="35mm²">35mm²</SelectItem>
+                        <SelectItem value="50mm²">50mm²</SelectItem>
+                        <SelectItem value="70mm²">70mm²</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Length (m)</Label>
+                    <Input type="number" value={batCableLength} onChange={e => setBatCableLength(Number(e.target.value))} />
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -157,7 +258,7 @@ export default function EngineeringCalculator() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Select Open Lead</Label>
-                  <Select>
+                  <Select value={linkedLeadId} onValueChange={setLinkedLeadId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose a lead..." />
                     </SelectTrigger>
@@ -168,6 +269,129 @@ export default function EngineeringCalculator() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-5 space-y-6">
+          <Card className="border-primary/20 shadow-md">
+            <CardHeader className="bg-primary/5 pb-4 border-b">
+              <CardTitle className="flex items-center gap-2">
+                <CalcIcon className="h-5 w-5 text-primary" /> Analysis Results
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Peak Load</div>
+                  <div className="text-2xl font-bold">{totalLoad.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">W</span></div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Daily Energy</div>
+                  <div className="text-2xl font-bold">{totalEnergy.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">Wh</span></div>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-dashed border-border">
+                <div className="flex justify-between items-center p-3 rounded-md bg-muted/40 border">
+                  <div>
+                    <span className="block text-sm font-medium">Battery Required</span>
+                    <span className="block text-xs text-muted-foreground">{totalLoad}W × {backupHours}h × 1.25</span>
+                  </div>
+                  <span className="font-bold text-primary">{batteryKWh.toFixed(2)} kWh</span>
+                </div>
+                <div className="flex justify-between items-center p-3 rounded-md bg-muted/40 border">
+                  <span className="text-sm font-medium">PV Required</span>
+                  <span className="font-bold text-primary">{pvKWp.toFixed(2)} kWp</span>
+                </div>
+                <div className="flex justify-between items-center p-3 rounded-md bg-muted/40 border">
+                  <span className="text-sm font-medium">Required Inverter Tier</span>
+                  <span className="font-bold text-primary">{requiredInverterKW} kW</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Component Selection</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Label className="text-sm font-bold flex justify-between">
+                  Inverter
+                  {!autoInverter && !manualInverterOverride && <span className="flex items-center text-xs text-amber-600"><AlertTriangle className="h-3 w-3 mr-1"/> Manual review required</span>}
+                </Label>
+                <Select value={activeInverterSku} onValueChange={(val) => { setManualInverterOverride(true); setSelectedInverterSku(val); }}>
+                  <SelectTrigger className="w-full h-auto py-2">
+                    <SelectValue placeholder="Select inverter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {inverters.map(inv => (
+                      <SelectItem key={inv.sku} value={inv.sku}>
+                        <div className="flex flex-col text-left">
+                          <span className="font-medium">{inv.model} ({inv.brand})</span>
+                          <span className="text-xs text-muted-foreground">{inv.specs}</span>
+                          {canSeePrices() && <span className="text-xs font-semibold mt-1">₦{inv.sellingPrice.toLocaleString()}</span>}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-sm font-bold">Battery Bank</Label>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Select value={activeBatterySku} onValueChange={setSelectedBatterySku}>
+                      <SelectTrigger className="h-auto py-2"><SelectValue placeholder="Select battery" /></SelectTrigger>
+                      <SelectContent>
+                        {batteries.map(bat => (
+                          <SelectItem key={bat.sku} value={bat.sku}>
+                            <div className="flex flex-col text-left">
+                              <span className="font-medium">{bat.model} ({bat.brand})</span>
+                              {canSeePrices() && <span className="text-xs font-semibold">₦{bat.sellingPrice.toLocaleString()}</span>}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Input type="number" value={activeBatteryQty} onChange={e => setSelectedBatteryQty(Number(e.target.value))} className="w-20" min={1} />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-sm font-bold">Solar Panels</Label>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Select value={activePanelSku} onValueChange={setSelectedPanelSku}>
+                      <SelectTrigger className="h-auto py-2"><SelectValue placeholder="Select panels" /></SelectTrigger>
+                      <SelectContent>
+                        {panels.map(pan => (
+                          <SelectItem key={pan.sku} value={pan.sku}>
+                            <div className="flex flex-col text-left">
+                              <span className="font-medium">{pan.model} ({pan.brand})</span>
+                              {canSeePrices() && <span className="text-xs font-semibold">₦{pan.sellingPrice.toLocaleString()}</span>}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Input type="number" value={activePanelQty} onChange={e => setSelectedPanelQty(Number(e.target.value))} className="w-20" min={0} />
+                </div>
+                <div className="text-xs text-muted-foreground text-right">
+                  Total PV: <span className="font-semibold text-foreground">{totalInstalledPV.toFixed(2)} kWp</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-muted rounded-md text-xs space-y-1">
+                <div className="flex justify-between"><span>PV Cable</span> <span>{pvCableSize} - {pvCableLength}m</span></div>
+                <div className="flex justify-between"><span>AC Cable</span> <span>{acCableSize} - {acCableLength}m</span></div>
+                <div className="flex justify-between"><span>Battery Cable</span> <span>{batCableSize} - {batCableLength}m</span></div>
               </div>
             </CardContent>
           </Card>

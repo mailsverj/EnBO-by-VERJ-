@@ -11,39 +11,43 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import logoPath from '@assets/Copy_of_Modern_Cabinet_Furniture_Product_1786754353697.png';
 
 export function Sidebar() {
   const [location] = useLocation();
   const { user, setUser } = useAuth();
 
   const getLinks = () => {
-    const role = user.role;
+    const hasAnyRole = (allowedRoles: string[]) => 
+      user.roles.some(r => allowedRoles.includes(r));
+
     const allLinks = [
-      { path: '/', icon: LayoutDashboard, label: 'Dashboard', roles: ['Super Admin', 'Management', 'Sales Admin', 'Finance'] },
+      { path: '/', icon: LayoutDashboard, label: 'Dashboard', roles: ['Super Admin', 'Chief Admin', 'Management', 'Sales Admin', 'Finance'] },
       
       // BDO Management
-      { path: '/bdo/applications', icon: FileText, label: 'Applications', group: 'BDO Management', roles: ['Super Admin', 'Recruitment/Admin', 'Management'] },
-      { path: '/bdo/directory', icon: Users, label: 'BDO Directory', group: 'BDO Management', roles: ['Super Admin', 'Recruitment/Admin', 'Management', 'Sales Admin'] },
+      { path: '/bdo/applications', icon: FileText, label: 'Applications', group: 'BDO Management', roles: ['Super Admin', 'Chief Admin', 'Recruitment/Admin', 'Management'] },
+      { path: '/bdo/directory', icon: Users, label: 'BDO Directory', group: 'BDO Management', roles: ['Super Admin', 'Chief Admin', 'Recruitment/Admin', 'Management', 'Sales Admin'] },
       
       // Operations
-      { path: '/leads', icon: Briefcase, label: 'Leads Pipeline', group: 'Operations', roles: ['Super Admin', 'Sales Admin', 'Management', 'BDO', 'Technical Officer', 'Lead Technical Officer'] },
-      { path: '/customers', icon: UserSquare2, label: 'Customers', group: 'Operations', roles: ['Super Admin', 'Sales Admin', 'Management'] },
+      { path: '/leads', icon: Briefcase, label: 'Leads Pipeline', group: 'Operations', roles: ['Super Admin', 'Chief Admin', 'Sales Admin', 'Management', 'BDO', 'Technical Officer', 'Lead Technical Officer'] },
+      { path: '/customers', icon: UserSquare2, label: 'Customers', group: 'Operations', roles: ['Super Admin', 'Chief Admin', 'Sales Admin', 'Management'] },
       
       // Engineering
-      { path: '/engineering/designs', icon: FileDigit, label: 'Technical Designs', group: 'Engineering', roles: ['Super Admin', 'Technical Officer', 'Lead Technical Officer', 'Management'] },
-      { path: '/engineering/calculator', icon: Calculator, label: 'System Calculator', group: 'Engineering', roles: ['Super Admin', 'Technical Officer', 'Lead Technical Officer'] },
-      { path: '/inventory', icon: HardHat, label: 'Inventory', group: 'Engineering', roles: ['Super Admin', 'Technical Officer', 'Lead Technical Officer', 'Finance', 'Management'] },
+      { path: '/engineering/queue', icon: FileText, label: 'Engineering Queue', group: 'Engineering', roles: ['Super Admin', 'Chief Admin', 'Technical Officer', 'Lead Technical Officer', 'Engineer', 'Management'] },
+      { path: '/engineering/designs', icon: FileDigit, label: 'Technical Designs', group: 'Engineering', roles: ['Super Admin', 'Chief Admin', 'Technical Officer', 'Lead Technical Officer', 'Engineer', 'Management'] },
+      { path: '/engineering/calculator', icon: Calculator, label: 'System Calculator', group: 'Engineering', roles: ['Super Admin', 'Chief Admin', 'Technical Officer', 'Lead Technical Officer', 'Engineer'] },
+      { path: '/inventory', icon: HardHat, label: 'Inventory', group: 'Engineering', roles: ['Super Admin', 'Chief Admin', 'Technical Officer', 'Lead Technical Officer', 'Engineer', 'Finance', 'Management'] },
       
       // Finance
-      { path: '/invoicing', icon: FileSpreadsheet, label: 'Invoices', group: 'Finance', roles: ['Super Admin', 'Finance', 'Management', 'Sales Admin'] },
-      { path: '/commission', icon: Banknote, label: 'Commission Ledger', group: 'Finance', roles: ['Super Admin', 'Finance', 'Management', 'BDO'] },
-      { path: '/finance', icon: ShieldCheck, label: 'Financial Analysis', group: 'Finance', roles: ['Super Admin', 'Finance', 'Management'] },
+      { path: '/invoicing', icon: FileSpreadsheet, label: 'Invoices', group: 'Finance', roles: ['Super Admin', 'Chief Admin', 'Finance', 'Management', 'Sales Admin', 'Sales'] },
+      { path: '/commission', icon: Banknote, label: 'Commission Ledger', group: 'Finance', roles: ['Super Admin', 'Chief Admin', 'Finance', 'Management', 'BDO', 'Sales'] },
+      { path: '/finance', icon: ShieldCheck, label: 'Accounting', group: 'Finance', roles: ['Super Admin', 'Chief Admin', 'Finance', 'Management', 'Sales'] },
       
       // Settings
-      { path: '/settings', icon: Settings, label: 'Settings', group: 'System', roles: ['Super Admin', 'Management'] },
+      { path: '/settings', icon: Settings, label: 'Settings', group: 'System', roles: ['Super Admin', 'Chief Admin', 'Management'] },
     ];
 
-    return allLinks.filter(link => link.roles.includes(role));
+    return allLinks.filter(link => hasAnyRole(link.roles));
   };
 
   const links = getLinks();
@@ -53,9 +57,8 @@ export function Sidebar() {
   return (
     <div className="w-64 bg-sidebar border-r border-sidebar-border h-screen flex flex-col fixed left-0 top-0 z-40 shadow-sm">
       <div className="h-16 flex items-center px-6 border-b border-sidebar-border bg-sidebar">
-        <div className="flex items-center gap-2 text-primary font-bold text-xl tracking-tight">
-          <Sun className="h-6 w-6 text-accent" />
-          <span>VERJ<span className="opacity-70 font-medium">SOLAR</span></span>
+        <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
+          <img src={logoPath} alt="VERJ SOLAR" className="h-10 object-contain" />
         </div>
       </div>
       
@@ -94,7 +97,7 @@ export function Sidebar() {
           </SelectTrigger>
           <SelectContent>
             {mockUsers.map(u => (
-              <SelectItem key={u.id} value={u.id} className="text-xs">{u.role} ({u.name.split(' ')[0]})</SelectItem>
+              <SelectItem key={u.id} value={u.id} className="text-xs">{u.roles[0]} ({u.name.split(' ')[0]})</SelectItem>
             ))}
           </SelectContent>
         </Select>

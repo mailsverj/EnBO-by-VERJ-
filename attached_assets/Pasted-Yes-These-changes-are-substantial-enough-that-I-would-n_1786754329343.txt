@@ -1,0 +1,818 @@
+Yes. These changes are substantial enough that I would not send them to Replit as a casual list. Give Replit one controlled implementation brief and explicitly tell it not to redesign the approved frontend.
+
+I have also resolved the duplicated inverter instruction in your item 9 by treating 501–3,000W as 6kW, with 12kW triggered when PV requirement exceeds 6kW. That appears to be the intended progression.
+
+Copy this into Replit Agent:
+
+⸻
+
+VERJ SOLAR BDMS — FRONTEND UPDATE & FUNCTIONAL REQUIREMENTS
+
+The existing BDMS static frontend has already been designed and approved.
+
+IMPORTANT: Do not redesign the existing interface, change the overall visual language, remove existing modules, or restructure existing navigation unless specifically required below.
+
+Implement the following functionality while preserving the existing frontend design.
+
+1. VERJ LOGO
+
+Replace the current logo with the attached VERJ logo image.
+
+Use the attached image throughout the application wherever the VERJ logo is required.
+
+The logo should also appear on generated invoices.
+
+⸻
+
+2. BDO ACTIVATION & AUTOMATIC WELCOME MESSAGE
+
+When a VERJ Admin activates a BDO’s Active status after the BDO has successfully passed the assessment:
+
+1. The BDO becomes Active.
+2. BDMS automatically generates:
+    * Username
+    * Unique default password
+3. The system sends an automatic welcome/onboarding message to the BDO through:
+    * Email
+    * WhatsApp
+4. The message contains:
+    * Congratulations/welcome message
+    * BDO’s username
+    * Unique default password
+    * Link to the BDMS login page
+    * Basic instruction to log in and change the default password.
+
+When the BDO logs in, they should automatically land on their BDO Portal.
+
+The password should not be displayed publicly after creation.
+
+⸻
+
+3. AUTOMATIC ENGINEER ASSIGNMENT
+
+Every newly activated BDO should automatically be assigned to an engineer.
+
+The BDO profile should contain:
+
+Assigned Engineer
+
+The BDO should be able to see the name of their assigned engineer from their portal.
+
+The Chief Admin should be able to change the assigned engineer when necessary.
+
+⸻
+
+4. BDO LOAD/SITE SUBMISSION → AUTOMATIC DESIGN REQUEST
+
+When a BDO submits:
+
+* Site details
+* Customer information
+* Load schedule
+* Appliance quantities
+* Appliance wattages
+* Usage/running hours
+* Backup requirement
+* Other required technical information
+
+BDMS should automatically create a Design Request.
+
+The design request should automatically appear on the assigned engineer’s portal.
+
+The engineer should see:
+
+* Customer details
+* Site details
+* Load schedule
+* BDO information
+* VBDO ID
+* Lead ID
+* Submission date/time
+* Automatically generated preliminary design
+* Design status
+
+⸻
+
+5. ENGINEERING QUEUE / GENERAL ENGINEERING ROOM
+
+If the assigned engineer does not attend to a new design request, it should also become visible in:
+
+* All Engineer Portals
+* General Engineering Room
+
+This allows another available engineer to attend to it.
+
+However, once an engineer starts working on the design:
+
+* The design becomes locked to that engineer.
+* Display a lock icon.
+* Display a clear message such as:
+
+Engr. Emeka is currently working on this design.
+
+Other engineers should not be able to edit the design while it is actively locked.
+
+⸻
+
+6. THREE-HOUR ENGINEERING LOCK
+
+When an engineer begins working on a design, record the exact start time.
+
+The design remains assigned/locked for 3 hours.
+
+If the engineer has not submitted/completed the design within 3 hours:
+
+* The design becomes available to other engineers again.
+* The lock is removed.
+* The design appears again in the general engineering queue.
+* Another engineer can take ownership.
+
+The system should retain an activity history showing:
+
+* Engineer who originally took the design
+* Time started
+* Time lock expired
+* Engineer who subsequently attended to it
+* Final engineer
+* Submission time
+
+⸻
+
+7. ENGINEER DESIGN EDITING
+
+The automatically generated design is a starting point, not a final design.
+
+Engineers must be able to:
+
+* Modify inverter selection
+* Modify battery selection
+* Modify solar panel selection
+* Modify quantities
+* Modify system configuration
+* Add/remove components
+* Adjust technical parameters
+* Select components from Inventory
+
+Engineers must be able to manually override the automatic recommendation where technically necessary.
+
+⸻
+
+8. INVENTORY-BASED DESIGN
+
+Engineers should be able to select equipment directly from the Inventory Directory.
+
+The design calculator should allow engineers to select:
+
+* Inverters
+* Batteries
+* Solar panels
+* PV cables
+* AC cables
+* Battery cables
+* Other relevant equipment/accessories
+
+The selected products become part of the design.
+
+⸻
+
+9. ENGINEERS MUST NOT SEE PRICES
+
+Engineers should not see product cost prices or selling prices.
+
+The engineer’s interface should show technical information such as:
+
+* Product name
+* Model
+* Capacity
+* Technical specifications
+* Quantity
+
+But not pricing.
+
+Pricing visibility should be restricted to:
+
+* Sales
+* Chief Admin
+
+⸻
+
+10. PRICE EDITING & PRICE AUDIT
+
+Only authorised Sales users and Chief Admin should be able to edit selling prices.
+
+Cost prices should also be restricted to authorised users.
+
+Every price modification must create an audit record showing:
+
+* Product
+* Previous price
+* New price
+* Person who edited it
+* Date
+* Time
+
+No price change should happen without an identifiable user.
+
+⸻
+
+11. AUTOMATIC SOLAR DESIGN LOGIC
+
+The design calculator should automatically calculate a preliminary system based on the submitted load.
+
+Inverter Selection
+
+Use the following progression:
+
+Total Load	Default Inverter
+1–500W	4kW
+501–3,000W	6kW
+3,001–6,000W	12kW
+6,001–12,000W	24kW
+12,001–24,000W	48kW
+24,001–48,000W	96kW
+
+PV capacity can force the system into the next inverter tier.
+
+For example:
+
+* If the calculated load requires a 4kW inverter but PV requirement exceeds 4kW → move to 6kW.
+* If the system requires 6kW but PV requirement exceeds 6kW → move to 12kW.
+* If the system requires 12kW but PV requirement exceeds 12kW → move to 24kW.
+* If the system requires 24kW but PV requirement exceeds 24kW → move to 48kW.
+* If the system requires 48kW but PV requirement exceeds 48kW → move to 96kW.
+
+Continue this progression using the same principle for larger systems.
+
+Inventory Matching
+
+If the calculated inverter size does not exist in Inventory, select the nearest available inverter provided the difference does not exceed 5kW from the intended capacity.
+
+Example:
+
+Required:
+
+48kW
+
+Inventory:
+
+* 45kW
+* 50kW
+* 60kW
+
+Select:
+
+50kW
+
+because it is the closest suitable option within the permitted 5kW difference.
+
+If no suitable inverter exists within the 5kW tolerance, flag the design for technical/manual review instead of automatically selecting an unsuitable inverter.
+
+⸻
+
+12. BATTERY SIZING FORMULA
+
+Use:
+
+Battery Required = Load (W) × Backup/Running Hours × 1.25
+
+The 1.25 factor is intended to account for:
+
+* Depth of discharge considerations
+* Approximately 5% system inefficiency
+
+The system should clearly display the calculated battery energy requirement.
+
+Then match it against available battery products in Inventory.
+
+Engineers can modify the automatically selected battery.
+
+⸻
+
+13. PV SIZING FORMULA
+
+Use:
+
+PV Required = [(Total Battery Size ÷ 6 hours) + Total Load] × 1.67
+
+The 6 hours represents the assumed daily sunlight/solar generation window.
+
+The 1.67 factor accounts for approximately 40% inefficiency/system losses.
+
+The calculator should display:
+
+* Calculated PV requirement
+* Recommended PV capacity
+* Selected panel size
+* Number of panels
+* Total installed PV capacity
+
+Engineers must be able to manually modify the panel selection and quantity.
+
+⸻
+
+14. CABLE SIZING
+
+The design calculator must include dedicated fields for:
+
+PV Cable
+
+* Cable size
+* Quantity/length where applicable
+
+AC Cable
+
+* Cable size
+* Quantity/length where applicable
+
+Battery Cable
+
+* Cable size
+* Quantity/length where applicable
+
+These should form part of the final technical design.
+
+⸻
+
+15. DESIGN RECORD
+
+Every design must have:
+
+* Design ID
+* Lead ID
+* Customer ID
+* VBDO ID
+* Customer information
+* Site details
+* Load schedule
+* Automatically calculated design
+* Engineer modifications
+* Selected components
+* Cable sizing
+* Design status
+* Created by
+* Date created
+* Last modified by
+* Date modified
+* Approved by
+* Approval date
+
+The Created By field is mandatory.
+
+⸻
+
+16. FINAL SOLUTION / PLAN PRESENTATION
+
+The customer-facing invoice should not expose the technical component-by-component internal design.
+
+Instead, the invoice should present the solution as a Solar Plan.
+
+For example:
+
+VERJ 24kW Premium Solar Plan
+
+Inverter
+
+24kW Inverter × 1
+
+Battery
+
+15kWh Lithium Battery × 4
+
+Solar Panels
+
+580W Solar Panels × 24
+
+Installation Accessories
+
+Installation Service
+
+The customer should see the main solution components without seeing every internal accessory or engineering calculation.
+
+⸻
+
+17. CUSTOMER-FACING INVOICE ITEMS
+
+For the customer-facing invoice:
+
+Display:
+
+* Plan name
+* Inverter size and quantity
+* Battery size and quantity
+* Solar panel wattage and quantity
+* Installation Accessories
+* Installation Service
+
+Do not expose internal engineering details unnecessarily.
+
+⸻
+
+18. COMPONENT PRICING ON INVOICES
+
+For final invoices involving systems up to and including 48kW inverter capacity, the customer-facing invoice should display prices for major components:
+
+* Inverter
+* Battery
+* Solar panels
+
+Other accessories should be grouped as:
+
+Installation Accessories
+
+However:
+
+PV Cable
+
+Must appear as a separate line item.
+
+AC Wire/Cable
+
+Must appear as a separate line item.
+
+All other accessories should be grouped under:
+
+Installation Accessories
+
+Installation labour/service should appear separately as:
+
+Installation Service
+
+⸻
+
+19. INVOICE APPROVAL
+
+A final invoice cannot automatically be sent to the customer immediately after generation.
+
+It must first go through approval.
+
+Authorised approvers:
+
+* Sales
+* Chief Admin
+
+The invoice should have an approval status such as:
+
+* Draft
+* Pending Approval
+* Approved
+* Sent
+* Paid
+* Cancelled
+
+⸻
+
+20. INVOICE EDITING
+
+Sales and Chief Admin should be able to edit an invoice before final approval.
+
+Once an invoice is approved, changes should be controlled.
+
+Any post-approval modification should create a new audit record/version showing:
+
+* Who modified it
+* What was changed
+* Previous value
+* New value
+* Date/time
+
+⸻
+
+21. AUTOMATIC INVOICE DELIVERY
+
+Once an invoice is approved:
+
+BDMS should automatically send the customer invoice through:
+
+* Email
+* WhatsApp
+
+The source BDO should simultaneously receive a notification through:
+
+* BDO Portal
+* WhatsApp
+
+The BDO should be informed that the customer’s invoice has been approved/sent.
+
+⸻
+
+22. INVOICE SHARING OPTIONS
+
+Every generated invoice should have three options:
+
+Share to BDO & Customer
+
+Send/share the invoice to both.
+
+Share to BDO Only
+
+Send/share only with the source BDO.
+
+Share to Customer Only
+
+Send/share only with the customer.
+
+⸻
+
+23. CUSTOMER INVOICE IDENTIFICATION
+
+Every customer invoice must contain:
+
+VBDO ID
+
+The originating BDO’s ID.
+
+Customer ID
+
+Customer IDs must use the prefix:
+
+CID
+
+Example:
+
+CID-000145
+
+Invoice ID
+
+Example:
+
+INV-2026-00145
+
+This allows every invoice to be traced back to:
+
+Customer → Lead → BDO → Project
+
+⸻
+
+24. INVOICE BRANDING
+
+Every invoice must contain the VERJ SOLAR logo.
+
+Company address:
+
+9 Badaru Street, Jakande, Lekki, Lagos
+
+Use the existing approved VERJ visual identity.
+
+The invoice should look professional and customer-ready.
+
+⸻
+
+25. ACCOUNTING MODULE
+
+Rename/restructure the existing Financial Analysis section as:
+
+ACCOUNTING
+
+This becomes the central financial management area.
+
+It should contain:
+
+* Sales
+* Revenue
+* Expenses
+* Cost of goods
+* Profit
+* Loss
+* Payments
+* Outstanding invoices
+* Other financial records
+
+⸻
+
+26. MANUAL EXPENSE ENTRY
+
+Authorised users should be able to manually enter business expenses.
+
+Expense fields should include:
+
+* Expense ID
+* Date
+* Category
+* Description
+* Amount
+* Payment method
+* Vendor/payee
+* Notes
+* Created by
+
+⸻
+
+27. ACCOUNTING ANALYTICS
+
+From the accounting data, BDMS should automatically generate useful reports.
+
+Examples:
+
+Revenue
+
+* Daily
+* Weekly
+* Monthly
+* Annual
+* Custom period
+
+Expenses
+
+* By category
+* By period
+* By department/project where applicable
+
+Profit & Loss
+
+Display:
+
+Revenue
+
+minus
+
+Costs
+
+minus
+
+Expenses
+
+equals
+
+Profit/Loss
+
+⸻
+
+28. INSIGHTFUL REPORTING
+
+The Accounting section should not merely display numbers.
+
+It should provide useful business insights such as:
+
+* Revenue trends
+* Expense trends
+* Profit trends
+* Best-performing periods
+* Highest-revenue BDOs
+* Most profitable projects
+* Outstanding customer balances
+* Sales performance
+* Product performance
+* Major expense categories
+
+Use charts and clear dashboard cards where appropriate.
+
+⸻
+
+29. INVENTORY COST PRICE
+
+The Inventory module must support:
+
+Cost Price
+
+for each product.
+
+Inventory should therefore distinguish between:
+
+* Cost Price
+* Selling Price
+
+Cost price should be restricted to authorised users.
+
+This allows BDMS to calculate project profitability accurately.
+
+⸻
+
+30. DUAL USER ROLES
+
+Chief Admin must be able to assign multiple roles to one user.
+
+Example:
+
+Engr. Emeka
+
+Roles:
+
+* Engineer
+* Sales
+
+A user may therefore perform multiple authorised functions without requiring separate accounts.
+
+The system should combine the permissions of their assigned roles while respecting restricted functions.
+
+For example, an engineer/sales user can access both engineering and sales functions but should only see pricing if their Sales role grants pricing permission.
+
+⸻
+
+31. SECURITY & PERMISSIONS
+
+The system must use role-based access control.
+
+BDO
+
+Can see:
+
+* Own profile
+* Own leads
+* Own customers where permitted
+* Assigned engineer
+* Design status
+* Approved customer solutions
+* Invoices relevant to their leads
+* Commission information where permitted
+
+Cannot see:
+
+* Internal cost prices
+* Other BDOs’ private information
+* Internal engineering pricing
+* General financial data
+* Other engineers’ restricted work
+
+Engineer
+
+Can see:
+
+* Assigned designs
+* Engineering queue
+* Load schedules
+* Site information
+* Inventory technical specifications
+
+Cannot see:
+
+* Cost prices
+* Selling prices
+* General financial information
+
+Sales
+
+Can see/edit:
+
+* Customers
+* Leads
+* Prices
+* Invoices
+* Sales information
+
+Chief Admin
+
+Full system access.
+
+⸻
+
+32. IMPORTANT DEVELOPMENT RULE
+
+Do not build all of these features as one giant untested feature.
+
+Implement them in controlled stages while preserving the existing frontend.
+
+Recommended development order:
+
+Phase 1
+
+BDO activation + login credentials + BDO portal
+
+Phase 2
+
+Engineer assignment + engineering queue
+
+Phase 3
+
+Load schedule → automatic design calculator
+
+Phase 4
+
+Inventory integration + engineer design editing
+
+Phase 5
+
+Pricing permissions + price audit
+
+Phase 6
+
+Design approval
+
+Phase 7
+
+Solar Plan invoice generation
+
+Phase 8
+
+Invoice approval + sharing + Email/WhatsApp notifications
+
+Phase 9
+
+Customer directory + invoice/customer IDs
+
+Phase 10
+
+Accounting + expenses + P&L + analytics
+
+Phase 11
+
+Testing + permissions + audit logs + backup automation
+
+⸻
+
+FINAL INSTRUCTION TO REPLIT
+
+Preserve the existing approved BDMS frontend. Do not redesign it. Implement the requirements above progressively and test each phase before moving to the next. Do not invent business rules where a requirement is not specified. Use role-based permissions throughout. Maintain complete audit trails for important actions, especially KYC, designs, pricing, invoices, approvals and financial records.
+
+Where a requirement involves external services such as WhatsApp, email, Google Sheets or authentication, build the application architecture so the integration can be connected securely through APIs/environment variables rather than hardcoding credentials.
+
+Before modifying existing functionality, inspect the current codebase and identify the relevant files/components. Make the smallest necessary changes and preserve existing functionality.

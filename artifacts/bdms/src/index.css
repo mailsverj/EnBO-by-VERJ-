@@ -75,50 +75,50 @@
   --elevate-2: rgba(0, 0, 0, 0.08);
 
   /* Light Mode Palette - Precision & Authority */
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
-  
+  --background: 0 0% 97%;
+  --foreground: 0 0% 8%;
+
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --card-border: 214 32% 91%;
-  
+  --card-foreground: 0 0% 8%;
+  --card-border: 0 0% 90%;
+
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --popover-border: 214 32% 91%;
-  
-  --primary: 222 47% 11%;
+  --popover-foreground: 0 0% 8%;
+  --popover-border: 0 0% 90%;
+
+  --primary: 0 0% 8%;
   --primary-foreground: 0 0% 100%;
-  
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222 47% 11%;
-  
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  
-  --accent: 214 100% 50%;
-  --accent-foreground: 0 0% 100%;
-  
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
 
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 222 47% 11%;
+  --secondary: 0 0% 95%;
+  --secondary-foreground: 0 0% 8%;
 
-  --sidebar: 0 0% 100%;
-  --sidebar-foreground: 222 47% 11%;
-  --sidebar-border: 214 32% 91%;
-  --sidebar-primary: 222 47% 11%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 210 40% 96.1%;
-  --sidebar-accent-foreground: 222 47% 11%;
-  --sidebar-ring: 214 32% 91%;
+  --muted: 0 0% 95%;
+  --muted-foreground: 0 0% 45%;
 
-  --chart-1: 221 83% 53%;
-  --chart-2: 45 93% 47%;
+  --accent: 45 95% 50%;
+  --accent-foreground: 0 0% 8%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 0 0% 90%;
+  --input: 0 0% 88%;
+  --ring: 45 95% 50%;
+
+  --sidebar: 0 0% 8%;
+  --sidebar-foreground: 0 0% 90%;
+  --sidebar-border: 0 0% 16%;
+  --sidebar-primary: 45 95% 50%;
+  --sidebar-primary-foreground: 0 0% 8%;
+  --sidebar-accent: 0 0% 14%;
+  --sidebar-accent-foreground: 0 0% 90%;
+  --sidebar-ring: 45 95% 50%;
+
+  --chart-1: 0 0% 8%;
+  --chart-2: 45 95% 50%;
   --chart-3: 142 71% 45%;
-  --chart-4: 349 89% 60%;
-  --chart-5: 283 39% 53%;
+  --chart-4: 0 84% 60%;
+  --chart-5: 220 70% 55%;
 
   --app-font-sans: 'Plus Jakarta Sans', sans-serif;
   --app-font-serif: Georgia, serif;
