@@ -328,34 +328,94 @@ export default function BdoApplications() {
                 )}
               </div>
 
-              {/* Personal details */}
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><div className="text-muted-foreground mb-0.5 text-xs">Email</div><div className="font-medium">{selectedApp.email}</div></div>
-                <div><div className="text-muted-foreground mb-0.5 text-xs">Phone</div><div className="font-medium">{selectedApp.phone}</div></div>
-                <div><div className="text-muted-foreground mb-0.5 text-xs">Location</div><div className="font-medium">{selectedApp.state}{selectedApp.lga ? `, ${selectedApp.lga}` : ''}</div></div>
-                <div><div className="text-muted-foreground mb-0.5 text-xs">Applied</div><div className="font-medium">{format(new Date(selectedApp.createdAt), 'MMMM d, yyyy')}</div></div>
-                {selectedApp.education && <div><div className="text-muted-foreground mb-0.5 text-xs">Education</div><div className="font-medium">{selectedApp.education}</div></div>}
-                {selectedApp.occupation && <div><div className="text-muted-foreground mb-0.5 text-xs">Occupation</div><div className="font-medium">{selectedApp.occupation}</div></div>}
-                {selectedApp.salesExperience && <div><div className="text-muted-foreground mb-0.5 text-xs">Sales Experience</div><div className="font-medium">{selectedApp.salesExperience}</div></div>}
-                {selectedApp.nin && <div><div className="text-muted-foreground mb-0.5 text-xs">NIN</div><div className="font-medium font-mono">{selectedApp.nin}</div></div>}
-                {selectedApp.bankName && (
-                  <div className="col-span-2">
-                    <div className="text-muted-foreground mb-0.5 text-xs flex items-center gap-1.5">
-                      Banking
-                      {selectedApp.status === 'Activated' && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
-                          <LockKeyhole className="h-2.5 w-2.5" /> Locked
-                        </span>
-                      )}
+              {/* ── Section helper ── */}
+              {(() => {
+                const F = ({ label, value, mono = false, span2 = false }: { label: string; value?: string | null; mono?: boolean; span2?: boolean }) =>
+                  value ? (
+                    <div className={span2 ? 'col-span-2' : ''}>
+                      <div className="text-muted-foreground mb-0.5 text-xs">{label}</div>
+                      <div className={`font-medium text-sm${mono ? ' font-mono' : ''}`}>{value}</div>
                     </div>
-                    <div className="font-medium">{selectedApp.bankName} — {selectedApp.accountNumber} ({selectedApp.accountName})</div>
-                    {selectedApp.status === 'Activated' && (
-                      <div className="text-xs text-muted-foreground mt-0.5">Banking details are read-only after activation. Contact Finance to request a change.</div>
+                  ) : null;
+
+                const SectionHead = ({ label }: { label: string }) => (
+                  <div className="col-span-2 pt-2 pb-0.5 border-t mt-1">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">{label}</span>
+                  </div>
+                );
+
+                return (
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                    {/* Personal */}
+                    <SectionHead label="Personal" />
+                    <F label="Title" value={selectedApp.title} />
+                    <F label="Date of Birth" value={selectedApp.dob} />
+                    <F label="Gender" value={selectedApp.gender} />
+                    <F label="Applied" value={format(new Date(selectedApp.createdAt), 'MMMM d, yyyy')} />
+                    <F label="Email" value={selectedApp.email} />
+                    <F label="Phone" value={selectedApp.phone} />
+                    <F label="WhatsApp" value={selectedApp.whatsappNumber} />
+                    <F label="State" value={selectedApp.state} />
+                    <F label="LGA" value={selectedApp.lga} />
+                    <F label="Address" value={selectedApp.address} span2 />
+
+                    {/* Education & Work */}
+                    <SectionHead label="Education & Work" />
+                    <F label="Education" value={selectedApp.education} />
+                    <F label="Occupation" value={selectedApp.occupation} />
+                    <F label="Employer" value={selectedApp.employerName} />
+                    <F label="Has Sales Experience?" value={selectedApp.hasSalesExperience} />
+                    <F label="Years of Sales Experience" value={selectedApp.salesExperience} />
+                    <F label="Previous Sales Detail" value={selectedApp.previousSalesDetail} span2 />
+
+                    {/* Business Operations */}
+                    <SectionHead label="Business Operations" />
+                    <F label="Coverage Areas" value={selectedApp.coverageAreas} span2 />
+                    <F label="Has Office?" value={selectedApp.hasOffice} />
+                    <F label="Wants VERJ Sticker?" value={selectedApp.wantsVerjSticker} />
+                    <F label="Office Address" value={selectedApp.officeAddress} span2 />
+                    <F label="Office Current Use" value={selectedApp.officeCurrentUse} span2 />
+
+                    {/* Identity */}
+                    <SectionHead label="Identity" />
+                    <F label="NIN" value={selectedApp.nin} mono />
+                    <F label="BVN" value={selectedApp.bvn} mono />
+                    <F label="Referral Source" value={selectedApp.referralSource} />
+
+                    {/* Banking */}
+                    {selectedApp.bankName && (
+                      <>
+                        <SectionHead label="Banking" />
+                        <div className="col-span-2">
+                          <div className="text-muted-foreground mb-0.5 text-xs flex items-center gap-1.5">
+                            Account
+                            {selectedApp.status === 'Activated' && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+                                <LockKeyhole className="h-2.5 w-2.5" /> Locked
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-medium text-sm">{selectedApp.bankName} — {selectedApp.accountNumber} ({selectedApp.accountName})</div>
+                          {selectedApp.status === 'Activated' && (
+                            <div className="text-xs text-muted-foreground mt-0.5">Read-only after activation. Contact Finance to change.</div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Guarantor */}
+                    {selectedApp.guarantorName && (
+                      <>
+                        <SectionHead label="Guarantor" />
+                        <F label="Name" value={selectedApp.guarantorName} />
+                        <F label="Relationship" value={selectedApp.guarantorRelationship} />
+                        <F label="Phone" value={selectedApp.guarantorPhone} />
+                        <F label="Address" value={selectedApp.guarantorAddress} span2 />
+                      </>
                     )}
                   </div>
-                )}
-                {selectedApp.guarantorName && <div className="col-span-2"><div className="text-muted-foreground mb-0.5 text-xs">Guarantor</div><div className="font-medium">{selectedApp.guarantorName} ({selectedApp.guarantorRelationship}) · {selectedApp.guarantorPhone}</div></div>}
-              </div>
+                );
+              })()}
 
               {/* KYC documents */}
               {(selectedApp.photoUrl || selectedApp.idDocumentUrl) && (
@@ -365,21 +425,13 @@ export default function BdoApplications() {
                     {selectedApp.photoUrl && (
                       <div className="space-y-1">
                         <div className="text-xs text-muted-foreground">Selfie / Passport Photo</div>
-                        <img
-                          src={selectedApp.photoUrl}
-                          alt="Applicant selfie"
-                          className="w-full rounded-md border object-cover max-h-48"
-                        />
+                        <img src={selectedApp.photoUrl} alt="Applicant selfie" className="w-full rounded-md border object-cover max-h-48" />
                       </div>
                     )}
                     {selectedApp.idDocumentUrl && (
                       <div className="space-y-1">
                         <div className="text-xs text-muted-foreground">Government-issued ID</div>
-                        <img
-                          src={selectedApp.idDocumentUrl}
-                          alt="Government ID"
-                          className="w-full rounded-md border object-cover max-h-48"
-                        />
+                        <img src={selectedApp.idDocumentUrl} alt="Government ID" className="w-full rounded-md border object-cover max-h-48" />
                       </div>
                     )}
                   </div>
@@ -387,11 +439,17 @@ export default function BdoApplications() {
               )}
 
               {selectedApp.statement && (
-                <div><div className="text-muted-foreground text-xs mb-1">Personal Statement</div><div className="text-sm border rounded-md p-3 bg-muted/30 leading-relaxed">{selectedApp.statement}</div></div>
+                <div>
+                  <div className="text-muted-foreground text-xs mb-1">Personal Statement</div>
+                  <div className="text-sm border rounded-md p-3 bg-muted/30 leading-relaxed">{selectedApp.statement}</div>
+                </div>
               )}
 
               {selectedApp.adminNotes && (
-                <div><div className="text-muted-foreground text-xs mb-1">Admin Notes</div><div className="text-sm border rounded-md p-3 bg-amber-50 text-amber-900 leading-relaxed">{selectedApp.adminNotes}</div></div>
+                <div>
+                  <div className="text-muted-foreground text-xs mb-1">Admin Notes</div>
+                  <div className="text-sm border rounded-md p-3 bg-amber-50 text-amber-900 leading-relaxed">{selectedApp.adminNotes}</div>
+                </div>
               )}
 
               {/* Assessment link (after shortlisting) */}
