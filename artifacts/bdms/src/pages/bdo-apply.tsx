@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,13 +45,17 @@ export default function BdoApply() {
   const [submitError, setSubmitError] = useState('');
   const [refId, setRefId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
     // Step 1 — Personal Information
     title: '',
-    fullName: '',
+    surname: '',
+    otherNames: '',
     dob: '',
-    address: '',
+    streetAddress: '',
+    city: '',
+    state: '',
     phone: '',
     whatsappNumber: '',
     email: '',
@@ -83,43 +87,56 @@ export default function BdoApply() {
     if (errors[key]) setErrors(prev => { const n = { ...prev }; delete n[key]; return n; });
   };
 
+  const scrollToTop = () => {
+    cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const validate = (): boolean => {
     const e: Record<string, string> = {};
+
     if (step === 1) {
       if (!formData.title) e.title = 'Required';
-      if (!formData.fullName.trim()) e.fullName = 'Required';
+      if (!formData.surname.trim()) e.surname = 'Required';
+      if (!formData.otherNames.trim()) e.otherNames = 'Required';
       if (!formData.dob) e.dob = 'Required';
-      if (!formData.address.trim()) e.address = 'Required';
+      if (!formData.streetAddress.trim()) e.streetAddress = 'Required';
+      if (!formData.city.trim()) e.city = 'Required';
+      if (!formData.state) e.state = 'Required';
       if (!formData.phone.trim()) e.phone = 'Required';
       if (!formData.email.trim()) e.email = 'Required';
       else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = 'Enter a valid email';
     }
+
     if (step === 2) {
-      if (!formData.coverageAreas.trim()) e.coverageAreas = 'Required';
+      if (!formData.coverageAreas) e.coverageAreas = 'Required';
       if (!formData.hasOffice) e.hasOffice = 'Required';
       if (formData.hasOffice === 'Yes' && !formData.officeAddress.trim()) e.officeAddress = 'Required';
       if (!formData.occupation.trim()) e.occupation = 'Required';
+      if (!formData.education) e.education = 'Required';
       if (!formData.hasSalesExperience) e.hasSalesExperience = 'Required';
       if (!formData.salesExperience) e.salesExperience = 'Required';
-      if (!formData.education) e.education = 'Required';
     }
+
     if (step === 3) {
       if (!formData.referralSource) e.referralSource = 'Required';
       if (!formData.photoUrl.trim()) e.photoUrl = 'Required';
       if (!formData.idDocumentUrl.trim()) e.idDocumentUrl = 'Required';
-      if (!formData.declaration) e.declaration = 'You must accept the declaration';
+      if (!formData.declaration) e.declaration = 'You must accept the declaration to continue';
     }
+
     if (step === 4) {
       if (!formData.bankName) e.bankName = 'Required';
-      if (!formData.accountNumber.trim() || formData.accountNumber.length !== 10) e.accountNumber = 'Must be 10 digits';
+      if (!formData.accountNumber.trim() || formData.accountNumber.length !== 10) e.accountNumber = 'Must be exactly 10 digits';
       if (!formData.accountName.trim()) e.accountName = 'Required';
     }
+
     setErrors(e);
+    if (Object.keys(e).length > 0) scrollToTop();
     return Object.keys(e).length === 0;
   };
 
-  const next = () => { if (validate()) setStep(s => s + 1); };
-  const back = () => setStep(s => s - 1);
+  const next = () => { if (validate()) { setStep(s => s + 1); scrollToTop(); } };
+  const back = () => { setStep(s => s - 1); scrollToTop(); };
 
   const handleSubmit = async () => {
     if (!validate()) return;
@@ -127,10 +144,19 @@ export default function BdoApply() {
     setSubmitError('');
     try {
       const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
+      // Combine split fields before sending
+      const payload = {
+        ...formData,
+        fullName: `${formData.surname.trim()} ${formData.otherNames.trim()}`,
+        address: formData.streetAddress.trim(),
+        lga: formData.city.trim(),
+        // state is already in formData
+        declaration: formData.declaration ? 'true' : 'false',
+      };
       const res = await fetch(`${BASE}/api/applications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, declaration: formData.declaration ? 'true' : 'false' }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json() as { ok?: boolean; refId?: string; error?: string };
       if (!res.ok) throw new Error(json.error ?? 'Submission failed');
@@ -159,6 +185,8 @@ export default function BdoApply() {
     </div>
   );
 
+  const fullName = [formData.surname, formData.otherNames].filter(Boolean).join(' ');
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-muted/30 flex flex-col">
@@ -171,7 +199,7 @@ export default function BdoApply() {
             <div>
               <h1 className="text-3xl font-black tracking-tight">Application Submitted!</h1>
               <p className="text-muted-foreground mt-3 leading-relaxed">
-                Thank you, {formData.fullName}. Your application has been received. We will review your
+                Thank you, {fullName || 'applicant'}. Your application has been received. We will review your
                 information and contact you at <span className="font-medium">{formData.email}</span> within 3–5 working days.
               </p>
             </div>
@@ -208,7 +236,7 @@ export default function BdoApply() {
           </div>
         </div>
 
-        <Card className="shadow-lg border-border/50">
+        <Card ref={cardRef} className="shadow-lg border-border/50">
           <CardHeader className="bg-muted/30 border-b pb-5">
             <CardTitle>{STEP_LABELS[step - 1]}</CardTitle>
             <CardDescription>Step {step} of {TOTAL_STEPS}</CardDescription>
@@ -219,31 +247,61 @@ export default function BdoApply() {
             {/* ─── STEP 1: Personal Information ─── */}
             {step === 1 && (
               <div className="space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                {/* Title + Name row */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
                   <div className="space-y-2">
-                    <Label>Title</Label>
+                    <Label>Title <span className="text-destructive">*</span></Label>
                     <Select value={formData.title} onValueChange={v => update('title', v)}>
-                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectTrigger className={errors.title ? 'border-destructive' : ''}>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
                       <SelectContent>{TITLES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                     </Select>
                     {err('title')}
                   </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Full Name</Label>
-                    <Input value={formData.fullName} onChange={e => update('fullName', e.target.value)} placeholder="As on your government ID" />
-                    {err('fullName')}
+                  <div className="space-y-2 md:col-span-3">
+                    <Label>Surname <span className="text-destructive">*</span></Label>
+                    <Input
+                      value={formData.surname}
+                      onChange={e => update('surname', e.target.value)}
+                      placeholder="Last name / Family name"
+                      className={errors.surname ? 'border-destructive' : ''}
+                    />
+                    {err('surname')}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Other Name(s) <span className="text-destructive">*</span></Label>
+                  <Input
+                    value={formData.otherNames}
+                    onChange={e => update('otherNames', e.target.value)}
+                    placeholder="First name and middle name(s)"
+                    className={errors.otherNames ? 'border-destructive' : ''}
+                  />
+                  {err('otherNames')}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
-                    <Label>Date of Birth</Label>
-                    <Input type="date" value={formData.dob} onChange={e => update('dob', e.target.value)} />
+                    <Label>Date of Birth <span className="text-destructive">*</span></Label>
+                    <Input
+                      type="date"
+                      value={formData.dob}
+                      onChange={e => update('dob', e.target.value)}
+                      className={errors.dob ? 'border-destructive' : ''}
+                    />
                     {err('dob')}
                   </div>
                   <div className="space-y-2">
-                    <Label>Phone Number</Label>
-                    <Input value={formData.phone} onChange={e => update('phone', e.target.value)} placeholder="+234 800 000 0000" />
+                    <Label>Phone Number <span className="text-destructive">*</span></Label>
+                    <Input
+                      value={formData.phone}
+                      onChange={e => update('phone', e.target.value)}
+                      placeholder="+234 800 000 0000"
+                      className={errors.phone ? 'border-destructive' : ''}
+                    />
                     {err('phone')}
                   </div>
                   <div className="space-y-2">
@@ -251,40 +309,92 @@ export default function BdoApply() {
                     <Input value={formData.whatsappNumber} onChange={e => update('whatsappNumber', e.target.value)} placeholder="+234 800 000 0000" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Email Address</Label>
-                    <Input type="email" value={formData.email} onChange={e => update('email', e.target.value)} placeholder="you@example.com" />
+                    <Label>Email Address <span className="text-destructive">*</span></Label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={e => update('email', e.target.value)}
+                      placeholder="you@example.com"
+                      className={errors.email ? 'border-destructive' : ''}
+                    />
                     {err('email')}
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Residential Address</Label>
-                  <Textarea value={formData.address} onChange={e => update('address', e.target.value)} placeholder="Full home address including street, city, and state" className="resize-none" rows={3} />
-                  {err('address')}
+                {/* Address — three separate fields */}
+                <div className="space-y-4">
+                  <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground border-b pb-2">Residential Address</div>
+                  <div className="space-y-2">
+                    <Label>Street Address <span className="text-destructive">*</span></Label>
+                    <Input
+                      value={formData.streetAddress}
+                      onChange={e => update('streetAddress', e.target.value)}
+                      placeholder="House no., street name, landmark"
+                      className={errors.streetAddress ? 'border-destructive' : ''}
+                    />
+                    {err('streetAddress')}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label>City / LGA <span className="text-destructive">*</span></Label>
+                      <Input
+                        value={formData.city}
+                        onChange={e => update('city', e.target.value)}
+                        placeholder="e.g. Ikeja, Oshodi-Isolo"
+                        className={errors.city ? 'border-destructive' : ''}
+                      />
+                      {err('city')}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>State <span className="text-destructive">*</span></Label>
+                      <Select value={formData.state} onValueChange={v => update('state', v)}>
+                        <SelectTrigger className={errors.state ? 'border-destructive' : ''}>
+                          <SelectValue placeholder="Select state" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {NIGERIAN_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      {err('state')}
+                    </div>
+                  </div>
                 </div>
+
               </div>
             )}
 
             {/* ─── STEP 2: Business & Experience ─── */}
             {step === 2 && (
               <div className="space-y-8">
+
+                {/* Validation summary banner */}
+                {Object.keys(errors).length > 0 && (
+                  <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive font-medium">
+                    Please fill in all required fields highlighted below.
+                  </div>
+                )}
+
                 <div className="space-y-5">
                   <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground border-b pb-2">Business / Operating Information</h3>
 
                   <div className="space-y-2">
-                    <Label>Which area(s) / state(s) would you be covering?</Label>
+                    <Label>Which state(s) would you be covering? <span className="text-destructive">*</span></Label>
                     <Select value={formData.coverageAreas} onValueChange={v => update('coverageAreas', v)}>
-                      <SelectTrigger><SelectValue placeholder="Select primary state" /></SelectTrigger>
+                      <SelectTrigger className={errors.coverageAreas ? 'border-destructive' : ''}>
+                        <SelectValue placeholder="Select primary state" />
+                      </SelectTrigger>
                       <SelectContent>{NIGERIAN_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground">Select your primary state. You can specify multiple areas in the notes during onboarding.</p>
+                    <p className="text-xs text-muted-foreground">Select your primary state. You can specify additional areas during onboarding.</p>
                     {err('coverageAreas')}
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Do you have a shop or office space where you'll be operating from?</Label>
+                    <Label>Do you have a shop or office you'll be operating from? <span className="text-destructive">*</span></Label>
                     <Select value={formData.hasOffice} onValueChange={v => update('hasOffice', v)}>
-                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectTrigger className={errors.hasOffice ? 'border-destructive' : ''}>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Yes">Yes</SelectItem>
                         <SelectItem value="No">No</SelectItem>
@@ -297,19 +407,25 @@ export default function BdoApply() {
                   {formData.hasOffice === 'Yes' && (
                     <>
                       <div className="space-y-2">
-                        <Label>Shop / Office Address</Label>
-                        <Textarea value={formData.officeAddress} onChange={e => update('officeAddress', e.target.value)} placeholder="Full address of your shop or office" className="resize-none" rows={2} />
+                        <Label>Shop / Office Address <span className="text-destructive">*</span></Label>
+                        <Textarea
+                          value={formData.officeAddress}
+                          onChange={e => update('officeAddress', e.target.value)}
+                          placeholder="Full address of your shop or office"
+                          className={`resize-none ${errors.officeAddress ? 'border-destructive' : ''}`}
+                          rows={2}
+                        />
                         {err('officeAddress')}
                       </div>
                       <div className="space-y-2">
-                        <Label>What is the shop/office currently being used for?</Label>
+                        <Label>What is the shop/office currently used for?</Label>
                         <Input value={formData.officeCurrentUse} onChange={e => update('officeCurrentUse', e.target.value)} placeholder="e.g. Electronics retail, Logistics, General merchandise" />
                       </div>
                     </>
                   )}
 
                   <div className="space-y-2">
-                    <Label>Would you like to receive a VERJ SOLAR flex or sticker to display at your location?</Label>
+                    <Label>Would you like a VERJ SOLAR flex banner or sticker for your location?</Label>
                     <Select value={formData.wantsVerjSticker} onValueChange={v => update('wantsVerjSticker', v)}>
                       <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>
@@ -325,20 +441,38 @@ export default function BdoApply() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <Label>Current Occupation</Label>
-                      <Input value={formData.occupation} onChange={e => update('occupation', e.target.value)} placeholder="e.g. Sales Rep, Freelancer, Student" />
+                      <Label>Current Occupation <span className="text-destructive">*</span></Label>
+                      <Input
+                        value={formData.occupation}
+                        onChange={e => update('occupation', e.target.value)}
+                        placeholder="e.g. Sales Rep, Freelancer, Student"
+                        className={errors.occupation ? 'border-destructive' : ''}
+                      />
                       {err('occupation')}
                     </div>
                     <div className="space-y-2">
-                      <Label>Name of Employer / Business Name <span className="text-muted-foreground font-normal text-xs">(if self-employed)</span></Label>
+                      <Label>Employer / Business Name <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
                       <Input value={formData.employerName} onChange={e => update('employerName', e.target.value)} placeholder="e.g. Dangote Group / Self-employed" />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Do you have prior experience in Sales or Marketing?</Label>
+                    <Label>Highest Educational Qualification <span className="text-destructive">*</span></Label>
+                    <Select value={formData.education} onValueChange={v => update('education', v)}>
+                      <SelectTrigger className={errors.education ? 'border-destructive' : ''}>
+                        <SelectValue placeholder="Select level" />
+                      </SelectTrigger>
+                      <SelectContent>{EDUCATION_LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                    </Select>
+                    {err('education')}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Do you have prior experience in Sales or Marketing? <span className="text-destructive">*</span></Label>
                     <Select value={formData.hasSalesExperience} onValueChange={v => update('hasSalesExperience', v)}>
-                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectTrigger className={errors.hasSalesExperience ? 'border-destructive' : ''}>
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Yes">Yes</SelectItem>
                         <SelectItem value="No">No</SelectItem>
@@ -349,15 +483,17 @@ export default function BdoApply() {
 
                   {formData.hasSalesExperience === 'Yes' && (
                     <div className="space-y-2">
-                      <Label>If yes, what did you sell?</Label>
+                      <Label>What did you sell?</Label>
                       <Input value={formData.previousSalesDetail} onChange={e => update('previousSalesDetail', e.target.value)} placeholder="e.g. Solar products, FMCG, Real estate, Insurance" />
                     </div>
                   )}
 
                   <div className="space-y-2">
-                    <Label>Level of Sales / Marketing Experience</Label>
+                    <Label>Level of Sales / Marketing Experience <span className="text-destructive">*</span></Label>
                     <Select value={formData.salesExperience} onValueChange={v => update('salesExperience', v)}>
-                      <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
+                      <SelectTrigger className={errors.salesExperience ? 'border-destructive' : ''}>
+                        <SelectValue placeholder="Select level" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="No experience">No experience</SelectItem>
                         <SelectItem value="Less than 1 year">Less than 1 year</SelectItem>
@@ -368,16 +504,8 @@ export default function BdoApply() {
                     </Select>
                     {err('salesExperience')}
                   </div>
-
-                  <div className="space-y-2">
-                    <Label>Highest Educational Qualification</Label>
-                    <Select value={formData.education} onValueChange={v => update('education', v)}>
-                      <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
-                      <SelectContent>{EDUCATION_LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
-                    </Select>
-                    {err('education')}
-                  </div>
                 </div>
+
               </div>
             )}
 
@@ -387,9 +515,11 @@ export default function BdoApply() {
                 <div className="space-y-5">
                   <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground border-b pb-2">Application Source</h3>
                   <div className="space-y-2">
-                    <Label>How did you hear about this opportunity?</Label>
+                    <Label>How did you hear about this opportunity? <span className="text-destructive">*</span></Label>
                     <Select value={formData.referralSource} onValueChange={v => update('referralSource', v)}>
-                      <SelectTrigger><SelectValue placeholder="Select source" /></SelectTrigger>
+                      <SelectTrigger className={errors.referralSource ? 'border-destructive' : ''}>
+                        <SelectValue placeholder="Select source" />
+                      </SelectTrigger>
                       <SelectContent>
                         {['Social Media (Facebook / Instagram / TikTok)','Twitter / X','LinkedIn','WhatsApp','Friend or Family','Existing VERJ BDO','Google Search','VERJ Event / Exhibition','Radio / TV','Other'].map(s => (
                           <SelectItem key={s} value={s}>{s}</SelectItem>
@@ -408,15 +538,25 @@ export default function BdoApply() {
                   </p>
 
                   <div className="space-y-2">
-                    <Label>Passport Photograph / Selfie (link)</Label>
-                    <Input value={formData.photoUrl} onChange={e => update('photoUrl', e.target.value)} placeholder="https://drive.google.com/..." />
+                    <Label>Passport Photograph / Selfie (link) <span className="text-destructive">*</span></Label>
+                    <Input
+                      value={formData.photoUrl}
+                      onChange={e => update('photoUrl', e.target.value)}
+                      placeholder="https://drive.google.com/..."
+                      className={errors.photoUrl ? 'border-destructive' : ''}
+                    />
                     <p className="text-xs text-muted-foreground">Recent, clear, face-forward photo. No sunglasses or hats.</p>
                     {err('photoUrl')}
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Government-Issued ID (link)</Label>
-                    <Input value={formData.idDocumentUrl} onChange={e => update('idDocumentUrl', e.target.value)} placeholder="https://drive.google.com/..." />
+                    <Label>Government-Issued ID (link) <span className="text-destructive">*</span></Label>
+                    <Input
+                      value={formData.idDocumentUrl}
+                      onChange={e => update('idDocumentUrl', e.target.value)}
+                      placeholder="https://drive.google.com/..."
+                      className={errors.idDocumentUrl ? 'border-destructive' : ''}
+                    />
                     <p className="text-xs text-muted-foreground">NIN slip, International Passport, Driver's Licence, or Voter's Card.</p>
                     {err('idDocumentUrl')}
                   </div>
@@ -435,7 +575,7 @@ export default function BdoApply() {
                       <Label htmlFor="declaration" className="font-medium cursor-pointer">I confirm and agree</Label>
                       <p className="text-sm text-muted-foreground leading-relaxed mt-1">
                         I confirm that all information provided is true, accurate, and complete to the best of my knowledge.
-                        I understand that false information may have negative consequences, including disqualification from the VERJ BDO programme.
+                        I understand that false information may result in disqualification from the VERJ BDO programme.
                       </p>
                       {err('declaration')}
                     </div>
@@ -451,16 +591,18 @@ export default function BdoApply() {
                   <Lock className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
                   <div className="text-amber-800 leading-relaxed">
                     <span className="font-semibold block mb-0.5">Sensitive — Banking Information</span>
-                    These details will be used for commission payments. Once you are onboarded, banking details become read-only.
-                    Any changes must be requested and approved by the Chief Admin.
+                    These details will be used for commission payments. Once you are activated, banking details become read-only.
+                    Any changes must be requested through the Finance team.
                   </div>
                 </div>
 
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <Label>Bank Name</Label>
+                    <Label>Bank Name <span className="text-destructive">*</span></Label>
                     <Select value={formData.bankName} onValueChange={v => update('bankName', v)}>
-                      <SelectTrigger><SelectValue placeholder="Select bank" /></SelectTrigger>
+                      <SelectTrigger className={errors.bankName ? 'border-destructive' : ''}>
+                        <SelectValue placeholder="Select bank" />
+                      </SelectTrigger>
                       <SelectContent>
                         {NIGERIAN_BANKS.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                       </SelectContent>
@@ -469,22 +611,24 @@ export default function BdoApply() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Bank Account Number</Label>
+                    <Label>Bank Account Number <span className="text-destructive">*</span></Label>
                     <Input
                       value={formData.accountNumber}
                       onChange={e => update('accountNumber', e.target.value.replace(/\D/g, '').slice(0, 10))}
                       placeholder="10-digit account number"
                       inputMode="numeric"
+                      className={errors.accountNumber ? 'border-destructive' : ''}
                     />
                     {err('accountNumber')}
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Account Name</Label>
+                    <Label>Account Name <span className="text-destructive">*</span></Label>
                     <Input
                       value={formData.accountName}
                       onChange={e => update('accountName', e.target.value)}
                       placeholder="Exact name on your bank account"
+                      className={errors.accountName ? 'border-destructive' : ''}
                     />
                     <p className="text-xs text-muted-foreground">Must match your bank records exactly.</p>
                     {err('accountName')}
