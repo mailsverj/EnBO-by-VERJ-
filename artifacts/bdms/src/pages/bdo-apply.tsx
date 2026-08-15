@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CheckCircle2, ChevronRight, ChevronLeft, Send, Lock } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ChevronLeft, Send, Lock, Camera, Upload, X, IdCard } from 'lucide-react';
 import logoPath from '@assets/Copy_of_Modern_Cabinet_Furniture_Product_1786754353697.png';
 
 const TOTAL_STEPS = 4;
@@ -46,6 +46,23 @@ export default function BdoApply() {
   const [refId, setRefId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const cardRef = useRef<HTMLDivElement>(null);
+  const photoUploadRef = useRef<HTMLInputElement>(null);
+  const photoCameraRef = useRef<HTMLInputElement>(null);
+  const idUploadRef = useRef<HTMLInputElement>(null);
+
+  const readFileAsDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const handleImageFile = async (file: File | undefined, field: 'photoUrl' | 'idDocumentUrl') => {
+    if (!file) return;
+    const dataUrl = await readFileAsDataUrl(file);
+    update(field, dataUrl);
+  };
 
   const [formData, setFormData] = useState({
     // Step 1 — Personal Information
@@ -118,12 +135,9 @@ export default function BdoApply() {
     }
 
     if (step === 3) {
-      const isValidUrl = (v: string) => { try { const u = new URL(v.trim()); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } };
       if (!formData.referralSource) e.referralSource = 'Required';
-      if (!formData.photoUrl.trim()) e.photoUrl = 'Required';
-      else if (!isValidUrl(formData.photoUrl)) e.photoUrl = 'Must be a valid link starting with https://';
-      if (!formData.idDocumentUrl.trim()) e.idDocumentUrl = 'Required';
-      else if (!isValidUrl(formData.idDocumentUrl)) e.idDocumentUrl = 'Must be a valid link starting with https://';
+      if (!formData.photoUrl) e.photoUrl = 'Please upload a passport photo or take a selfie';
+      if (!formData.idDocumentUrl) e.idDocumentUrl = 'Please upload your government-issued ID';
       if (!formData.declaration) e.declaration = 'You must accept the declaration to continue';
     }
 
@@ -540,27 +554,76 @@ export default function BdoApply() {
                     Set sharing to <span className="font-medium">"Anyone with the link can view"</span> before pasting.
                   </p>
 
+                  {/* ── Selfie / Passport Photo ── */}
                   <div className="space-y-2">
-                    <Label>Passport Photograph / Selfie (link) <span className="text-destructive">*</span></Label>
-                    <Input
-                      value={formData.photoUrl}
-                      onChange={e => update('photoUrl', e.target.value)}
-                      placeholder="https://drive.google.com/..."
-                      className={errors.photoUrl ? 'border-destructive' : ''}
-                    />
+                    <Label>Passport Photograph / Selfie <span className="text-destructive">*</span></Label>
                     <p className="text-xs text-muted-foreground">Recent, clear, face-forward photo. No sunglasses or hats.</p>
+
+                    {/* Hidden inputs */}
+                    <input ref={photoUploadRef} type="file" accept="image/*" className="hidden"
+                      onChange={e => handleImageFile(e.target.files?.[0], 'photoUrl')} />
+                    <input ref={photoCameraRef} type="file" accept="image/*" capture="user" className="hidden"
+                      onChange={e => handleImageFile(e.target.files?.[0], 'photoUrl')} />
+
+                    {formData.photoUrl ? (
+                      <div className={`relative rounded-lg overflow-hidden border-2 ${errors.photoUrl ? 'border-destructive' : 'border-border'}`}>
+                        <img src={formData.photoUrl} alt="Selfie preview" className="w-full max-h-56 object-cover" />
+                        <button type="button" onClick={() => update('photoUrl', '')}
+                          className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                        <div className="px-3 py-2 bg-muted/60 text-xs text-muted-foreground flex items-center gap-1.5">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0" /> Photo selected
+                        </div>
+                      </div>
+                    ) : (
+                      <div className={`rounded-lg border-2 border-dashed p-6 ${errors.photoUrl ? 'border-destructive bg-destructive/5' : 'border-border bg-muted/30'}`}>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                          <Button type="button" variant="outline" className="flex-1 gap-2"
+                            onClick={() => photoUploadRef.current?.click()}>
+                            <Upload className="h-4 w-4" /> Upload Passport Photo
+                          </Button>
+                          <Button type="button" variant="outline" className="flex-1 gap-2"
+                            onClick={() => photoCameraRef.current?.click()}>
+                            <Camera className="h-4 w-4" /> Take Selfie
+                          </Button>
+                        </div>
+                        <p className="text-center text-xs text-muted-foreground mt-3">JPG, PNG or WEBP · max 10 MB</p>
+                      </div>
+                    )}
                     {err('photoUrl')}
                   </div>
 
+                  {/* ── Government-Issued ID ── */}
                   <div className="space-y-2">
-                    <Label>Government-Issued ID (link) <span className="text-destructive">*</span></Label>
-                    <Input
-                      value={formData.idDocumentUrl}
-                      onChange={e => update('idDocumentUrl', e.target.value)}
-                      placeholder="https://drive.google.com/..."
-                      className={errors.idDocumentUrl ? 'border-destructive' : ''}
-                    />
+                    <Label>Government-Issued ID <span className="text-destructive">*</span></Label>
                     <p className="text-xs text-muted-foreground">NIN slip, International Passport, Driver's Licence, or Voter's Card.</p>
+
+                    <input ref={idUploadRef} type="file" accept="image/*" className="hidden"
+                      onChange={e => handleImageFile(e.target.files?.[0], 'idDocumentUrl')} />
+
+                    {formData.idDocumentUrl ? (
+                      <div className={`relative rounded-lg overflow-hidden border-2 ${errors.idDocumentUrl ? 'border-destructive' : 'border-border'}`}>
+                        <img src={formData.idDocumentUrl} alt="ID preview" className="w-full max-h-56 object-cover" />
+                        <button type="button" onClick={() => update('idDocumentUrl', '')}
+                          className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                        <div className="px-3 py-2 bg-muted/60 text-xs text-muted-foreground flex items-center gap-1.5">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0" /> ID document selected
+                        </div>
+                      </div>
+                    ) : (
+                      <div className={`rounded-lg border-2 border-dashed p-6 ${errors.idDocumentUrl ? 'border-destructive bg-destructive/5' : 'border-border bg-muted/30'}`}>
+                        <div className="flex justify-center">
+                          <Button type="button" variant="outline" className="gap-2"
+                            onClick={() => idUploadRef.current?.click()}>
+                            <IdCard className="h-4 w-4" /> Upload ID Document
+                          </Button>
+                        </div>
+                        <p className="text-center text-xs text-muted-foreground mt-3">JPG, PNG or WEBP · max 10 MB</p>
+                      </div>
+                    )}
                     {err('idDocumentUrl')}
                   </div>
                 </div>
