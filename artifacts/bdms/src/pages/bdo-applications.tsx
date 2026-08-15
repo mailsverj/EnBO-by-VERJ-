@@ -26,7 +26,7 @@ export default function BdoApplications() {
   const qc = useQueryClient();
   const isChiefAdmin = hasRole('Chief Admin');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['applications'],
     queryFn: () => api.applications.list(),
   });
@@ -241,6 +241,10 @@ export default function BdoApplications() {
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
+          ) : isError ? (
+            <div className="flex items-center justify-center py-16 text-destructive gap-2 text-sm">
+              <AlertTriangle className="h-4 w-4" /> Failed to load applications. Please refresh.
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -252,19 +256,22 @@ export default function BdoApplications() {
                   <TableHead>Pipeline Status</TableHead>
                   <TableHead>KYC</TableHead>
                   <TableHead>Assessment</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                       {apps.length === 0 ? 'No applications yet.' : 'No applications match your filters.'}
                     </TableCell>
                   </TableRow>
                 )}
                 {filtered.map(app => (
-                  <TableRow key={app.id}>
+                  <TableRow
+                    key={app.id}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => setSelectedApp(app)}
+                  >
                     <TableCell className="font-mono text-xs text-muted-foreground">{app.refId}</TableCell>
                     <TableCell>
                       <div className="font-semibold">{app.fullName}</div>
@@ -289,11 +296,6 @@ export default function BdoApplications() {
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => setSelectedApp(app)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -357,18 +359,30 @@ export default function BdoApplications() {
 
               {/* KYC documents */}
               {(selectedApp.photoUrl || selectedApp.idDocumentUrl) && (
-                <div className="border rounded-lg p-3 space-y-2">
+                <div className="border rounded-lg p-3 space-y-3">
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">KYC Documents</div>
-                  {selectedApp.photoUrl && (
-                    <a href={selectedApp.photoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
-                      <ExternalLink className="h-3 w-3" /> View Selfie / Passport Photo
-                    </a>
-                  )}
-                  {selectedApp.idDocumentUrl && (
-                    <a href={selectedApp.idDocumentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
-                      <ExternalLink className="h-3 w-3" /> View Government-issued ID
-                    </a>
-                  )}
+                  <div className="grid grid-cols-2 gap-3">
+                    {selectedApp.photoUrl && (
+                      <div className="space-y-1">
+                        <div className="text-xs text-muted-foreground">Selfie / Passport Photo</div>
+                        <img
+                          src={selectedApp.photoUrl}
+                          alt="Applicant selfie"
+                          className="w-full rounded-md border object-cover max-h-48"
+                        />
+                      </div>
+                    )}
+                    {selectedApp.idDocumentUrl && (
+                      <div className="space-y-1">
+                        <div className="text-xs text-muted-foreground">Government-issued ID</div>
+                        <img
+                          src={selectedApp.idDocumentUrl}
+                          alt="Government ID"
+                          className="w-full rounded-md border object-cover max-h-48"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
