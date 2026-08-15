@@ -119,17 +119,34 @@ export default function BdoApply() {
   const photoCameraRef = useRef<HTMLInputElement>(null);
   const idUploadRef = useRef<HTMLInputElement>(null);
 
-  const readFileAsDataUrl = (file: File): Promise<string> =>
+  const compressImage = (file: File, maxPx = 1200, quality = 0.8): Promise<string> =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
       reader.onerror = reject;
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          // Scale down so neither dimension exceeds maxPx
+          let { width, height } = img;
+          if (width > maxPx || height > maxPx) {
+            if (width >= height) { height = Math.round((height / width) * maxPx); width = maxPx; }
+            else { width = Math.round((width / height) * maxPx); height = maxPx; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = reader.result as string;
+      };
       reader.readAsDataURL(file);
     });
 
   const handleImageFile = async (file: File | undefined, field: 'photoUrl' | 'idDocumentUrl') => {
     if (!file) return;
-    const dataUrl = await readFileAsDataUrl(file);
+    const dataUrl = await compressImage(file);
     update(field, dataUrl);
   };
 
