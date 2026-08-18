@@ -263,10 +263,10 @@ export default function BdoApply() {
   const Header = () => (
     <div className="w-full bg-[#111] border-b shadow-sm sticky top-0 z-10">
       <div className="max-w-3xl mx-auto px-6 h-16 flex items-center gap-3">
-        <div className="ml-auto flex flex-col items-end">
+        <div>
           <div className="text-white font-black text-lg leading-none tracking-tight">EnBO</div>
           <div className="flex items-center gap-1.5 mt-1">
-            <span className="text-white text-[9px] font-semibold tracking-[0.15em] leading-none">by</span>
+            <span className="text-white italic text-[9px] font-semibold leading-none">by</span>
             <img
               src={logoPath}
               alt="VERJ"

@@ -35,13 +35,13 @@ export default function Login() {
         <div className="flex flex-col items-center gap-2 mb-8">
           <div className="flex flex-col items-center">
             <div className="inline-flex flex-col items-start">
-              <div className="text-4xl font-black tracking-tight text-white" style={{ textShadow: '0 1px 12px rgba(0,0,0,0.35)' }}>EnBO</div>
-              <div className="flex items-center gap-1.5 mt-1 w-full">
-                <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase shrink-0">by</span>
+              <div className="text-4xl font-black tracking-tight text-[#1a1a1a]">EnBO</div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-[#1a1a1a] italic text-xs font-semibold leading-none">by</span>
                 <img
                   src={logoPath}
                   alt="VERJ"
-                  className="flex-1 h-5 object-contain object-left"
+                  className="h-5 object-contain"
                   style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
                 />
               </div>
