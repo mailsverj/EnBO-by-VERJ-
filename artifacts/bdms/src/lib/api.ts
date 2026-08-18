@@ -339,6 +339,7 @@ export interface Invoice {
   approvedByName: string | null;
   issuedAt: string | null;
   dueDate: string | null;
+  warrantyPolicies: string[] | null;
   createdAt: string;
   updatedAt: string;
 }

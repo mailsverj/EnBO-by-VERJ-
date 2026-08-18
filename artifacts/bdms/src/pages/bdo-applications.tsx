@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/store/auth';
 import { api, type Application } from '@/lib/api';
+import { CopyButton } from '@/components/ui/copy-button';
 
 export default function BdoApplications() {
   const { toast } = useToast();
@@ -187,9 +188,10 @@ export default function BdoApplications() {
           <p className="text-muted-foreground mt-1">Manage the full application → KYC → assessment → activation pipeline.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={copyFormLink}>
-            <Link2 className="h-4 w-4 mr-2" /> Copy Form Link
-          </Button>
+          <CopyButton
+            value={window.location.origin + (import.meta.env.BASE_URL || '/').replace(/\/$/, '') + '/apply'}
+            label="Form Link"
+          />
           <Button variant="outline" onClick={() => setFormSettingsOpen(true)}>
             <Settings2 className="h-4 w-4 mr-2" /> Form Links
           </Button>

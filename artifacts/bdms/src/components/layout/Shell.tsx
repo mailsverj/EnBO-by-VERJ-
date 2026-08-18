@@ -98,16 +98,18 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
   return (
     <div className="w-64 bg-sidebar border-r border-sidebar-border h-full flex flex-col">
       {/* Logo */}
-      <div className="h-16 flex items-center px-5 border-b border-sidebar-border bg-sidebar gap-3 flex-shrink-0">
-        <img
-          src={logoPath}
-          alt="VERJ"
-          className="h-8 object-contain flex-shrink-0"
-          style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
-        />
+      <div className="h-16 flex items-center px-5 border-b border-sidebar-border bg-sidebar flex-shrink-0">
         <div className="min-w-0">
           <div className="text-sidebar-primary font-black text-lg leading-none tracking-tight">EnBO</div>
-          <div className="text-sidebar-foreground/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none mt-0.5">by VERJ</div>
+          <div className="flex items-center gap-1 mt-0.5">
+            <span className="text-sidebar-foreground/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none">by</span>
+            <img
+              src={logoPath}
+              alt="VERJ"
+              className="h-3 object-contain"
+              style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
+            />
+          </div>
         </div>
       </div>
 

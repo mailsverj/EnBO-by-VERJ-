@@ -18,6 +18,7 @@ export const invoicesTable = pgTable("invoices", {
   status: text("status").notNull().default("Draft"),
   approvedById: integer("approved_by_id"),
   approvedByName: text("approved_by_name"),
+  warrantyPolicies: jsonb("warranty_policies").default([]),
   issuedAt: timestamp("issued_at"),
   dueDate: timestamp("due_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

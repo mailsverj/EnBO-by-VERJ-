@@ -263,11 +263,17 @@ export default function BdoApply() {
   const Header = () => (
     <div className="w-full bg-[#111] border-b shadow-sm sticky top-0 z-10">
       <div className="max-w-3xl mx-auto px-6 h-16 flex items-center gap-3">
-        <img src={logoPath} alt="VERJ" className="h-8 object-contain flex-shrink-0"
-          style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }} />
         <div>
           <div className="text-white font-black text-lg leading-none tracking-tight">EnBO</div>
-          <div className="text-white/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none mt-0.5">by VERJ</div>
+          <div className="flex items-center gap-1 mt-0.5">
+            <span className="text-white/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none">by</span>
+            <img
+              src={logoPath}
+              alt="VERJ"
+              className="h-2.5 object-contain"
+              style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
+            />
+          </div>
         </div>
       </div>
     </div>

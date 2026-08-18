@@ -33,16 +33,18 @@ export default function Login() {
 
       <div className="z-10 w-full max-w-md p-6">
         <div className="flex flex-col items-center gap-2 mb-8">
-          <img
-            src={logoPath}
-            alt="VERJ"
-            className="h-12 object-contain"
-            style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
-          />
           <div className="text-center">
             <div className="text-4xl font-black tracking-tight text-foreground">EnBO</div>
-            <div className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mt-0.5">by VERJ</div>
-            <div className="text-[10px] tracking-widest text-muted-foreground/60 uppercase mt-0.5">Business Development & Operations Management</div>
+            <div className="flex items-center justify-center gap-1.5 mt-0.5">
+              <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">by</span>
+              <img
+                src={logoPath}
+                alt="VERJ"
+                className="h-3.5 object-contain"
+                style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
+              />
+            </div>
+            <div className="text-[10px] tracking-widest text-muted-foreground/60 uppercase mt-1">Energy, Business &amp; Operations Management</div>
           </div>
         </div>
 
