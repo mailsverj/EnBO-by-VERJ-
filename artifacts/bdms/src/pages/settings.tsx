@@ -66,7 +66,7 @@ export default function Settings() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>System Users</CardTitle>
-                <CardDescription>Manage access to the BuDOM platform.</CardDescription>
+                <CardDescription>Manage access to the EnBO platform.</CardDescription>
               </div>
               <Button size="sm"><Plus className="h-4 w-4 mr-2" /> Add User</Button>
             </CardHeader>

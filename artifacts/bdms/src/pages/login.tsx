@@ -40,7 +40,7 @@ export default function Login() {
             style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
           />
           <div className="text-center">
-            <div className="text-4xl font-black tracking-tight text-foreground">BuDOM</div>
+            <div className="text-4xl font-black tracking-tight text-foreground">EnBO</div>
             <div className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mt-0.5">by VERJ</div>
             <div className="text-[10px] tracking-widest text-muted-foreground/60 uppercase mt-0.5">Business Development & Operations Management</div>
           </div>

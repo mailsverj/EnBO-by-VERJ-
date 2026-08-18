@@ -48,7 +48,7 @@ export default function TrainingWorkbook() {
         <img src={heroImg} alt="VERJ Solar" style={{ width: '100%', height: 320, objectFit: 'cover', borderRadius: 12 }} />
         <p style={{ marginTop: 24, color: '#888', fontSize: '0.8rem' }}>
           Confidential — for VERJ BDO Applicants only<br />
-          VERJ SOLAR | BuDOM Onboarding Platform
+          VERJ SOLAR | EnBO Onboarding Platform
         </p>
       </div>
 
@@ -135,7 +135,7 @@ export default function TrainingWorkbook() {
         </ul>
         <h2>The BDO Pipeline</h2>
         <p>BDO → Lead → Customer → Load Assessment → Design → Engineering Approval → Invoice → Sales Approval → Payment → Installation → Commission</p>
-        <p>Every BuDOM record retains your BDO ID, so your contribution is always tracked and credited.</p>
+        <p>Every EnBO record retains your BDO ID, so your contribution is always tracked and credited.</p>
         <h2>Your VBDO ID</h2>
         <p>Your unique ID format: <strong>VBDO-XXXX</strong>. This is your official VERJ identity across all records, commissions, and certifications.</p>
       </div>
@@ -175,7 +175,7 @@ export default function TrainingWorkbook() {
           <li><strong>Record power ratings</strong> (wattage from label or manual)</li>
           <li><strong>Record daily usage hours</strong> — split day-time from night-time</li>
           <li><strong>Calculate energy:</strong> Wattage × Hours = Wh per day</li>
-          <li><strong>Submit to BuDOM</strong> for engineering review</li>
+          <li><strong>Submit to EnBO</strong> for engineering review</li>
         </ol>
         <div className="callout"><strong>Critical Rule:</strong> Never promise a specific system size without engineering review. Under or over-sizing a system damages the customer relationship and VERJ's reputation.</div>
         <h2>Key Questions to Ask</h2>
@@ -223,7 +223,7 @@ export default function TrainingWorkbook() {
         <ul>
           <li><strong>No Personal Gifts:</strong> Decline cash, gifts, or favours from customers.</li>
           <li><strong>No Misrepresentation:</strong> Never make false claims about VERJ products.</li>
-          <li><strong>Confidentiality:</strong> Customer data in BuDOM is strictly confidential.</li>
+          <li><strong>Confidentiality:</strong> Customer data in EnBO is strictly confidential.</li>
           <li><strong>Conflict of Interest:</strong> Disclose any personal relationships with customers.</li>
           <li><strong>Following Authority:</strong> If an instruction conflicts with VERJ policy, raise your concern professionally before acting.</li>
         </ul>
@@ -233,7 +233,7 @@ export default function TrainingWorkbook() {
       {/* Back cover */}
       <div style={{ textAlign: 'center', padding: '60px 0', borderTop: '2px solid #111', marginTop: 40 }}>
         <img src={logoPath} alt="VERJ" style={{ height: 48, filter: 'brightness(0)', margin: '0 auto 16px', display: 'block' }} />
-        <p style={{ color: '#666', fontSize: '0.85rem', marginTop: 8 }}>VERJ SOLAR | BuDOM BDO Onboarding Programme<br />This document is confidential. Issued to VERJ BDO applicants only.</p>
+        <p style={{ color: '#666', fontSize: '0.85rem', marginTop: 8 }}>VERJ SOLAR | EnBO BDO Onboarding Programme<br />This document is confidential. Issued to VERJ BDO applicants only.</p>
       </div>
 
       <div className="no-print" style={{ position: 'fixed', bottom: 24, right: 24, display: 'flex', gap: 12 }}>

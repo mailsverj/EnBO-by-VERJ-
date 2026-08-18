@@ -78,7 +78,7 @@ const LGAS_BY_STATE: Record<string, string[]> = {
   'Zamfara': ['Anka','Bakura','Birnin Magaji/Kiyaw','Bukkuyum','Bungudu','Gummi','Gusau','Kaura Namoda','Maradun','Maru','Shinkafi','Talata Mafara','Tsafe','Zurmi'],
 };
 
-const DRAFT_KEY = 'budom_bdo_apply_v1';
+const DRAFT_KEY = 'enbo_bdo_apply_v1';
 
 const DEFAULT_FORM = {
   // Step 1 — Personal Information
@@ -266,7 +266,7 @@ export default function BdoApply() {
         <img src={logoPath} alt="VERJ" className="h-8 object-contain flex-shrink-0"
           style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }} />
         <div>
-          <div className="text-white font-black text-lg leading-none tracking-tight">BuDOM</div>
+          <div className="text-white font-black text-lg leading-none tracking-tight">EnBO</div>
           <div className="text-white/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none mt-0.5">by VERJ</div>
         </div>
       </div>

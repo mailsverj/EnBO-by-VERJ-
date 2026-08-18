@@ -156,7 +156,7 @@ export default function Assessment() {
           style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
         />
         <div className="min-w-0">
-          <div className="text-white font-black text-lg leading-none tracking-tight">BuDOM</div>
+          <div className="text-white font-black text-lg leading-none tracking-tight">EnBO</div>
           <div className="text-white/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none mt-0.5">by VERJ</div>
         </div>
       </div>

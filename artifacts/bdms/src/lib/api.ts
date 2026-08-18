@@ -1,4 +1,4 @@
-// Centralised API client for BuDOM frontend
+// Centralised API client for EnBO frontend
 // All requests go through /api (proxied by Vite to the API server in dev)
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");

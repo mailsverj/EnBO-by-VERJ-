@@ -332,7 +332,7 @@ function ChapterContent({ id }: { id: string }) {
             'Factory-grade components — no compromise on quality',
             'VERJ-certified engineers for every installation',
             'After-sales support and maintenance packages',
-            'BuDOM-tracked warranties and service history',
+            'EnBO-tracked warranties and service history',
             'Customer-facing Solar Plan invoices — no confusing jargon',
             'Scalable systems designed to grow with the customer',
           ].map(p => (
@@ -392,10 +392,10 @@ function ChapterContent({ id }: { id: string }) {
             </div>
           ))}
         </div>
-        <Callout type="key">Every record in BuDOM retains the BDO ID so your contribution is always tracked and credited — from the initial lead all the way to commission payment.</Callout>
+        <Callout type="key">Every record in EnBO retains the BDO ID so your contribution is always tracked and credited — from the initial lead all the way to commission payment.</Callout>
       </Section>
       <Section title="Your VBDO ID">
-        <p className={bodyClass}>Once activated, you receive a unique VERJ BDO ID in the format <span className="text-amber-400 font-mono font-bold">VBDO-XXXX</span>. This ID is your official VERJ identity. It appears on all your commissions, leads, customers, and BuDOM records. Guard it carefully.</p>
+        <p className={bodyClass}>Once activated, you receive a unique VERJ BDO ID in the format <span className="text-amber-400 font-mono font-bold">VBDO-XXXX</span>. This ID is your official VERJ identity. It appears on all your commissions, leads, customers, and EnBO records. Guard it carefully.</p>
       </Section>
     </div>
   );
@@ -480,7 +480,7 @@ function ChapterContent({ id }: { id: string }) {
             { step: 'Step 2: Power Ratings', desc: 'Record the wattage of each appliance. This is usually on a label at the back of the appliance or in the manual. Common examples: LED bulb (10W), fan (50W), TV (100W), refrigerator (150W), air conditioner (1,500W).' },
             { step: 'Step 3: Daily Usage Hours', desc: 'Ask how many hours per day each appliance is used. Separate day-time use from night-time use — this matters for battery sizing.' },
             { step: 'Step 4: Calculate Energy', desc: 'Energy (Wh) = Wattage × Hours per day. Sum all appliances. Convert to kWh (divide by 1,000).' },
-            { step: 'Step 5: Submit to BuDOM', desc: 'Enter the load schedule into BuDOM. The engineering team uses this data to design the correct system.' },
+            { step: 'Step 5: Submit to EnBO', desc: 'Enter the load schedule into EnBO. The engineering team uses this data to design the correct system.' },
           ].map(s => (
             <div key={s.step} className="bg-white/5 rounded-xl p-4 border border-white/10">
               <div className="text-amber-400 font-semibold text-sm mb-1">{s.step}</div>
@@ -560,7 +560,7 @@ function ChapterContent({ id }: { id: string }) {
         <ul className="space-y-2 mt-2">
           {[
             'A unique VBDO ID (e.g. VBDO-0017)',
-            'BuDOM BDO Portal login credentials',
+            'EnBO BDO Portal login credentials',
             'VERJ BDO Certificate (downloadable, MD-signed)',
             'VERJ Work ID (downloadable, MD-signed)',
             'Access to leads, customers, commissions, and your performance dashboard',
@@ -611,7 +611,7 @@ function ChapterContent({ id }: { id: string }) {
           {[
             { rule: 'No Personal Gifts', desc: 'Do not accept cash, gifts, or favours from customers or prospects. Politely decline and explain VERJ\'s professional standards.' },
             { rule: 'No Misrepresentation', desc: 'Never make false claims about VERJ products or services. If you don\'t know something, find out and come back with the truth.' },
-            { rule: 'Confidentiality', desc: 'Customer data accessed through BuDOM is confidential. Never share customer information with third parties.' },
+            { rule: 'Confidentiality', desc: 'Customer data accessed through EnBO is confidential. Never share customer information with third parties.' },
             { rule: 'Conflict of Interest', desc: 'Inform VERJ management if you have a personal relationship with a customer or a competing business interest.' },
             { rule: 'Following Authority', desc: 'If a Chief Admin instruction conflicts with VERJ\'s official process, raise your concern professionally before proceeding. You are not exempt from the process.' },
           ].map(e => (
@@ -629,7 +629,7 @@ function ChapterContent({ id }: { id: string }) {
             'Use clear, respectful language in all written and verbal communication.',
             'Copy your VERJ contact into important emails when necessary.',
             'Never make a commitment on behalf of VERJ without authorisation.',
-            'Report all significant customer interactions in BuDOM.',
+            'Report all significant customer interactions in EnBO.',
           ].map(c => (
             <li key={c} className="flex items-start gap-2">
               <span className="text-amber-400 mt-0.5 flex-shrink-0">▸</span>

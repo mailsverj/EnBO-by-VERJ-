@@ -10,7 +10,7 @@ function getResend(): Resend {
 
 const FROM = process.env.EMAIL_FROM ?? "VERJ Solar <onboarding@resend.dev>";
 
-/** Base URL of the BuDOM frontend (no trailing slash). */
+/** Base URL of the EnBO frontend (no trailing slash). */
 function appBaseUrl(): string {
   const domain = process.env.APP_URL ?? process.env.REPLIT_DEV_DOMAIN ?? "localhost:3000";
   return domain.startsWith("http") ? domain.replace(/\/$/, "") : `https://${domain}`;
@@ -41,7 +41,7 @@ export async function sendAssessmentEmail(opts: {
         <!-- Header -->
         <tr>
           <td style="background:#0a0a0a;padding:28px 36px;">
-            <p style="margin:0;color:#f5c518;font-size:22px;font-weight:900;letter-spacing:-0.5px;">BuDOM <span style="font-size:11px;font-weight:600;color:#888;letter-spacing:2px;vertical-align:middle;">by VERJ</span></p>
+            <p style="margin:0;color:#f5c518;font-size:22px;font-weight:900;letter-spacing:-0.5px;">EnBO <span style="font-size:11px;font-weight:600;color:#888;letter-spacing:2px;vertical-align:middle;">by VERJ</span></p>
             <p style="margin:4px 0 0;color:#555;font-size:10px;letter-spacing:2px;text-transform:uppercase;">VERJ Solar Energy Solutions</p>
           </td>
         </tr>
@@ -77,7 +77,7 @@ export async function sendAssessmentEmail(opts: {
         <tr>
           <td style="padding:18px 36px;border-top:1px solid #f0f0f0;">
             <p style="margin:0;font-size:11px;color:#aaa;line-height:1.5;">
-              This email was sent by VERJ Solar Energy Solutions via the BuDOM platform. Do not reply to this email.
+              This email was sent by VERJ Solar Energy Solutions via the EnBO platform. Do not reply to this email.
             </p>
           </td>
         </tr>
