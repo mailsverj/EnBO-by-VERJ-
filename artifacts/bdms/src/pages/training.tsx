@@ -104,7 +104,7 @@ export default function Training() {
         <button onClick={() => setSidebarOpen(v => !v)} className="text-white/60 hover:text-white mr-1">
           {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
-        <img src={logoPath} alt="VERJ" className="h-7 object-contain"
+        <img src={logoPath} alt="VERJ" className="h-10 object-contain"
           style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }} />
         <span className="text-white font-bold tracking-wide text-sm hidden sm:inline">BDO Training Workbook</span>
         <div className="flex-1" />

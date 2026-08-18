@@ -35,7 +35,7 @@ function Header({ app, onLogout }: { app?: PortalApp; onLogout?: () => void }) {
             <img
               src={logoPath}
               alt="VERJ"
-              className="h-6 object-contain"
+              className="h-9 object-contain"
               style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
             />
           </div>

@@ -107,7 +107,7 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
             <img
               src={logoPath}
               alt="VERJ"
-              className="h-6 object-contain"
+              className="h-9 object-contain"
               style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
             />
           </div>
@@ -210,7 +210,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 <img
                   src={logoPath}
                   alt="VERJ"
-                  className="h-5 object-contain"
+                  className="h-8 object-contain"
                   style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
                 />
               </div>
