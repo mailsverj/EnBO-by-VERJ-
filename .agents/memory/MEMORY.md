@@ -1,3 +1,4 @@
 - [BuDOM by VERJ platform spec](budom-spec.md) — official product identity, 40-point spec, logo colour rule, battery/PV/inverter formulas, full business chain.
 - [Protection device auto-selection](protection-device-auto-selection.md) — MCBs/MCCBs/RCDs/SPDs added to inventory + formulas to auto-select per design (implement in Phase 3 inventory backend).
 - [Backend Architecture](backend-architecture.md) — full DB schema, API routes, auth/session setup, seeded users/data, frontend wiring decisions.
+- [Assessment bank source](assessment-bank-source.md) — use the supplied keyed assessment text; preserve the owner-approved 70% pass mark.

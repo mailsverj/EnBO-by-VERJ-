@@ -47,6 +47,7 @@ interface AssessmentDraft {
   version: 1;
   ref: string;
   attemptNumber: number;
+  questionBankSignature: string;
   answers: Record<number, string>;
   currentQ: number;
   currentQuestionId: number | null;
@@ -57,7 +58,9 @@ type Phase = 'entry' | 'loading' | 'instructions' | 'quiz' | 'submitting' | 'res
 
 const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
 const MAX_ATTEMPTS = 2;
-const DRAFT_PREFIX = 'enbo-assessment-progress-v1';
+// Bump this whenever the question bank changes so answers from an older bank
+// cannot be restored against questions with the same database IDs.
+const DRAFT_PREFIX = 'enbo-assessment-progress-v3';
 
 function draftKey(ref: string) {
   return `${DRAFT_PREFIX}:${ref.trim().toUpperCase()}`;
@@ -106,12 +109,34 @@ function clearDraft(ref: string) {
   }
 }
 
+function questionBankSignature(questions: Question[]) {
+  const source = questions
+    .map(question => [
+      question.id,
+      question.questionText,
+      question.options.map(option => `${option.value}:${option.label}`).join('|'),
+    ].join('::'))
+    .join('||');
+
+  let hash = 5381;
+  for (let index = 0; index < source.length; index += 1) {
+    hash = ((hash * 33) ^ source.charCodeAt(index)) >>> 0;
+  }
+  return hash.toString(36);
+}
+
 function restoreDraft(
   draft: AssessmentDraft,
   questions: Question[],
   attemptNumber: number,
 ): { answers: Record<number, string>; currentQ: number } | null {
-  if (draft.attemptNumber !== attemptNumber || questions.length === 0) return null;
+  if (
+    draft.attemptNumber !== attemptNumber
+    || draft.questionBankSignature !== questionBankSignature(questions)
+    || questions.length === 0
+  ) {
+    return null;
+  }
 
   const answers: Record<number, string> = {};
   for (const question of questions) {
@@ -154,6 +179,7 @@ export default function Assessment() {
   const [errorMsg, setErrorMsg] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [recentlyRestored, setRecentlyRestored] = useState(false);
+  const [confirmedQuestionBankSignature, setConfirmedQuestionBankSignature] = useState<string | null>(null);
   const [hasSavedDraft, setHasSavedDraft] = useState(
     () => Boolean(refFromUrl && readDraft(refFromUrl)),
   );
@@ -165,6 +191,7 @@ export default function Assessment() {
     setPhase('loading');
     setErrorMsg('');
     setSubmitError('');
+    setConfirmedQuestionBankSignature(null);
     setRef(cleanRef);
     setRefInput(cleanRef);
     try {
@@ -195,6 +222,7 @@ export default function Assessment() {
       }
 
       const loadedAttemptNumber = json.attemptNumber ?? 1;
+      const loadedQuestionBankSignature = questionBankSignature(loadedQuestions);
       const savedDraft = readDraft(cleanRef);
       const restored = savedDraft
         ? restoreDraft(savedDraft, loadedQuestions, loadedAttemptNumber)
@@ -206,6 +234,7 @@ export default function Assessment() {
       }
 
       setQuestions(loadedQuestions);
+      setConfirmedQuestionBankSignature(loadedQuestionBankSignature);
       setApplicantName(json.applicantName ?? '');
       setTotalMarks(json.totalMarks ?? 100);
       setAttemptNumber(loadedAttemptNumber);
@@ -244,6 +273,7 @@ export default function Assessment() {
       (phase !== 'quiz' && phase !== 'submitting')
       || !ref
       || questions.length === 0
+      || confirmedQuestionBankSignature !== questionBankSignature(questions)
     ) {
       return;
     }
@@ -253,13 +283,14 @@ export default function Assessment() {
       version: 1,
       ref,
       attemptNumber,
+      questionBankSignature: questionBankSignature(questions),
       answers,
       currentQ: safeCurrentQ,
       currentQuestionId: questions[safeCurrentQ]?.id ?? null,
       savedAt: new Date().toISOString(),
     });
     setHasSavedDraft(saved);
-  }, [answers, attemptNumber, currentQ, phase, questions, ref]);
+  }, [answers, attemptNumber, confirmedQuestionBankSignature, currentQ, phase, questions, ref]);
 
   const handleStart = () => {
     const clean = refInput.trim().toUpperCase();
