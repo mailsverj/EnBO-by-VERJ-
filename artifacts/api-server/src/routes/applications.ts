@@ -4,7 +4,7 @@ import { bdoApplicationsTable, bdosTable, usersTable } from "@workspace/db/schem
 import { eq, desc } from "drizzle-orm";
 import { requireAuth, requireRoles } from "../middleware/auth.js";
 import bcrypt from "bcryptjs";
-import { sendAssessmentEmail, assessmentUrl } from "../lib/email.js";
+import { sendOnboardingEmail, onboardPortalUrl } from "../lib/email.js";
 
 const router = Router();
 
@@ -147,18 +147,31 @@ router.patch("/applications/:id/shortlist", requireAuth, requireRoles("Chief Adm
     updatedAt: new Date(),
   }).where(eq(bdoApplicationsTable.id, id)).returning();
 
-  // Auto-send assessment link email (non-blocking — don't fail the shortlist if email errors)
-  const emailResult = await sendAssessmentEmail({
+  // Generate onboarding portal credentials
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const tempPassword = Array.from({ length: 8 }, (_, i) =>
+    (i === 4 ? "-" : chars[Math.floor(Math.random() * chars.length)])
+  ).join("");
+  const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+  await db.update(bdoApplicationsTable)
+    .set({ onboardingPasswordHash: passwordHash })
+    .where(eq(bdoApplicationsTable.id, id));
+
+  // Send onboarding portal email with credentials (non-blocking)
+  const emailResult = await sendOnboardingEmail({
     name: app.fullName,
     email: app.email,
     refId: app.refId,
+    tempPassword,
   });
 
   res.json({
     application: updated,
     emailSent: emailResult.ok,
     emailError: emailResult.error ?? null,
-    assessmentLink: assessmentUrl(app.refId),
+    portalUrl: onboardPortalUrl(),
+    tempPassword, // returned to admin in case manual delivery is needed
   });
 });
 

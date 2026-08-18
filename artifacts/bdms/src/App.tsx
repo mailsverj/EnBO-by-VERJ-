@@ -34,6 +34,7 @@ import Settings from '@/pages/settings';
 import Training from '@/pages/training';
 import TrainingWorkbook from '@/pages/training-workbook';
 import Broadcasts from '@/pages/broadcasts';
+import Onboard from '@/pages/onboard';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -49,7 +50,12 @@ function Router() {
   }, []);
 
   // Public — no auth, no shell
-  if (location.startsWith('/apply') || location.startsWith('/assessment') || location.startsWith('/training')) {
+  if (
+    location.startsWith('/apply') ||
+    location.startsWith('/assessment') ||
+    location.startsWith('/training') ||
+    location.startsWith('/onboard')
+  ) {
     return (
       <RoutedErrorBoundary>
         <Switch>
@@ -57,6 +63,7 @@ function Router() {
           <Route path="/assessment" component={Assessment} />
           <Route path="/training/workbook" component={TrainingWorkbook} />
           <Route path="/training" component={Training} />
+          <Route path="/onboard" component={Onboard} />
         </Switch>
       </RoutedErrorBoundary>
     );

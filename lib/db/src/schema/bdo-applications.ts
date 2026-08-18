@@ -53,6 +53,8 @@ export const bdoApplicationsTable = pgTable("bdo_applications", {
   assessmentPassed: boolean("assessment_passed"),
   assessmentCompletedAt: timestamp("assessment_completed_at"),
   shortlistedAt: timestamp("shortlisted_at"),
+  // Onboarding portal credentials (set when shortlisted)
+  onboardingPasswordHash: text("onboarding_password_hash"),
   // Admin fields
   status: text("status").notNull().default("Submitted"),
   // Submitted | KYC Pending | KYC Resubmission Required | Shortlisted |
