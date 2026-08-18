@@ -54,6 +54,28 @@ export const api = {
     delete: (id: number) =>
       request<{ ok: boolean }>(`/broadcasts/${id}`, { method: "DELETE" }),
   },
+  admin: {
+    questions: {
+      list: () => request<{ questions: AssessmentQuestion[] }>("/admin/questions"),
+      create: (data: Partial<AssessmentQuestion> & { options: { label: string; value: string }[] }) =>
+        request<{ question: AssessmentQuestion }>("/admin/questions", { method: "POST", body: JSON.stringify(data) }),
+      update: (id: number, data: Partial<AssessmentQuestion> & { options?: { label: string; value: string }[] }) =>
+        request<{ question: AssessmentQuestion }>(`/admin/questions/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+      remove: (id: number) =>
+        request<{ ok: boolean }>(`/admin/questions/${id}`, { method: "DELETE" }),
+    },
+    training: {
+      list: () => request<{ chapters: Pick<TrainingChapter, 'id' | 'chapterId' | 'title' | 'subtitle' | 'updatedAt'>[] }>("/admin/training"),
+      get: (chapterId: string) => request<{ chapter: TrainingChapter }>(`/admin/training/${chapterId}`),
+      update: (chapterId: string, data: { title: string; subtitle: string; content: ChapterContent }) =>
+        request<{ chapter: TrainingChapter }>(`/admin/training/${chapterId}`, { method: "PUT", body: JSON.stringify(data) }),
+      seed: () => request<{ ok: boolean; seeded: number; total: number }>("/admin/training/seed", { method: "POST" }),
+    },
+  },
+  training: {
+    listChapters: () => request<{ chapters: Pick<TrainingChapter, 'chapterId' | 'title' | 'subtitle'>[] }>("/training/chapters"),
+    getChapter: (chapterId: string) => request<{ chapter: TrainingChapter }>(`/training/chapters/${chapterId}`),
+  },
   bdos: {
     list: () => request<{ bdos: Bdo[] }>("/bdos"),
     get: (vbdoId: string) => request<{ bdo: Bdo }>(`/bdos/${vbdoId}`),
@@ -408,4 +430,42 @@ export interface Broadcast {
   sentByName: string | null;
   createdAt: string;
   readAt: string | null;
+}
+
+export interface AssessmentQuestion {
+  id: number;
+  category: string;
+  questionText: string;
+  options: { label: string; value: string }[];
+  correctOption: string;
+  points: number;
+  marks: number;
+  active: boolean;
+  createdAt: string;
+}
+
+export type ChapterBlock =
+  | { type: "paragraph"; text: string }
+  | { type: "callout"; variant: "tip" | "warning" | "key"; text: string }
+  | { type: "list"; items: string[] }
+  | { type: "cards"; columns?: 2 | 3; items: { title: string; subtitle?: string; body: string }[] }
+  | { type: "keyterms"; terms: { term: string; def: string }[] }
+  | { type: "formula"; label: string; formula: string; explanation: string }
+  | { type: "steps"; items: { label: string; desc: string }[] }
+  | { type: "pipeline"; items: string[] }
+  | { type: "dodont"; dos: string[]; donts: string[] }
+  | { type: "table"; headers: string[]; rows: string[][] }
+  | { type: "objections"; items: { obj: string; res: string }[] }
+  | { type: "assessment_cta" };
+
+export interface ChapterSection { title: string; blocks: ChapterBlock[]; }
+export interface ChapterContent { sections: ChapterSection[]; }
+
+export interface TrainingChapter {
+  id: number;
+  chapterId: string;
+  title: string;
+  subtitle: string;
+  content: ChapterContent;
+  updatedAt: string | null;
 }

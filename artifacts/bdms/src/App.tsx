@@ -35,6 +35,7 @@ import Training from '@/pages/training';
 import TrainingWorkbook from '@/pages/training-workbook';
 import Broadcasts from '@/pages/broadcasts';
 import Onboard from '@/pages/onboard';
+import ContentAdmin from '@/pages/content-admin';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -118,6 +119,7 @@ function Router() {
 
           <Route path="/settings" component={Settings} />
           <Route path="/broadcasts" component={Broadcasts} />
+          <Route path="/content" component={ContentAdmin} />
 
           <Route component={NotFound} />
         </Switch>

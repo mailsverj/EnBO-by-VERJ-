@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, FileText, UserSquare2,
   Settings, LogOut, Briefcase, FileSpreadsheet,
   Calculator, Banknote, ShieldCheck, HardHat, FileDigit, Loader2,
-  BookOpen, Megaphone, Menu, X
+  BookOpen, Megaphone, Menu, X, PenLine
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,7 @@ const allLinks = [
   { path: '/broadcasts', icon: Megaphone, label: 'Broadcasts', group: 'Training & Comms', roles: ['Super Admin', 'Chief Admin', 'Recruitment/Admin', 'Management', 'BDO', 'Technical Officer', 'Lead Technical Officer', 'Engineer', 'Sales Admin', 'Finance'] },
 
   // Settings
+  { path: '/content', icon: PenLine, label: 'Content Editor', group: 'System', roles: ['Super Admin', 'Chief Admin'] },
   { path: '/settings', icon: Settings, label: 'System Settings', group: 'System', roles: ['Super Admin', 'Chief Admin', 'Management'] },
 ];
 
@@ -201,13 +202,24 @@ export function Shell({ children }: { children: ReactNode }) {
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
-            <div className="font-semibold text-sm tracking-widest text-muted-foreground hidden sm:block">
-              REDEFINE YOUR LIMIT.
+            {/* Logo — always visible in header */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-black text-lg leading-none tracking-tight">EnBO</span>
+              <div className="flex items-center gap-0.5">
+                <span className="text-muted-foreground italic text-[9px] font-semibold leading-none">by</span>
+                <img
+                  src={logoPath}
+                  alt="VERJ"
+                  className="h-5 object-contain"
+                  style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
+                />
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="text-xs tracking-widest hidden sm:block">REDEFINE YOUR LIMIT.</span>
             {user && (
-              <span className="text-xs hidden sm:block">{user.email}</span>
+              <span className="text-xs hidden md:block text-muted-foreground/60">{user.email}</span>
             )}
           </div>
         </header>

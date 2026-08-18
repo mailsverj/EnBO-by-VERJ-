@@ -16,6 +16,7 @@ import assessmentRouter from "./assessment.js";
 import broadcastsRouter from "./broadcasts.js";
 import documentsRouter from "./documents.js";
 import onboardRouter from "./onboard.js";
+import adminRouter from "./admin.js";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(financeRouter);
 router.use(broadcastsRouter);
 router.use(documentsRouter);
 router.use(onboardRouter);
+router.use(adminRouter);
 
 export default router;

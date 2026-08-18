@@ -10,3 +10,4 @@ export * from "./invoices";
 export * from "./expenses";
 export * from "./assessment-questions";
 export * from "./broadcasts";
+export * from "./training-chapters";
