@@ -99,14 +99,14 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
     <div className="w-64 bg-sidebar border-r border-sidebar-border h-full flex flex-col">
       {/* Logo */}
       <div className="h-16 flex items-center px-5 border-b border-sidebar-border bg-sidebar flex-shrink-0">
-        <div className="min-w-0">
-          <div className="text-sidebar-primary font-black text-lg leading-none tracking-tight">EnBO</div>
-          <div className="flex items-center gap-1 mt-0.5">
-            <span className="text-sidebar-foreground/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none">by</span>
+        <div className="inline-flex flex-col items-start">
+          <div className="text-white font-black text-lg leading-none tracking-tight">EnBO</div>
+          <div className="flex items-center gap-1 mt-0.5 w-full">
+            <span className="text-sidebar-foreground/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none shrink-0">by</span>
             <img
               src={logoPath}
               alt="VERJ"
-              className="h-3 object-contain"
+              className="flex-1 h-3.5 object-contain object-left"
               style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
             />
           </div>

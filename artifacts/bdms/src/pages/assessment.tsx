@@ -150,14 +150,14 @@ export default function Assessment() {
   const Header = () => (
     <div className="w-full bg-[#111] border-b border-border shadow-sm sticky top-0 z-10">
       <div className="max-w-3xl mx-auto px-6 h-16 flex items-center gap-3">
-        <div className="min-w-0">
+        <div className="inline-flex flex-col items-start">
           <div className="text-white font-black text-lg leading-none tracking-tight">EnBO</div>
-          <div className="flex items-center gap-1 mt-0.5">
-            <span className="text-white/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none">by</span>
+          <div className="flex items-center gap-1 mt-0.5 w-full">
+            <span className="text-white/50 text-[9px] font-semibold tracking-[0.15em] uppercase leading-none shrink-0">by</span>
             <img
               src={logoPath}
               alt="VERJ"
-              className="h-2.5 object-contain"
+              className="flex-1 h-3.5 object-contain object-left"
               style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
             />
           </div>
