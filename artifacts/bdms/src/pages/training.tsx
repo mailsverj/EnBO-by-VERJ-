@@ -35,7 +35,7 @@ const CHAPTERS: Chapter[] = [
 export default function Training() {
   const [activeChapter, setActiveChapter] = useState('welcome');
   const [readChapters, setReadChapters] = useState<Set<string>>(new Set());
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
   const contentRef = useRef<HTMLDivElement>(null);
   const isPublic = !document.cookie.includes('connect.sid');
 
@@ -99,7 +99,13 @@ export default function Training() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         {sidebarOpen && (
-          <div className="w-64 bg-[#161616] border-r border-white/10 flex flex-col flex-shrink-0 overflow-hidden">
+          <>
+          {/* Mobile backdrop */}
+          <div
+            className="md:hidden fixed inset-0 bg-black/70 z-30"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="fixed inset-y-14 left-0 md:static md:inset-auto w-72 md:w-64 bg-[#161616] border-r border-white/10 flex flex-col flex-shrink-0 overflow-hidden z-40 md:z-auto">
             <div className="p-4 border-b border-white/10">
               <div className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-1">Contents</div>
               <Progress value={progress} className="h-1 bg-white/10 [&>div]:bg-amber-400" />
@@ -130,24 +136,25 @@ export default function Training() {
               })}
             </div>
           </div>
+          </>
         )}
 
         {/* Content area */}
         <div ref={contentRef} className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-6 md:px-12 py-10">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 py-8 md:py-10">
             <ChapterContent id={activeChapter} />
             {/* Chapter navigation */}
-            <div className="flex justify-between mt-16 pt-8 border-t border-white/10">
+            <div className="flex justify-between gap-2 mt-12 pt-8 border-t border-white/10">
               {currentIdx > 0 ? (
-                <Button variant="outline" className="border-white/20 text-white/60 hover:bg-white/5 hover:text-white gap-2"
+                <Button variant="outline" className="border-white/20 text-white/60 hover:bg-white/5 hover:text-white gap-2 max-w-[45vw] sm:max-w-xs"
                   onClick={() => goToChapter(CHAPTERS[currentIdx - 1].id)}>
-                  ← {CHAPTERS[currentIdx - 1].title}
+                  <span className="truncate">← {CHAPTERS[currentIdx - 1].title}</span>
                 </Button>
               ) : <div />}
               {currentIdx < CHAPTERS.length - 1 ? (
-                <Button className="bg-amber-500 hover:bg-amber-600 text-black font-semibold gap-2"
+                <Button className="bg-amber-500 hover:bg-amber-600 text-black font-semibold gap-2 max-w-[45vw] sm:max-w-xs"
                   onClick={() => goToChapter(CHAPTERS[currentIdx + 1].id)}>
-                  {CHAPTERS[currentIdx + 1].title} →
+                  <span className="truncate">{CHAPTERS[currentIdx + 1].title} →</span>
                 </Button>
               ) : (
                 <Link href="/assessment">
@@ -204,14 +211,14 @@ function ChapterContent({ id }: { id: string }) {
   const bodyClass = "text-white/70 leading-relaxed text-sm md:text-base";
   const h3Class = "text-white font-semibold text-base mt-6 mb-3";
   const liClass = "text-white/65 text-sm leading-relaxed";
-  const imgClass = "w-full rounded-xl object-cover my-6 shadow-2xl";
+  const imgClass = "w-full rounded-xl object-cover my-6 shadow-2xl max-h-[200px] sm:max-h-[280px] md:max-h-[360px]";
 
   if (id === 'welcome') return (
     <div>
       <Badge className="bg-amber-500/20 text-amber-400 border-amber-400/30 mb-4">Chapter 1</Badge>
       <h1 className="text-3xl md:text-4xl font-black text-white mb-2 leading-tight">Welcome to<br /><span className="text-amber-400">VERJ SOLAR</span></h1>
       <p className="text-white/40 text-sm mb-8">The start of your journey as a VERJ Business Development Officer</p>
-      <img src={heroImg} alt="VERJ Solar BDO" className={imgClass} style={{ height: 360 }} />
+      <img src={heroImg} alt="VERJ Solar BDO" className={imgClass} />
       <Section title="Who We Are">
         <p className={bodyClass}>VERJ SOLAR is a Nigerian renewable energy company committed to powering homes, businesses, and communities with reliable, clean, and affordable solar solutions. We operate across Nigeria, bringing world-class solar technology to every corner of the country through our nationwide network of Business Development Officers — people like you.</p>
         <p className={`${bodyClass} mt-4`}>Our mission is simple: <strong className="text-white">to redefine the limit of what is possible</strong> for every Nigerian family and business through the power of the sun.</p>
@@ -247,7 +254,7 @@ function ChapterContent({ id }: { id: string }) {
       <Badge className="bg-amber-500/20 text-amber-400 border-amber-400/30 mb-4">Chapter 2</Badge>
       <h1 className="text-3xl md:text-4xl font-black text-white mb-2 leading-tight">Solar Energy<br /><span className="text-amber-400">Fundamentals</span></h1>
       <p className="text-white/40 text-sm mb-8">Understanding how solar works so you can explain it confidently to any customer</p>
-      <img src={solarBasicsImg} alt="Nigerian home with solar power" className={imgClass} style={{ height: 340 }} />
+      <img src={solarBasicsImg} alt="Nigerian home with solar power" className={imgClass} />
       <Section title="How Solar Power Works">
         <p className={bodyClass}>A solar energy system converts sunlight into electricity using photovoltaic (PV) panels. This electricity is then stored in batteries and/or used directly to power your home. An inverter converts the DC electricity from panels and batteries into AC electricity that your appliances use.</p>
         <p className={`${bodyClass} mt-4`}>Nigeria receives an average of 5–7 hours of peak sunlight daily — one of the highest solar radiation levels in the world. This makes solar an exceptionally powerful and economical energy solution for Nigerian homes and businesses.</p>
@@ -308,7 +315,7 @@ function ChapterContent({ id }: { id: string }) {
       <Badge className="bg-amber-500/20 text-amber-400 border-amber-400/30 mb-4">Chapter 3</Badge>
       <h1 className="text-3xl md:text-4xl font-black text-white mb-2 leading-tight">VERJ Products<br /><span className="text-amber-400">&amp; Solutions</span></h1>
       <p className="text-white/40 text-sm mb-8">Know your products inside out — because you cannot sell what you do not understand</p>
-      <img src={productsImg} alt="Solar installation" className={imgClass} style={{ height: 320 }} />
+      <img src={productsImg} alt="Solar installation" className={imgClass} />
       <Section title="Our Product Range">
         <p className={bodyClass}>VERJ SOLAR offers complete solar energy solutions — from compact residential systems to large commercial installations. Our systems are designed, installed, and maintained by VERJ-certified engineers to the highest quality standards.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
@@ -365,7 +372,7 @@ function ChapterContent({ id }: { id: string }) {
       <Badge className="bg-amber-500/20 text-amber-400 border-amber-400/30 mb-4">Chapter 4</Badge>
       <h1 className="text-3xl md:text-4xl font-black text-white mb-2 leading-tight">Your Role as<br /><span className="text-amber-400">a VERJ BDO</span></h1>
       <p className="text-white/40 text-sm mb-8">Understanding your responsibilities, your pipeline, and how you are measured</p>
-      <img src={teamImg} alt="VERJ BDO team" className={imgClass} style={{ height: 320 }} />
+      <img src={teamImg} alt="VERJ BDO team" className={imgClass} />
       <Section title="Your Core Responsibilities">
         <ul className="space-y-3">
           {[
@@ -405,7 +412,7 @@ function ChapterContent({ id }: { id: string }) {
       <Badge className="bg-amber-500/20 text-amber-400 border-amber-400/30 mb-4">Chapter 5</Badge>
       <h1 className="text-3xl md:text-4xl font-black text-white mb-2 leading-tight">Lead Generation<br /><span className="text-amber-400">&amp; Sales</span></h1>
       <p className="text-white/40 text-sm mb-8">How to find the right prospects, build trust, and close deals professionally</p>
-      <img src={salesImg} alt="Nigerian BDO sales visit" className={imgClass} style={{ height: 340 }} />
+      <img src={salesImg} alt="Nigerian BDO sales visit" className={imgClass} />
       <Section title="Finding Quality Leads">
         <p className={bodyClass}>The best leads are warm leads — people who already trust you or have been referred by someone they trust. Focus your energy on building relationships rather than cold approaching strangers.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">

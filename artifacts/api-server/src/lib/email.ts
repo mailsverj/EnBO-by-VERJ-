@@ -61,12 +61,24 @@ export async function sendOnboardingEmail(opts: {
 
             <!-- Step description -->
             <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:20px 24px;margin:0 0 24px;">
-              <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#111;">What happens next:</p>
-              <div style="display:flex;flex-direction:column;gap:8px;">
-                <div style="font-size:13px;color:#444;line-height:1.5;">📖 &nbsp;<strong>Step 1:</strong> Read the BDO Training Handbook (available in the portal)</div>
-                <div style="font-size:13px;color:#444;line-height:1.5;">✅ &nbsp;<strong>Step 2:</strong> Take and pass the competency assessment (minimum 70%)</div>
-                <div style="font-size:13px;color:#444;line-height:1.5;">🎓 &nbsp;<strong>Step 3:</strong> Await your VBDO ID and full account activation</div>
-              </div>
+              <p style="margin:0 0 14px;font-size:14px;font-weight:700;color:#111;">What happens next:</p>
+              <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
+                <tr>
+                  <td style="padding:8px 0;font-size:13px;color:#444;line-height:1.6;border-bottom:1px solid #e5e7eb;">
+                    📖 &nbsp;<strong>Step 1:</strong> Read the BDO Training Handbook (available in the portal)
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;font-size:13px;color:#444;line-height:1.6;border-bottom:1px solid #e5e7eb;">
+                    ✅ &nbsp;<strong>Step 2:</strong> Take and pass the competency assessment (minimum 70%)
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;font-size:13px;color:#444;line-height:1.6;">
+                    🎓 &nbsp;<strong>Step 3:</strong> Await your VBDO ID and full account activation
+                  </td>
+                </tr>
+              </table>
             </div>
 
             <!-- Credentials box -->
@@ -105,7 +117,7 @@ export async function sendOnboardingEmail(opts: {
         <tr>
           <td style="padding:18px 36px;border-top:1px solid #f0f0f0;">
             <p style="margin:0;font-size:11px;color:#aaa;line-height:1.5;">
-              This email was sent by VERJ Solar Energy Solutions via the EnBO platform. Do not reply to this email. For support, contact recruitment@verjsolar.com.
+              This email was sent by VERJ Solar Energy Solutions via the EnBO platform. Do not reply to this email. For support, contact mails.verj@gmail.com.
             </p>
           </td>
         </tr>
@@ -218,7 +230,7 @@ export async function sendActivationEmail(opts: {
         <tr>
           <td style="padding:18px 36px;border-top:1px solid #f0f0f0;">
             <p style="margin:0;font-size:11px;color:#aaa;line-height:1.5;">
-              Sent by VERJ Solar Energy Solutions via the EnBO platform. For support, contact your team lead or recruitment@verjsolar.com.
+              Sent by VERJ Solar Energy Solutions via the EnBO platform. For support, contact your team lead or mails.verj@gmail.com.
             </p>
           </td>
         </tr>
