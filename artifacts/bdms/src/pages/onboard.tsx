@@ -320,42 +320,34 @@ export default function Onboard() {
           <div className="space-y-3">
             <p className="text-white/35 text-xs font-semibold uppercase tracking-widest">Your Resources</p>
 
-            {/* Download Handbook */}
+            {/* Download & Study Workbook */}
             <a href={workbookLink} target="_blank" rel="noreferrer"
               className="flex items-center gap-4 bg-[#1c1c1c] active:bg-[#252525] rounded-2xl p-4 border border-[#2a2a2a] transition-colors group">
               <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
                 <Download className="h-5 w-5 text-amber-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-white font-semibold text-sm">Download Handbook</div>
-                <div className="text-white/40 text-xs mt-0.5 leading-relaxed">Study offline — save as PDF</div>
+                <div className="text-white font-semibold text-sm">Download & Study Training Workbook</div>
+                <div className="text-white/40 text-xs mt-0.5 leading-relaxed">Save as PDF and study before your assessment</div>
               </div>
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
                 <ExternalLink className="h-3.5 w-3.5 text-white/40" />
               </div>
             </a>
 
-            {/* Take / Retry Assessment */}
-            {(inProgress || (!inProgress && !locked && !passed)) && (
+            {/* Take Assessment — always shown unless locked or activated */}
+            {!locked && !isActivated && (
               <a
                 href={assessmentLink}
                 onClick={() => { window.addEventListener('focus', refreshStatus, { once: true }); }}
-                className={`flex items-center gap-4 rounded-2xl p-4 border-2 transition-colors ${
-                  inProgress
-                    ? 'bg-green-500 border-green-400 active:bg-green-600'
-                    : 'bg-amber-500 border-amber-400 active:bg-amber-600'
-                }`}
+                className="flex items-center gap-4 rounded-2xl p-4 border-2 bg-green-500 border-green-400 active:bg-green-600 transition-colors"
               >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${inProgress ? 'bg-black/20' : 'bg-black/20'}`}>
+                <div className="w-12 h-12 rounded-xl bg-black/20 flex items-center justify-center flex-shrink-0">
                   <ClipboardCheck className="h-5 w-5 text-black" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-black font-black text-sm">{inProgress ? 'Take Assessment' : 'Retry Assessment'}</div>
-                  <div className="text-black/60 text-xs mt-0.5">
-                    {inProgress
-                      ? 'Score 70%+ to pass — 2 attempts allowed'
-                      : 'You have 1 attempt remaining'}
-                  </div>
+                  <div className="text-black font-black text-sm">Take Assessment</div>
+                  <div className="text-black/60 text-xs mt-0.5">Score 70%+ to pass — 2 attempts allowed</div>
                 </div>
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-black/20 flex items-center justify-center">
                   <ChevronRight className="h-4 w-4 text-black" />
