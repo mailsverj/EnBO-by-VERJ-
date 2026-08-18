@@ -47,7 +47,8 @@ export default function TrainingWorkbook() {
         <img src={heroImg} alt="VERJ Solar" style={{ width: '100%', height: 320, objectFit: 'cover', borderRadius: 12 }} />
         <p style={{ marginTop: 24, color: '#888', fontSize: '0.8rem' }}>
           Confidential — for VERJ BDO Applicants only<br />
-          VERJ SOLAR | EnBO Onboarding Platform
+          Verj Innovations Limited · Doing Business As VERJ SOLAR<br />
+          EnBO Onboarding Platform
         </p>
       </div>
 
@@ -232,7 +233,7 @@ export default function TrainingWorkbook() {
       {/* Back cover */}
       <div style={{ textAlign: 'center', padding: '60px 0', borderTop: '2px solid #111', marginTop: 40 }}>
         <img src={logoOnLight} alt="EnBO by VERJ" style={{ height: 56, margin: '0 auto 16px', display: 'block' }} />
-        <p style={{ color: '#666', fontSize: '0.85rem', marginTop: 8 }}>VERJ SOLAR | EnBO BDO Onboarding Programme<br />This document is confidential. Issued to VERJ BDO applicants only.</p>
+        <p style={{ color: '#666', fontSize: '0.85rem', marginTop: 8 }}>Verj Innovations Limited · Doing Business As VERJ SOLAR<br />EnBO BDO Onboarding Programme · This document is confidential. Issued to VERJ BDO applicants only.</p>
       </div>
 
       <div className="no-print" style={{ position: 'fixed', bottom: 24, right: 24, display: 'flex', gap: 12 }}>

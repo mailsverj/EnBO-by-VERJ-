@@ -52,7 +52,7 @@ router.post("/onboard/login", async (req, res) => {
       });
     } else if (app.status === "Assessment Failed") {
       res.status(403).json({
-        error: "Your assessment access has been locked. Please contact recruitment@verjsolar.com.",
+        error: "Your assessment access has been locked. Please contact mails.verj@gmail.com.",
         locked: true,
       });
     } else {
@@ -65,7 +65,7 @@ router.post("/onboard/login", async (req, res) => {
 
   if (!app.onboardingPasswordHash) {
     res.status(403).json({
-      error: "Your portal credentials have not been set up yet. Please contact recruitment@verjsolar.com.",
+      error: "Your portal credentials have not been set up yet. Please contact mails.verj@gmail.com.",
     });
     return;
   }

@@ -159,6 +159,8 @@ export default function InvoiceDetail() {
                 <img src={logoOnLight} alt="EnBO by VERJ" className="h-14 w-auto object-contain" />
               </div>
               <div className="text-sm text-muted-foreground space-y-1">
+                <div className="font-semibold text-foreground">Verj Innovations Limited</div>
+                <div>Doing Business As: VERJ SOLAR</div>
                 <div>9 Badaru Street, Jakande, Lekki, Lagos</div>
                 <div>hello@verj.ng</div>
                 <div>+234 800 VERJ SOL</div>
@@ -293,7 +295,7 @@ export default function InvoiceDetail() {
 
         {/* Payment footer */}
         <div className="bg-muted/30 p-6 border-t text-sm text-muted-foreground text-center">
-          Payment is due within 14 days. Bank: GTBank • Acct: 0123456789 • VERJ SOLAR LTD.
+          Payment is due within 14 days. Bank: GTBank • Acct: 0123456789 • Verj Innovations Limited (Doing Business As: VERJ SOLAR).
         </div>
       </Card>
 

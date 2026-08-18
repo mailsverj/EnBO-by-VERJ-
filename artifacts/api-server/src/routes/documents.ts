@@ -98,7 +98,7 @@ function buildCertificate(app: typeof bdoApplicationsTable.$inferSelect): string
   <div class="corner tl"></div><div class="corner tr"></div>
   <div class="corner bl"></div><div class="corner br"></div>
   <div class="content">
-    <div class="brand">VERJ Solar Energy Solutions</div>
+    <div class="brand">Verj Innovations Limited</div>
     <div class="cert-title">Certificate of Appointment</div>
     <div class="cert-sub">Business Development Officer</div>
     <div class="rule"></div>
@@ -108,7 +108,7 @@ function buildCertificate(app: typeof bdoApplicationsTable.$inferSelect): string
     <div class="body">
       Having successfully completed the VERJ BDO onboarding programme — including identity verification,
       competency assessment, and training requirements — this individual is hereby authorised to represent
-      VERJ Solar Energy Solutions in the capacity of Business Development Officer.
+       Verj Innovations Limited, Doing Business As VERJ SOLAR, in the capacity of Business Development Officer.
     </div>
     <div class="badge">${vbdoId}</div>
     <div class="sigs">
@@ -116,7 +116,7 @@ function buildCertificate(app: typeof bdoApplicationsTable.$inferSelect): string
         <div class="sig-script">J. Ijaola</div>
         <div class="sig-line"></div>
         <div class="sig-name">Managing Director</div>
-        <div class="sig-title">VERJ Solar Energy Solutions</div>
+        <div class="sig-title">Verj Innovations Limited · Doing Business As VERJ SOLAR</div>
       </div>
       <div class="sig">
         <div style="height:28px"></div>
@@ -201,7 +201,7 @@ function buildWorkId(app: typeof bdoApplicationsTable.$inferSelect): string {
       <div class="front-body">
         <div class="photo">${initials}</div>
         <div class="info">
-          <div class="info-brand">VERJ Solar Energy Solutions</div>
+          <div class="info-brand">Verj Innovations Limited · VERJ SOLAR</div>
           <div class="info-name">${name}</div>
           <div class="info-role">Business Development Officer</div>
           <div class="info-id">${vbdoId}</div>
@@ -227,7 +227,7 @@ function buildWorkId(app: typeof bdoApplicationsTable.$inferSelect): string {
         <div class="bl">VBDO ID</div><div class="bv">${vbdoId}</div>
         <div class="bl">Email</div><div class="bv">${email}</div>
         ${phone ? `<div class="bl">Phone</div><div class="bv">${phone}</div>` : ""}
-        <div class="disclaimer">If found, return to: VERJ Solar Energy Solutions, Nigeria. This card is the property of VERJ Solar and must be surrendered upon termination of engagement. Report loss: recruitment@verjsolar.com</div>
+        <div class="disclaimer">If found, return to: Verj Innovations Limited (Doing Business As: VERJ SOLAR), Nigeria. This card is the property of VERJ SOLAR and must be surrendered upon termination of engagement. Report loss: mails.verj@gmail.com</div>
       </div>
     </div>
     <div class="col-label">Back</div>

@@ -9,6 +9,8 @@ function getResend(): Resend {
 }
 
 const FROM = process.env.EMAIL_FROM ?? "VERJ Solar <onboarding@resend.dev>";
+const LEGAL_NAME = "Verj Innovations Limited";
+const DBA_NAME = "VERJ SOLAR";
 
 /** Base URL of the EnBO frontend (no trailing slash). */
 function appBaseUrl(): string {
@@ -32,6 +34,7 @@ export async function sendOnboardingEmail(opts: {
   tempPassword: string;
 }): Promise<{ ok: boolean; error?: string }> {
   const portalUrl = onboardPortalUrl();
+  const footerLogoUrl = `${appBaseUrl()}/api/branding/enbo-logo-light.png`;
   const firstName = opts.name.split(" ")[0];
 
   const html = `
@@ -47,7 +50,7 @@ export async function sendOnboardingEmail(opts: {
         <tr>
           <td style="background:#0a0a0a;padding:28px 36px;">
             <p style="margin:0;color:#f5c518;font-size:22px;font-weight:900;letter-spacing:-0.5px;">EnBO <span style="font-size:11px;font-weight:600;color:#888;letter-spacing:2px;vertical-align:middle;">by VERJ</span></p>
-            <p style="margin:4px 0 0;color:#555;font-size:10px;letter-spacing:2px;text-transform:uppercase;">VERJ Solar Energy Solutions</p>
+            <p style="margin:4px 0 0;color:#888;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">${LEGAL_NAME} · Doing Business As ${DBA_NAME}</p>
           </td>
         </tr>
 
@@ -115,10 +118,12 @@ export async function sendOnboardingEmail(opts: {
 
         <!-- Footer -->
         <tr>
-          <td style="padding:18px 36px;border-top:1px solid #f0f0f0;">
+          <td style="padding:22px 36px;border-top:1px solid #f0f0f0;text-align:center;">
             <p style="margin:0;font-size:11px;color:#aaa;line-height:1.5;">
-              This email was sent by VERJ Solar Energy Solutions via the EnBO platform. Do not reply to this email. For support, contact mails.verj@gmail.com.
+              This email was sent by ${LEGAL_NAME}, Doing Business As ${DBA_NAME}. Do not reply to this email. For support, contact mails.verj@gmail.com.
             </p>
+            <img src="${footerLogoUrl}" alt="EnBO by VERJ" width="112" style="display:block;width:112px;height:auto;margin:18px auto 6px;border:0;outline:none;text-decoration:none;" />
+            <p style="margin:0;font-size:10px;color:#999;letter-spacing:0.8px;">Powered by EnBO by VERJ</p>
           </td>
         </tr>
 
@@ -128,7 +133,7 @@ export async function sendOnboardingEmail(opts: {
 </body>
 </html>`;
 
-  const text = `Congratulations ${opts.name}!\n\nYou have been shortlisted for the VERJ Solar BDO programme.\n\nYour onboarding portal login details:\nEmail: ${opts.email}\nPassword: ${opts.tempPassword}\nReference: ${opts.refId}\n\nPortal: ${portalUrl}\n\nSteps:\n1. Read the BDO Training Handbook\n2. Take and pass the competency assessment (70%+)\n3. Await your VBDO ID and full account activation\n\n— VERJ Solar Energy Solutions`;
+  const text = `Congratulations ${opts.name}!\n\nYou have been shortlisted for the VERJ Solar BDO programme.\n\nYour onboarding portal login details:\nEmail: ${opts.email}\nPassword: ${opts.tempPassword}\nReference: ${opts.refId}\n\nPortal: ${portalUrl}\n\nSteps:\n1. Read the BDO Training Handbook\n2. Take and pass the competency assessment (70%+)\n3. Await your VBDO ID and full account activation\n\n— ${LEGAL_NAME} (Doing Business As: ${DBA_NAME})\nPowered by EnBO by VERJ`;
 
   try {
     const { error } = await getResend().emails.send({
@@ -168,7 +173,7 @@ export async function sendActivationEmail(opts: {
         <tr>
           <td style="background:#0a0a0a;padding:28px 36px;">
             <p style="margin:0;color:#f5c518;font-size:22px;font-weight:900;letter-spacing:-0.5px;">EnBO <span style="font-size:11px;font-weight:600;color:#888;letter-spacing:2px;vertical-align:middle;">by VERJ</span></p>
-            <p style="margin:4px 0 0;color:#555;font-size:10px;letter-spacing:2px;text-transform:uppercase;">VERJ Solar Energy Solutions</p>
+            <p style="margin:4px 0 0;color:#888;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">${LEGAL_NAME} · Doing Business As ${DBA_NAME}</p>
           </td>
         </tr>
 
@@ -230,7 +235,7 @@ export async function sendActivationEmail(opts: {
         <tr>
           <td style="padding:18px 36px;border-top:1px solid #f0f0f0;">
             <p style="margin:0;font-size:11px;color:#aaa;line-height:1.5;">
-              Sent by VERJ Solar Energy Solutions via the EnBO platform. For support, contact your team lead or mails.verj@gmail.com.
+              Sent by ${LEGAL_NAME}, Doing Business As ${DBA_NAME}, via the EnBO platform. For support, contact your team lead or mails.verj@gmail.com.
             </p>
           </td>
         </tr>
@@ -241,7 +246,7 @@ export async function sendActivationEmail(opts: {
 </body>
 </html>`;
 
-  const text = `Congratulations ${opts.name}!\n\nYour VERJ BDO account is now active.\n\nYour EnBO login credentials:\nUsername: ${opts.vbdoId}\nPassword: ${opts.defaultPassword}\n\nPlease change your password immediately after your first login.\n\nLogin at: ${loginUrl}\n\nYour VBDO ID: ${opts.vbdoId}\n\n— VERJ Solar Energy Solutions`;
+  const text = `Congratulations ${opts.name}!\n\nYour VERJ BDO account is now active.\n\nYour EnBO login credentials:\nUsername: ${opts.vbdoId}\nPassword: ${opts.defaultPassword}\n\nPlease change your password immediately after your first login.\n\nLogin at: ${loginUrl}\n\nYour VBDO ID: ${opts.vbdoId}\n\n— ${LEGAL_NAME} (Doing Business As: ${DBA_NAME})`;
 
   try {
     const { error } = await getResend().emails.send({
@@ -280,7 +285,7 @@ export async function sendAssessmentEmail(opts: {
         <tr>
           <td style="background:#0a0a0a;padding:28px 36px;">
             <p style="margin:0;color:#f5c518;font-size:22px;font-weight:900;letter-spacing:-0.5px;">EnBO <span style="font-size:11px;font-weight:600;color:#888;letter-spacing:2px;vertical-align:middle;">by VERJ</span></p>
-            <p style="margin:4px 0 0;color:#555;font-size:10px;letter-spacing:2px;text-transform:uppercase;">VERJ Solar Energy Solutions</p>
+            <p style="margin:4px 0 0;color:#888;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">${LEGAL_NAME} · Doing Business As ${DBA_NAME}</p>
           </td>
         </tr>
 
@@ -315,7 +320,7 @@ export async function sendAssessmentEmail(opts: {
         <tr>
           <td style="padding:18px 36px;border-top:1px solid #f0f0f0;">
             <p style="margin:0;font-size:11px;color:#aaa;line-height:1.5;">
-              This email was sent by VERJ Solar Energy Solutions via the EnBO platform. Do not reply to this email.
+              This email was sent by ${LEGAL_NAME}, Doing Business As ${DBA_NAME}, via the EnBO platform. Do not reply to this email.
             </p>
           </td>
         </tr>
@@ -326,7 +331,7 @@ export async function sendAssessmentEmail(opts: {
 </body>
 </html>`;
 
-  const text = `Congratulations ${opts.name}!\n\nYou have been shortlisted for the VERJ Solar BDO programme.\n\nPlease complete your assessment at the link below:\n${link}\n\nYour reference number is ${opts.refId}.\n\n— VERJ Solar Energy Solutions`;
+  const text = `Congratulations ${opts.name}!\n\nYou have been shortlisted for the VERJ Solar BDO programme.\n\nPlease complete your assessment at the link below:\n${link}\n\nYour reference number is ${opts.refId}.\n\n— ${LEGAL_NAME} (Doing Business As: ${DBA_NAME})`;
 
   try {
     const { error } = await getResend().emails.send({

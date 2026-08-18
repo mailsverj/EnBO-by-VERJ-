@@ -332,7 +332,7 @@ export default function Onboard() {
           </div>
 
           <p className="text-white/15 text-xs text-center pt-2">
-            VERJ Solar Energy Solutions · EnBO Pre-Onboarding Portal
+            Verj Innovations Limited · Doing Business As VERJ SOLAR · EnBO Pre-Onboarding Portal
           </p>
         </div>
       </div>

@@ -252,7 +252,7 @@ export default function Assessment() {
             </p>
             <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
               If you believe this is an error or would like to request a review, please contact{' '}
-              <a href="mailto:recruitment@verjsolar.com" className="text-primary underline">recruitment@verjsolar.com</a>.
+              <a href="mailto:mails.verj@gmail.com" className="text-primary underline">mails.verj@gmail.com</a>.
             </p>
           </div>
           <p className="text-xs text-muted-foreground">Reference: {ref || refInput}</p>
@@ -458,7 +458,7 @@ export default function Assessment() {
                   {result.passed
                     ? `Congratulations${applicantName ? `, ${applicantName}` : ''}! You have passed the VERJ BDO Competency Assessment. Our team will be in touch with the next steps.`
                     : result.locked
-                      ? `You have used all ${MAX_ATTEMPTS} attempts. Your application has been updated. Please contact recruitment@verjsolar.com if you wish to request a review.`
+                      ? `You have used all ${MAX_ATTEMPTS} attempts. Your application has been updated. Please contact mails.verj@gmail.com if you wish to request a review.`
                       : `You did not meet the required score this time. You have ${result.attemptsRemaining} attempt${result.attemptsRemaining === 1 ? '' : 's'} remaining.`}
                 </p>
               </div>
@@ -531,7 +531,7 @@ export default function Assessment() {
                   </div>
                   <p className={`text-xs mt-1 ${result.locked ? 'text-red-800' : 'text-amber-800'}`}>
                     {result.locked
-                      ? 'Contact recruitment@verjsolar.com to request a review.'
+                      ? 'Contact mails.verj@gmail.com to request a review.'
                       : 'Review the training workbook, then return to this page with your reference number to try again.'}
                   </p>
                 </div>

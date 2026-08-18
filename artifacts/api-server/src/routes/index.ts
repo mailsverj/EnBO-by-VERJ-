@@ -17,6 +17,7 @@ import broadcastsRouter from "./broadcasts.js";
 import documentsRouter from "./documents.js";
 import onboardRouter from "./onboard.js";
 import adminRouter from "./admin.js";
+import brandingRouter from "./branding.js";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(broadcastsRouter);
 router.use(documentsRouter);
 router.use(onboardRouter);
 router.use(adminRouter);
+router.use(brandingRouter);
 
 export default router;
