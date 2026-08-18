@@ -7,7 +7,7 @@ import {
   BookOpen, Download, ClipboardCheck, Loader2, LogOut, AlertTriangle,
   CheckCircle2, LockKeyhole, ChevronRight, ExternalLink,
 } from 'lucide-react';
-import logoPath from '@assets/Copy_of_Modern_Cabinet_Furniture_Product_1786754353697.png';
+import logoOnDark from '@assets/enbo-verj-logo-dark.png';
 
 const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
 
@@ -28,18 +28,11 @@ function Header({ app, onLogout }: { app?: PortalApp; onLogout?: () => void }) {
   return (
     <div className="w-full bg-[#0a0a0a] border-b border-white/10 sticky top-0 z-10">
       <div className="max-w-3xl mx-auto px-6 h-16 flex items-center gap-3">
-        <div>
-          <div className="text-white font-black text-lg leading-none tracking-tight">EnBO</div>
-          <div className="flex items-center gap-0.5 mt-0.5">
-            <span className="text-white italic text-[9px] font-semibold leading-none">by</span>
-            <img
-              src={logoPath}
-              alt="VERJ"
-              className="h-9 object-contain"
-              style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
-            />
-          </div>
-        </div>
+        <img
+          src={logoOnDark}
+          alt="EnBO by VERJ"
+          className="h-11 w-auto object-contain"
+        />
         <div className="ml-2 h-5 w-px bg-white/20" />
         <span className="text-white/50 text-xs font-medium tracking-wide uppercase">Pre-Onboarding Portal</span>
         <div className="flex-1" />

@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useAuth } from '@/store/auth';
 import { useToast } from '@/hooks/use-toast';
 import { CopyButton } from '@/components/ui/copy-button';
-import logoPath from '@assets/Copy_of_Modern_Cabinet_Furniture_Product_1786754353697.png';
+import logoOnLight from '@assets/enbo-verj-logo-light.png';
 
 const WARRANTY_OPTIONS = [
   { key: 'battery_10y', label: 'Battery: 10-year manufacturer warranty' },
@@ -156,7 +156,7 @@ export default function InvoiceDetail() {
           <div className="flex justify-between items-start mb-10">
             <div>
               <div className="mb-4">
-                <img src={logoPath} alt="VERJ SOLAR" className="h-12 object-contain" style={{ filter: 'brightness(0)' }} />
+                <img src={logoOnLight} alt="EnBO by VERJ" className="h-14 w-auto object-contain" />
               </div>
               <div className="text-sm text-muted-foreground space-y-1">
                 <div>9 Badaru Street, Jakande, Lekki, Lagos</div>

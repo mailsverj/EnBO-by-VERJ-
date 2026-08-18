@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
-import logoPath from '@assets/Copy_of_Modern_Cabinet_Furniture_Product_1786754353697.png';
+import logoOnLight from '@assets/enbo-verj-logo-light.png';
 import { useAuth } from '@/store/auth';
 
 export default function Login() {
@@ -34,18 +34,11 @@ export default function Login() {
       <div className="z-10 w-full max-w-md p-6">
         <div className="flex flex-col items-center gap-2 mb-8">
           <div className="flex flex-col items-center">
-            <div className="inline-flex flex-col items-start">
-              <div className="text-4xl font-black tracking-tight text-[#1a1a1a]">EnBO</div>
-              <div className="flex items-center gap-0.5 mt-0.5">
-                <span className="text-[#1a1a1a] italic text-xs font-semibold leading-none">by</span>
-                <img
-                  src={logoPath}
-                  alt="VERJ"
-                  className="h-5 object-contain"
-                  style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
-                />
-              </div>
-            </div>
+            <img
+              src={logoOnLight}
+              alt="EnBO by VERJ"
+              className="h-20 w-auto object-contain"
+            />
             <div className="text-[10px] tracking-widest text-muted-foreground/60 uppercase mt-2">Energy, Business &amp; Operations Management</div>
           </div>
         </div>

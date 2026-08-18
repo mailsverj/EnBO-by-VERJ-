@@ -3,7 +3,7 @@
  * Accessible at /training/workbook (public route, no auth required).
  */
 import { useEffect } from 'react';
-import logoPath from '@assets/Copy_of_Modern_Cabinet_Furniture_Product_1786754353697.png';
+import logoOnLight from '@assets/enbo-verj-logo-light.png';
 import heroImg from '@assets/training-hero.jpg';
 import solarBasicsImg from '@assets/training-solar-basics.jpg';
 import salesImg from '@assets/training-sales.jpg';
@@ -41,8 +41,7 @@ export default function TrainingWorkbook() {
 
       {/* Cover */}
       <div className="page-break" style={{ textAlign: 'center', padding: '60px 0 80px' }}>
-        <img src={logoPath} alt="VERJ" style={{ height: 64, filter: 'brightness(0)', margin: '0 auto 24px', display: 'block' }} />
-        <div style={{ fontSize: '0.75rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#666', marginBottom: 8 }}>by VERJ</div>
+        <img src={logoOnLight} alt="EnBO by VERJ" style={{ height: 80, margin: '0 auto 24px', display: 'block' }} />
         <h1 style={{ fontSize: '2.8rem', fontWeight: 900, lineHeight: 1.1, marginBottom: 12 }}>BDO Training<br />Workbook</h1>
         <p style={{ color: '#666', fontSize: '1rem', marginBottom: 32 }}>Business Development Officer<br />Onboarding Programme</p>
         <img src={heroImg} alt="VERJ Solar" style={{ width: '100%', height: 320, objectFit: 'cover', borderRadius: 12 }} />
@@ -232,7 +231,7 @@ export default function TrainingWorkbook() {
 
       {/* Back cover */}
       <div style={{ textAlign: 'center', padding: '60px 0', borderTop: '2px solid #111', marginTop: 40 }}>
-        <img src={logoPath} alt="VERJ" style={{ height: 48, filter: 'brightness(0)', margin: '0 auto 16px', display: 'block' }} />
+        <img src={logoOnLight} alt="EnBO by VERJ" style={{ height: 56, margin: '0 auto 16px', display: 'block' }} />
         <p style={{ color: '#666', fontSize: '0.85rem', marginTop: 8 }}>VERJ SOLAR | EnBO BDO Onboarding Programme<br />This document is confidential. Issued to VERJ BDO applicants only.</p>
       </div>
 

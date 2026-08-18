@@ -10,7 +10,8 @@ import {
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import logoPath from '@assets/Copy_of_Modern_Cabinet_Furniture_Product_1786754353697.png';
+import logoOnDark from '@assets/enbo-verj-logo-dark.png';
+import logoOnLight from '@assets/enbo-verj-logo-light.png';
 import { api } from '@/lib/api';
 
 const allLinks = [
@@ -100,18 +101,11 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
     <div className="w-64 bg-sidebar border-r border-sidebar-border h-full flex flex-col">
       {/* Logo */}
       <div className="h-16 flex items-center px-5 border-b border-sidebar-border bg-sidebar flex-shrink-0">
-        <div>
-          <div className="text-white font-black text-lg leading-none tracking-tight">EnBO</div>
-          <div className="flex items-center gap-0.5 mt-0.5">
-            <span className="text-white italic text-[9px] font-semibold leading-none">by</span>
-            <img
-              src={logoPath}
-              alt="VERJ"
-              className="h-9 object-contain"
-              style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
-            />
-          </div>
-        </div>
+        <img
+          src={logoOnDark}
+          alt="EnBO by VERJ"
+          className="h-12 w-auto object-contain"
+        />
       </div>
 
       {/* Nav links */}
@@ -203,18 +197,11 @@ export function Shell({ children }: { children: ReactNode }) {
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
             {/* Logo — always visible in header */}
-            <div className="flex items-center gap-1.5">
-              <span className="font-black text-lg leading-none tracking-tight">EnBO</span>
-              <div className="flex items-center gap-0.5">
-                <span className="text-muted-foreground italic text-[9px] font-semibold leading-none">by</span>
-                <img
-                  src={logoPath}
-                  alt="VERJ"
-                  className="h-8 object-contain"
-                  style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
-                />
-              </div>
-            </div>
+            <img
+              src={logoOnLight}
+              alt="EnBO by VERJ"
+              className="h-12 w-auto object-contain"
+            />
           </div>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span className="text-xs tracking-widest hidden sm:block">REDEFINE YOUR LIMIT.</span>

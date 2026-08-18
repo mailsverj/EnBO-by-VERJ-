@@ -8,7 +8,7 @@ import {
   CheckCircle2, XCircle, ChevronRight, ChevronLeft,
   BookOpen, Send, Loader2, AlertTriangle, LockKeyhole, Trophy,
 } from 'lucide-react';
-import logoPath from '@assets/Copy_of_Modern_Cabinet_Furniture_Product_1786754353697.png';
+import logoOnDark from '@assets/enbo-verj-logo-dark.png';
 
 interface Question {
   id: number;
@@ -150,18 +150,11 @@ export default function Assessment() {
   const Header = () => (
     <div className="w-full bg-[#111] border-b border-border shadow-sm sticky top-0 z-10">
       <div className="max-w-3xl mx-auto px-6 h-16 flex items-center gap-3">
-        <div>
-          <div className="text-white font-black text-lg leading-none tracking-tight">EnBO</div>
-          <div className="flex items-center gap-0.5 mt-0.5">
-            <span className="text-white italic text-[9px] font-semibold leading-none">by</span>
-            <img
-              src={logoPath}
-              alt="VERJ"
-              className="h-6 object-contain"
-              style={{ filter: 'brightness(0) saturate(100%) invert(73%) sepia(96%) saturate(600%) hue-rotate(2deg) brightness(105%)' }}
-            />
-          </div>
-        </div>
+        <img
+          src={logoOnDark}
+          alt="EnBO by VERJ"
+          className="h-11 w-auto object-contain"
+        />
       </div>
     </div>
   );
