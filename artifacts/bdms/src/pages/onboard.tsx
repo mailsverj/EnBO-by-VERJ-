@@ -200,7 +200,7 @@ export default function Onboard() {
 
           <p className="text-center text-white/25 text-xs mt-8 leading-relaxed">
             Your Application ID and password were sent to your email when you were shortlisted.<br />
-            Need help? Contact <a href="mailto:recruitment@verjsolar.com" className="text-amber-400/70 hover:text-amber-400 underline">recruitment@verjsolar.com</a>
+            Need help? Contact <a href="mailto:mails.verj@gmail.com" className="text-amber-400/70 hover:text-amber-400 underline">mails.verj@gmail.com</a>
           </p>
         </div>
       </div>
@@ -222,36 +222,66 @@ export default function Onboard() {
       ? Math.round((app.assessmentScore / app.assessmentTotal) * 100)
       : null;
 
+    const steps = [
+      { label: 'Study', sublabel: 'Read the handbook', done: true },
+      { label: 'Assess', sublabel: 'Pass the test', done: passed || isActivated },
+      { label: 'Activate', sublabel: 'Get your account', done: isActivated },
+    ];
+
     return (
       <div className="min-h-screen bg-[#0f0f0f] flex flex-col">
         <Header app={app} onLogout={handleLogout} />
-        <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-10 space-y-8">
+        <div className="flex-1 max-w-lg mx-auto w-full px-5 pt-8 pb-12 space-y-7">
 
-          {/* Welcome banner */}
+          {/* Welcome */}
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-black text-white">
-                Hello, {app.fullName.split(' ')[0]} 👋
-              </h1>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-white/40 text-sm">{app.refId}</span>
+            <h1 className="text-3xl font-black text-white leading-tight">
+              Hello, {app.fullName.split(' ')[0]} 👋
+            </h1>
+            <div className="flex items-center gap-2 flex-wrap mt-2">
+              <span className="text-white/35 text-sm font-mono">{app.refId}</span>
               <span className="text-white/20">·</span>
               <StatusBadge status={app.status} assessmentStatus={app.assessmentStatus} />
             </div>
           </div>
 
-          {/* Activated state */}
+          {/* Step tracker — large, high-contrast */}
+          {!locked && !isActivated && (
+            <div className="grid grid-cols-3 gap-3">
+              {steps.map((step, i) => (
+                <div
+                  key={i}
+                  className={`rounded-2xl p-4 flex flex-col items-center text-center border-2 ${
+                    step.done
+                      ? 'bg-amber-500 border-amber-400'
+                      : 'bg-[#1a1a1a] border-[#2a2a2a]'
+                  }`}
+                >
+                  <div className={`text-2xl font-black mb-1 ${step.done ? 'text-black' : 'text-white/25'}`}>
+                    {step.done ? '✓' : i + 1}
+                  </div>
+                  <div className={`text-xs font-bold leading-tight ${step.done ? 'text-black' : 'text-white/50'}`}>
+                    {step.label}
+                  </div>
+                  <div className={`text-[10px] mt-0.5 leading-tight ${step.done ? 'text-black/60' : 'text-white/25'}`}>
+                    {step.sublabel}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Status banner */}
           {isActivated && (
-            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-5 flex items-start gap-4">
-              <CheckCircle2 className="h-6 w-6 text-green-400 flex-shrink-0 mt-0.5" />
+            <div className="rounded-2xl bg-green-500 p-5 flex items-start gap-4">
+              <CheckCircle2 className="h-6 w-6 text-black flex-shrink-0 mt-0.5" />
               <div>
-                <div className="text-white font-bold text-base">Your BDO account is active!</div>
-                <p className="text-white/60 text-sm mt-1 leading-relaxed">
-                  Congratulations! Your VBDO account has been activated. Please check your email for your full login credentials and sign in to the main EnBO platform.
+                <div className="text-black font-black text-base">Your BDO account is active!</div>
+                <p className="text-black/70 text-sm mt-1 leading-relaxed">
+                  Congratulations! Check your email for your full login credentials.
                 </p>
                 <a href={`${BASE}/login`}>
-                  <Button className="mt-3 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm">
+                  <Button className="mt-3 bg-black hover:bg-black/80 text-white font-semibold text-sm">
                     Go to EnBO Login →
                   </Button>
                 </a>
@@ -259,144 +289,98 @@ export default function Onboard() {
             </div>
           )}
 
-          {/* Passed — pending activation */}
           {!isActivated && passed && (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-5 flex items-start gap-4">
-              <CheckCircle2 className="h-6 w-6 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div className="rounded-2xl bg-amber-500 p-5 flex items-start gap-4">
+              <CheckCircle2 className="h-6 w-6 text-black flex-shrink-0 mt-0.5" />
               <div>
-                <div className="text-white font-bold text-base">Assessment passed — pending activation</div>
-                <p className="text-white/60 text-sm mt-1 leading-relaxed">
-                  Well done! You scored <strong className="text-white">{percentage}%</strong> ({app.assessmentScore}/{app.assessmentTotal} marks).
-                  Your result has been submitted to the VERJ team. You will be notified by email once your BDO account is activated.
+                <div className="text-black font-black text-base">Assessment passed!</div>
+                <p className="text-black/70 text-sm mt-1 leading-relaxed">
+                  You scored <strong>{percentage}%</strong> ({app.assessmentScore}/{app.assessmentTotal} marks).
+                  The VERJ team will activate your account soon — watch your email.
                 </p>
               </div>
             </div>
           )}
 
-          {/* Locked — failed both attempts */}
           {locked && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-5 flex items-start gap-4">
+            <div className="rounded-2xl bg-red-500/15 border-2 border-red-500/30 p-5 flex items-start gap-4">
               <LockKeyhole className="h-6 w-6 text-red-400 flex-shrink-0 mt-0.5" />
               <div>
-                <div className="text-white font-bold text-base">Assessment locked</div>
+                <div className="text-white font-black text-base">Assessment locked</div>
                 <p className="text-white/60 text-sm mt-1 leading-relaxed">
-                  You have used all available attempts without meeting the required score. Please contact{' '}
-                  <a href="mailto:recruitment@verjsolar.com" className="text-amber-400 underline">recruitment@verjsolar.com</a>{' '}
-                  if you wish to request a review.
+                  You've used both attempts. Contact{' '}
+                  <a href="mailto:mails.verj@gmail.com" className="text-red-400 underline">mails.verj@gmail.com</a>{' '}
+                  to request a review.
                 </p>
               </div>
-            </div>
-          )}
-
-          {/* Step progress (only when not locked or activated) */}
-          {!locked && !isActivated && (
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { num: 1, label: 'Study Handbook', done: true },
-                { num: 2, label: 'Pass Assessment', done: passed },
-                { num: 3, label: 'Get Activated', done: isActivated },
-              ].map(step => (
-                <div key={step.num} className={`rounded-lg p-3 border text-center ${
-                  step.done
-                    ? 'bg-amber-500/10 border-amber-500/30'
-                    : 'bg-white/3 border-white/10'
-                }`}>
-                  <div className={`text-lg font-black ${step.done ? 'text-amber-400' : 'text-white/30'}`}>
-                    {step.done ? '✓' : step.num}
-                  </div>
-                  <div className={`text-xs mt-1 ${step.done ? 'text-amber-300' : 'text-white/40'}`}>
-                    {step.label}
-                  </div>
-                </div>
-              ))}
             </div>
           )}
 
           {/* Action cards */}
-          <div>
-            <h2 className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-3">Your Resources</h2>
-            <div className="space-y-3">
+          <div className="space-y-3">
+            <p className="text-white/35 text-xs font-semibold uppercase tracking-widest">Your Resources</p>
 
-              {/* Download Handbook */}
+            {/* Download Handbook */}
+            <a href={workbookLink} target="_blank" rel="noreferrer"
+              className="flex items-center gap-4 bg-[#1c1c1c] active:bg-[#252525] rounded-2xl p-4 border border-[#2a2a2a] transition-colors group">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <Download className="h-5 w-5 text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-white font-semibold text-sm">Download Handbook</div>
+                <div className="text-white/40 text-xs mt-0.5 leading-relaxed">Study offline — save as PDF</div>
+              </div>
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                <ExternalLink className="h-3.5 w-3.5 text-white/40" />
+              </div>
+            </a>
+
+            {/* Study Online */}
+            <a href={trainingLink} target="_blank" rel="noreferrer"
+              className="flex items-center gap-4 bg-[#1c1c1c] active:bg-[#252525] rounded-2xl p-4 border border-[#2a2a2a] transition-colors group">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                <BookOpen className="h-5 w-5 text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-white font-semibold text-sm">Study Online</div>
+                <div className="text-white/40 text-xs mt-0.5 leading-relaxed">Read all 8 chapters interactively</div>
+              </div>
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                <ExternalLink className="h-3.5 w-3.5 text-white/40" />
+              </div>
+            </a>
+
+            {/* Take / Retry Assessment */}
+            {(inProgress || (!inProgress && !locked && !passed)) && (
               <a
-                href={workbookLink}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-4 bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-xl p-5 transition-all group"
+                href={assessmentLink}
+                onClick={() => { window.addEventListener('focus', refreshStatus, { once: true }); }}
+                className={`flex items-center gap-4 rounded-2xl p-4 border-2 transition-colors ${
+                  inProgress
+                    ? 'bg-green-500 border-green-400 active:bg-green-600'
+                    : 'bg-amber-500 border-amber-400 active:bg-amber-600'
+                }`}
               >
-                <div className="w-11 h-11 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
-                  <Download className="h-5 w-5 text-amber-400" />
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${inProgress ? 'bg-black/20' : 'bg-black/20'}`}>
+                  <ClipboardCheck className="h-5 w-5 text-black" />
                 </div>
-                <div className="flex-1">
-                  <div className="text-white font-semibold text-sm">Download Handbook</div>
-                  <div className="text-white/45 text-xs mt-0.5">Save the BDO Training Handbook as a PDF to study offline</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-black font-black text-sm">{inProgress ? 'Take Assessment' : 'Retry Assessment'}</div>
+                  <div className="text-black/60 text-xs mt-0.5">
+                    {inProgress
+                      ? 'Score 70%+ to pass — 2 attempts allowed'
+                      : 'You have 1 attempt remaining'}
+                  </div>
                 </div>
-                <ExternalLink className="h-4 w-4 text-white/25 group-hover:text-white/50 flex-shrink-0 transition-colors" />
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-black/20 flex items-center justify-center">
+                  <ChevronRight className="h-4 w-4 text-black" />
+                </div>
               </a>
-
-              {/* Study Online */}
-              <a
-                href={trainingLink}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-4 bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-xl p-5 transition-all group"
-              >
-                <div className="w-11 h-11 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="h-5 w-5 text-blue-400" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-white font-semibold text-sm">Study Online</div>
-                  <div className="text-white/45 text-xs mt-0.5">Read the interactive training workbook chapter by chapter in your browser</div>
-                </div>
-                <ExternalLink className="h-4 w-4 text-white/25 group-hover:text-white/50 flex-shrink-0 transition-colors" />
-              </a>
-
-              {/* Take Assessment */}
-              {inProgress && (
-                <a
-                  href={assessmentLink}
-                  onClick={e => {
-                    // Refresh status when user returns
-                    window.addEventListener('focus', refreshStatus, { once: true });
-                  }}
-                  className="flex items-center gap-4 bg-green-500/10 hover:bg-green-500/15 border border-green-500/25 hover:border-green-500/40 rounded-xl p-5 transition-all group"
-                >
-                  <div className="w-11 h-11 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                    <ClipboardCheck className="h-5 w-5 text-green-400" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-white font-semibold text-sm">Take Assessment</div>
-                    <div className="text-white/45 text-xs mt-0.5">
-                      Complete the competency assessment — score 70% or above to pass (2 attempts maximum)
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-green-400/60 group-hover:text-green-400 flex-shrink-0 transition-colors" />
-                </a>
-              )}
-
-              {/* Retake hint (failed attempt 1 — can still retake) */}
-              {!inProgress && !locked && !passed && (
-                <a
-                  href={assessmentLink}
-                  className="flex items-center gap-4 bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/25 hover:border-amber-500/40 rounded-xl p-5 transition-all group"
-                >
-                  <div className="w-11 h-11 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                    <ClipboardCheck className="h-5 w-5 text-amber-400" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-white font-semibold text-sm">Retry Assessment</div>
-                    <div className="text-amber-300/70 text-xs mt-0.5">
-                      You have 1 attempt remaining. Review the handbook carefully before retrying.
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-amber-400/60 group-hover:text-amber-400 flex-shrink-0 transition-colors" />
-                </a>
-              )}
-            </div>
+            )}
           </div>
 
-          <p className="text-white/20 text-xs text-center pb-4">
-            VERJ Solar Energy Solutions — EnBO Pre-Onboarding Portal
+          <p className="text-white/15 text-xs text-center pt-2">
+            VERJ Solar Energy Solutions · EnBO Pre-Onboarding Portal
           </p>
         </div>
       </div>
