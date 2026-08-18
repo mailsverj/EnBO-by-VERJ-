@@ -4,7 +4,7 @@ import { bdoApplicationsTable, bdosTable, usersTable } from "@workspace/db/schem
 import { eq, desc } from "drizzle-orm";
 import { requireAuth, requireRoles } from "../middleware/auth.js";
 import bcrypt from "bcryptjs";
-import { sendOnboardingEmail, onboardPortalUrl } from "../lib/email.js";
+import { sendOnboardingEmail, onboardPortalUrl, sendActivationEmail } from "../lib/email.js";
 
 const router = Router();
 
@@ -228,9 +228,19 @@ router.patch("/applications/:id/activate", requireAuth, requireRoles("Chief Admi
     updatedAt: new Date(),
   }).where(eq(bdoApplicationsTable.id, id)).returning();
 
+  // Send congratulatory activation email (non-blocking)
+  const emailResult = await sendActivationEmail({
+    name: app.fullName,
+    email: app.email,
+    vbdoId,
+    defaultPassword,
+  });
+
   res.json({
     application: updated,
     credentials: { vbdoId, username: vbdoId, defaultPassword, email: app.email },
+    emailSent: emailResult.ok,
+    emailError: emailResult.error ?? null,
   });
 });
 
