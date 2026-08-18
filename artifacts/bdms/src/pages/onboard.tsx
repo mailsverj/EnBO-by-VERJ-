@@ -335,21 +335,6 @@ export default function Onboard() {
               </div>
             </a>
 
-            {/* Study Online */}
-            <a href={trainingLink} target="_blank" rel="noreferrer"
-              className="flex items-center gap-4 bg-[#1c1c1c] active:bg-[#252525] rounded-2xl p-4 border border-[#2a2a2a] transition-colors group">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                <BookOpen className="h-5 w-5 text-blue-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-white font-semibold text-sm">Study Online</div>
-                <div className="text-white/40 text-xs mt-0.5 leading-relaxed">Read all 8 chapters interactively</div>
-              </div>
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                <ExternalLink className="h-3.5 w-3.5 text-white/40" />
-              </div>
-            </a>
-
             {/* Take / Retry Assessment */}
             {(inProgress || (!inProgress && !locked && !passed)) && (
               <a
