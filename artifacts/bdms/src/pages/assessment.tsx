@@ -43,10 +43,98 @@ interface Result {
   error?: string;
 }
 
+interface AssessmentDraft {
+  version: 1;
+  ref: string;
+  attemptNumber: number;
+  answers: Record<number, string>;
+  currentQ: number;
+  currentQuestionId: number | null;
+  savedAt: string;
+}
+
 type Phase = 'entry' | 'loading' | 'instructions' | 'quiz' | 'submitting' | 'result' | 'locked' | 'already_passed' | 'error';
 
 const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
 const MAX_ATTEMPTS = 2;
+const DRAFT_PREFIX = 'enbo-assessment-progress-v1';
+
+function draftKey(ref: string) {
+  return `${DRAFT_PREFIX}:${ref.trim().toUpperCase()}`;
+}
+
+function readDraft(ref: string): AssessmentDraft | null {
+  if (!ref) return null;
+
+  try {
+    const raw = window.localStorage.getItem(draftKey(ref));
+    if (!raw) return null;
+
+    const draft = JSON.parse(raw) as Partial<AssessmentDraft>;
+    if (
+      draft.version !== 1
+      || draft.ref !== ref.trim().toUpperCase()
+      || !Number.isInteger(draft.attemptNumber)
+      || !draft.answers
+      || typeof draft.answers !== 'object'
+    ) {
+      window.localStorage.removeItem(draftKey(ref));
+      return null;
+    }
+
+    return draft as AssessmentDraft;
+  } catch {
+    return null;
+  }
+}
+
+function writeDraft(draft: AssessmentDraft) {
+  try {
+    window.localStorage.setItem(draftKey(draft.ref), JSON.stringify(draft));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function clearDraft(ref: string) {
+  if (!ref) return;
+  try {
+    window.localStorage.removeItem(draftKey(ref));
+  } catch {
+    // Browser storage may be unavailable; the assessment must remain usable.
+  }
+}
+
+function restoreDraft(
+  draft: AssessmentDraft,
+  questions: Question[],
+  attemptNumber: number,
+): { answers: Record<number, string>; currentQ: number } | null {
+  if (draft.attemptNumber !== attemptNumber || questions.length === 0) return null;
+
+  const answers: Record<number, string> = {};
+  for (const question of questions) {
+    const savedAnswer = draft.answers[question.id];
+    if (
+      typeof savedAnswer === 'string'
+      && question.options.some(option => option.value === savedAnswer)
+    ) {
+      answers[question.id] = savedAnswer;
+    }
+  }
+
+  const savedQuestionIndex = draft.currentQuestionId === null
+    ? -1
+    : questions.findIndex(question => question.id === draft.currentQuestionId);
+  const fallbackIndex = Number.isInteger(draft.currentQ) ? draft.currentQ : 0;
+  const currentQ = Math.min(
+    Math.max(savedQuestionIndex >= 0 ? savedQuestionIndex : fallbackIndex, 0),
+    questions.length - 1,
+  );
+
+  return { answers, currentQ };
+}
 
 export default function Assessment() {
   const params = new URLSearchParams(window.location.search);
@@ -64,18 +152,33 @@ export default function Assessment() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [result, setResult] = useState<Result | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [recentlyRestored, setRecentlyRestored] = useState(false);
+  const [hasSavedDraft, setHasSavedDraft] = useState(
+    () => Boolean(refFromUrl && readDraft(refFromUrl)),
+  );
 
   const fetchQuestions = async (appRef: string) => {
+    const cleanRef = appRef.trim().toUpperCase();
+    if (!cleanRef) return;
+
     setPhase('loading');
     setErrorMsg('');
+    setSubmitError('');
+    setRef(cleanRef);
+    setRefInput(cleanRef);
     try {
-      const res = await fetch(`${BASE}/api/assessment/questions?ref=${encodeURIComponent(appRef)}`);
+      const res = await fetch(`${BASE}/api/assessment/questions?ref=${encodeURIComponent(cleanRef)}`);
       const json = await res.json() as QuestionsResponse;
 
       if (!res.ok) {
         if (json.assessmentStatus === 'Passed') {
+          clearDraft(cleanRef);
+          setHasSavedDraft(false);
           setPhase('already_passed');
         } else if (json.locked) {
+          clearDraft(cleanRef);
+          setHasSavedDraft(false);
           setPhase('locked');
         } else {
           setErrorMsg(json.error ?? 'Unable to load assessment.');
@@ -84,15 +187,49 @@ export default function Assessment() {
         return;
       }
 
-      setQuestions(json.questions ?? []);
+      const loadedQuestions = json.questions ?? [];
+      if (loadedQuestions.length === 0) {
+        setErrorMsg('No active assessment questions are available. Your saved progress is safe. Please try again shortly.');
+        setPhase('error');
+        return;
+      }
+
+      const loadedAttemptNumber = json.attemptNumber ?? 1;
+      const savedDraft = readDraft(cleanRef);
+      const restored = savedDraft
+        ? restoreDraft(savedDraft, loadedQuestions, loadedAttemptNumber)
+        : null;
+
+      if (savedDraft && !restored) {
+        clearDraft(cleanRef);
+        setHasSavedDraft(false);
+      }
+
+      setQuestions(loadedQuestions);
       setApplicantName(json.applicantName ?? '');
       setTotalMarks(json.totalMarks ?? 100);
-      setAttemptNumber(json.attemptNumber ?? 1);
+      setAttemptNumber(loadedAttemptNumber);
       setAttemptsRemainingBefore(json.attemptsRemaining ?? MAX_ATTEMPTS);
-      setRef(appRef);
-      setPhase('instructions');
+      setRef(cleanRef);
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('ref', cleanRef);
+      window.history.replaceState({}, '', url);
+
+      if (restored) {
+        setAnswers(restored.answers);
+        setCurrentQ(restored.currentQ);
+        setRecentlyRestored(true);
+        setHasSavedDraft(true);
+        setPhase('quiz');
+      } else {
+        setAnswers({});
+        setCurrentQ(0);
+        setRecentlyRestored(false);
+        setPhase('instructions');
+      }
     } catch {
-      setErrorMsg('Network error. Please check your connection and try again.');
+      setErrorMsg('Network error. Your saved progress is safe. Please check your connection and try again.');
       setPhase('error');
     }
   };
@@ -101,6 +238,28 @@ export default function Assessment() {
     if (refFromUrl) fetchQuestions(refFromUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (
+      (phase !== 'quiz' && phase !== 'submitting')
+      || !ref
+      || questions.length === 0
+    ) {
+      return;
+    }
+
+    const safeCurrentQ = Math.min(Math.max(currentQ, 0), questions.length - 1);
+    const saved = writeDraft({
+      version: 1,
+      ref,
+      attemptNumber,
+      answers,
+      currentQ: safeCurrentQ,
+      currentQuestionId: questions[safeCurrentQ]?.id ?? null,
+      savedAt: new Date().toISOString(),
+    });
+    setHasSavedDraft(saved);
+  }, [answers, attemptNumber, currentQ, phase, questions, ref]);
 
   const handleStart = () => {
     const clean = refInput.trim().toUpperCase();
@@ -111,14 +270,32 @@ export default function Assessment() {
   const handleBeginQuiz = () => {
     setCurrentQ(0);
     setAnswers({});
+    setSubmitError('');
+    setRecentlyRestored(false);
     setPhase('quiz');
   };
 
   const selectAnswer = (qId: number, value: string) => {
     setAnswers(prev => ({ ...prev, [qId]: value }));
+    setSubmitError('');
+  };
+
+  const handleStartOver = () => {
+    if (!window.confirm('Start this assessment again from Question 1? Your saved answers for this attempt will be cleared.')) {
+      return;
+    }
+
+    clearDraft(ref);
+    setAnswers({});
+    setCurrentQ(0);
+    setSubmitError('');
+    setRecentlyRestored(false);
+    setHasSavedDraft(false);
+    setPhase('quiz');
   };
 
   const handleSubmit = async () => {
+    setSubmitError('');
     setPhase('submitting');
     try {
       const res = await fetch(`${BASE}/api/assessment/submit`, {
@@ -128,23 +305,33 @@ export default function Assessment() {
       });
       const json = await res.json() as Result;
       if (!res.ok) {
-        if (json.locked) { setPhase('locked'); return; }
-        setErrorMsg(json.error ?? 'Submission failed. Please try again.');
-        setPhase('error');
+        if (json.locked) {
+          clearDraft(ref);
+          setHasSavedDraft(false);
+          setPhase('locked');
+          return;
+        }
+        setSubmitError(json.error ?? 'Submission failed. Please try again. Your answers are still saved.');
+        setPhase('quiz');
         return;
       }
+      clearDraft(ref);
+      setHasSavedDraft(false);
       setResult(json);
       setPhase('result');
     } catch {
-      setErrorMsg('Network error. Please try again.');
-      setPhase('error');
+      setSubmitError('Network error. Your answers are still saved. Check your connection and submit again.');
+      setPhase('quiz');
     }
   };
 
   const answeredCount = Object.keys(answers).length;
-  const q = questions[currentQ];
-  const isLast = currentQ === questions.length - 1;
-  const progress = questions.length ? Math.round(((currentQ + 1) / questions.length) * 100) : 0;
+  const safeCurrentQ = questions.length
+    ? Math.min(Math.max(currentQ, 0), questions.length - 1)
+    : 0;
+  const q = questions[safeCurrentQ];
+  const isLast = safeCurrentQ === questions.length - 1;
+  const progress = questions.length ? Math.round(((safeCurrentQ + 1) / questions.length) * 100) : 0;
 
   // ── Shared header ──────────────────────────────────────────────────────────
   const Header = () => (
@@ -209,7 +396,15 @@ export default function Assessment() {
           <AlertTriangle className="h-12 w-12 mx-auto text-amber-500" />
           <h2 className="text-xl font-bold">Unable to Load Assessment</h2>
           <p className="text-muted-foreground text-sm">{errorMsg}</p>
-          <Button variant="outline" onClick={() => setPhase('entry')}>Try Again</Button>
+          {hasSavedDraft && (
+            <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg p-3">
+              Your answers and current question are saved on this device.
+            </p>
+          )}
+          <div className="flex flex-col gap-2">
+            <Button onClick={() => fetchQuestions(ref || refInput)}>Restore Assessment</Button>
+            <Button variant="ghost" onClick={() => setPhase('entry')}>Use another reference</Button>
+          </div>
         </div>
       </div>
     </div>
@@ -345,6 +540,22 @@ export default function Assessment() {
     </div>
   );
 
+  if ((phase === 'quiz' || phase === 'submitting') && !q) return (
+    <div className="min-h-screen bg-muted/30 flex flex-col">
+      <Header />
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
+        <div className="text-center space-y-4 max-w-sm">
+          <AlertTriangle className="h-12 w-12 mx-auto text-amber-500" />
+          <h2 className="text-xl font-bold">Assessment temporarily unavailable</h2>
+          <p className="text-muted-foreground text-sm">
+            We could not display the current question. Your saved progress has not been removed.
+          </p>
+          <Button onClick={() => fetchQuestions(ref)}>Restore Assessment</Button>
+        </div>
+      </div>
+    </div>
+  );
+
   // ── Quiz ───────────────────────────────────────────────────────────────────
   if ((phase === 'quiz' || phase === 'submitting') && q) return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
@@ -353,8 +564,8 @@ export default function Assessment() {
 
         {/* Progress bar */}
         <div className="space-y-2">
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Question {currentQ + 1} of {questions.length}</span>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+            <span>Question {safeCurrentQ + 1} of {questions.length}</span>
             <span>{answeredCount} of {questions.length} answered</span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -363,7 +574,54 @@ export default function Assessment() {
               style={{ width: `${progress}%` }}
             />
           </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <span className="inline-flex items-center gap-1.5 text-xs text-green-700">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Progress saves automatically on this device
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-muted-foreground"
+              onClick={handleStartOver}
+              disabled={phase === 'submitting'}
+            >
+              Start over
+            </Button>
+          </div>
         </div>
+
+        {recentlyRestored && (
+          <div className="flex items-start justify-between gap-3 p-4 bg-green-50 border border-green-200 rounded-lg text-green-900">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="font-semibold text-sm">Your progress was restored</div>
+                <p className="text-xs text-green-800 mt-1">
+                  Continue from where you stopped. Your previous answers are still selected.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="text-xs font-medium text-green-800 underline"
+              onClick={() => setRecentlyRestored(false)}
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {submitError && (
+          <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <div className="font-semibold text-sm text-amber-900">Assessment not submitted</div>
+              <p className="text-xs text-amber-800 mt-1">{submitError}</p>
+            </div>
+          </div>
+        )}
 
         <Card className="shadow-lg">
           <CardHeader className="bg-muted/30 border-b">
@@ -404,11 +662,18 @@ export default function Assessment() {
           </CardContent>
 
           <CardFooter className="border-t pt-4 flex justify-between">
-            <Button variant="outline" onClick={() => setCurrentQ(c => c - 1)} disabled={currentQ === 0}>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentQ(c => Math.max(c - 1, 0))}
+              disabled={safeCurrentQ === 0 || phase === 'submitting'}
+            >
               <ChevronLeft className="h-4 w-4 mr-1" /> Previous
             </Button>
             {!isLast ? (
-              <Button onClick={() => setCurrentQ(c => c + 1)}>
+              <Button
+                onClick={() => setCurrentQ(c => Math.min(c + 1, questions.length - 1))}
+                disabled={phase === 'submitting'}
+              >
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             ) : (
@@ -545,5 +810,19 @@ export default function Assessment() {
     );
   }
 
-  return null;
+  return (
+    <div className="min-h-screen bg-muted/30 flex flex-col">
+      <Header />
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
+        <div className="text-center space-y-4 max-w-sm">
+          <AlertTriangle className="h-12 w-12 mx-auto text-amber-500" />
+          <h2 className="text-xl font-bold">Assessment needs to be restored</h2>
+          <p className="text-muted-foreground text-sm">
+            The page entered an unexpected state. Any saved answers remain available on this device.
+          </p>
+          <Button onClick={() => fetchQuestions(ref || refInput)}>Restore Assessment</Button>
+        </div>
+      </div>
+    </div>
+  );
 }
