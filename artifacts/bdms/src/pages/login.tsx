@@ -36,7 +36,7 @@ export default function Login() {
           <div className="flex flex-col items-center">
             <div className="inline-flex flex-col items-start">
               <div className="text-4xl font-black tracking-tight text-[#1a1a1a]">EnBO</div>
-              <div className="flex items-center gap-1.5 mt-1">
+              <div className="flex items-center gap-0.5 mt-0.5">
                 <span className="text-[#1a1a1a] italic text-xs font-semibold leading-none">by</span>
                 <img
                   src={logoPath}

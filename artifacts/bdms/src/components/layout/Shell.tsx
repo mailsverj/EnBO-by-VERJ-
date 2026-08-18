@@ -101,7 +101,7 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
       <div className="h-16 flex items-center px-5 border-b border-sidebar-border bg-sidebar flex-shrink-0">
         <div>
           <div className="text-white font-black text-lg leading-none tracking-tight">EnBO</div>
-          <div className="flex items-center gap-1.5 mt-1">
+          <div className="flex items-center gap-0.5 mt-0.5">
             <span className="text-white italic text-[9px] font-semibold leading-none">by</span>
             <img
               src={logoPath}
