@@ -245,26 +245,14 @@ export default function Onboard() {
             </div>
           </div>
 
-          {/* Step tracker — large, high-contrast */}
+          {/* Step tracker — horizontal progress bar */}
           {!locked && !isActivated && (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="flex items-center gap-2">
               {steps.map((step, i) => (
-                <div
-                  key={i}
-                  className={`rounded-2xl p-4 flex flex-col items-center text-center border-2 ${
-                    step.done
-                      ? 'bg-amber-500 border-amber-400'
-                      : 'bg-[#1a1a1a] border-[#2a2a2a]'
-                  }`}
-                >
-                  <div className={`text-2xl font-black mb-1 ${step.done ? 'text-black' : 'text-white/25'}`}>
-                    {step.done ? '✓' : i + 1}
-                  </div>
-                  <div className={`text-xs font-bold leading-tight ${step.done ? 'text-black' : 'text-white/50'}`}>
-                    {step.label}
-                  </div>
-                  <div className={`text-[10px] mt-0.5 leading-tight ${step.done ? 'text-black/60' : 'text-white/25'}`}>
-                    {step.sublabel}
+                <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
+                  <div className={`w-full h-2 rounded-full ${step.done ? 'bg-amber-400' : 'bg-white/10'}`} />
+                  <div className={`text-[10px] font-semibold ${step.done ? 'text-amber-400' : 'text-white/25'}`}>
+                    {step.done ? '✓ ' : `${i + 1}. `}{step.label}
                   </div>
                 </div>
               ))}
@@ -316,44 +304,38 @@ export default function Onboard() {
             </div>
           )}
 
-          {/* Action cards */}
-          <div className="space-y-3">
-            <p className="text-white/35 text-xs font-semibold uppercase tracking-widest">Your Resources</p>
+          {/* Action buttons — two clearly separate rows */}
+          <div className="flex flex-col gap-4">
 
-            {/* Download & Study Workbook */}
+            {/* Button 1: Download Workbook */}
             <a href={workbookLink} target="_blank" rel="noreferrer"
-              className="flex items-center gap-4 bg-[#1c1c1c] active:bg-[#252525] rounded-2xl p-4 border border-[#2a2a2a] transition-colors group">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                <Download className="h-5 w-5 text-amber-400" />
+              className="flex items-center gap-4 rounded-2xl p-5 border-2 border-amber-400 bg-amber-500/10 active:bg-amber-500/20 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-amber-400/20 flex items-center justify-center flex-shrink-0">
+                <Download className="h-6 w-6 text-amber-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-white font-semibold text-sm">Download & Study Training Workbook</div>
-                <div className="text-white/40 text-xs mt-0.5 leading-relaxed">Save as PDF and study before your assessment</div>
+                <div className="text-amber-300 font-black text-base leading-snug">Download Training Workbook</div>
+                <div className="text-amber-400/60 text-xs mt-1">Save as PDF — study before your assessment</div>
               </div>
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                <ExternalLink className="h-3.5 w-3.5 text-white/40" />
-              </div>
+              <ExternalLink className="h-4 w-4 text-amber-400/50 flex-shrink-0" />
             </a>
 
-            {/* Take Assessment — always shown unless locked or activated */}
+            {/* Button 2: Take Assessment */}
             {!locked && !isActivated && (
-              <a
-                href={assessmentLink}
+              <a href={assessmentLink}
                 onClick={() => { window.addEventListener('focus', refreshStatus, { once: true }); }}
-                className="flex items-center gap-4 rounded-2xl p-4 border-2 bg-green-500 border-green-400 active:bg-green-600 transition-colors"
-              >
+                className="flex items-center gap-4 rounded-2xl p-5 border-2 border-green-400 bg-green-500 active:bg-green-600 transition-colors">
                 <div className="w-12 h-12 rounded-xl bg-black/20 flex items-center justify-center flex-shrink-0">
-                  <ClipboardCheck className="h-5 w-5 text-black" />
+                  <ClipboardCheck className="h-6 w-6 text-black" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-black font-black text-sm">Take Assessment</div>
-                  <div className="text-black/60 text-xs mt-0.5">Score 70%+ to pass — 2 attempts allowed</div>
+                  <div className="text-black font-black text-base leading-snug">Take Assessment</div>
+                  <div className="text-black/60 text-xs mt-1">Score 70%+ to pass — 2 attempts allowed</div>
                 </div>
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-black/20 flex items-center justify-center">
-                  <ChevronRight className="h-4 w-4 text-black" />
-                </div>
+                <ChevronRight className="h-5 w-5 text-black/60 flex-shrink-0" />
               </a>
             )}
+
           </div>
 
           <p className="text-white/15 text-xs text-center pt-2">
