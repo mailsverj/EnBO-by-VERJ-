@@ -396,7 +396,7 @@ export default function Assessment() {
                     }`}>
                       {selected && <div className="w-2 h-2 rounded-full bg-white" />}
                     </div>
-                    <span className="text-sm leading-relaxed">{opt.value}</span>
+                    <span className="text-sm leading-relaxed">{opt.label}</span>
                   </button>
                 );
               })}

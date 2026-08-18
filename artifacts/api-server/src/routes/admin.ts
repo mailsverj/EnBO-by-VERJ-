@@ -10,6 +10,35 @@ import { CHAPTER_SEED } from "../lib/chapter-seed-data.js";
 
 const router = Router();
 const ADMIN_ROLES = ["Chief Admin", "Super Admin"];
+const OPTION_KEYS = ["a", "b", "c", "d"];
+
+function optionIndex(value: string | null | undefined): number {
+  const numeric = Number(value);
+  if (Number.isInteger(numeric) && numeric >= 0) return numeric;
+  const letterIndex = OPTION_KEYS.indexOf((value ?? "").toLowerCase());
+  return letterIndex >= 0 ? letterIndex : 0;
+}
+
+function adminOptions(options: unknown): { label: string; value: string }[] {
+  if (!Array.isArray(options)) return [];
+  return options.map((option, index) => ({
+    label: typeof option === "string"
+      ? option
+      : String((option as { label?: unknown; value?: unknown })?.label
+        ?? (option as { value?: unknown })?.value
+        ?? ""),
+    value: OPTION_KEYS[index] ?? String(index),
+  }));
+}
+
+function adminQuestion<T extends { options: unknown; correctOption: string }>(question: T) {
+  const correctIndex = optionIndex(question.correctOption);
+  return {
+    ...question,
+    options: adminOptions(question.options),
+    correctOption: OPTION_KEYS[correctIndex] ?? "a",
+  };
+}
 
 // ─── Assessment Questions ────────────────────────────────────────────────────
 
@@ -23,7 +52,7 @@ router.get(
       .select()
       .from(assessmentQuestionsTable)
       .orderBy(assessmentQuestionsTable.id);
-    res.json({ questions });
+    res.json({ questions: questions.map(adminQuestion) });
   }
 );
 
@@ -50,9 +79,16 @@ router.post(
 
     const [q] = await db
       .insert(assessmentQuestionsTable)
-      .values({ category, questionText, options, correctOption, marks: marks ?? 3, active: active ?? true })
+      .values({
+        category,
+        questionText,
+        options: adminOptions(options),
+        correctOption: String(optionIndex(correctOption)),
+        marks: marks ?? 3,
+        active: active ?? true,
+      })
       .returning();
-    res.status(201).json({ question: q });
+    res.status(201).json({ question: adminQuestion(q) });
   }
 );
 
@@ -76,8 +112,8 @@ router.patch(
     const updates: Record<string, unknown> = {};
     if (category !== undefined) updates.category = category;
     if (questionText !== undefined) updates.questionText = questionText;
-    if (options !== undefined) updates.options = options;
-    if (correctOption !== undefined) updates.correctOption = correctOption;
+    if (options !== undefined) updates.options = adminOptions(options);
+    if (correctOption !== undefined) updates.correctOption = String(optionIndex(correctOption));
     if (marks !== undefined) updates.marks = marks;
     if (active !== undefined) updates.active = active;
 
@@ -93,7 +129,7 @@ router.patch(
       .returning();
 
     if (!q) { res.status(404).json({ error: "Question not found" }); return; }
-    res.json({ question: q });
+    res.json({ question: adminQuestion(q) });
   }
 );
 

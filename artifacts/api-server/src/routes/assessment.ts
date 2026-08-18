@@ -10,6 +10,31 @@ import { eq, count } from "drizzle-orm";
 const router = Router();
 const PASS_PERCENT = 0.7; // 70% to pass
 const MAX_ATTEMPTS = 2;
+const OPTION_KEYS = ["a", "b", "c", "d"];
+
+/**
+ * Supports the original seeded `string[]` choices and the structured choices
+ * created in the content editor. The public quiz always receives a stable
+ * numeric answer value, which matches the stored correct-answer index.
+ */
+function quizOptions(options: unknown): { label: string; value: string }[] {
+  if (!Array.isArray(options)) return [];
+  return options.map((option, index) => ({
+    label: typeof option === "string"
+      ? option
+      : String((option as { label?: unknown; value?: unknown })?.label
+        ?? (option as { value?: unknown })?.value
+        ?? ""),
+    value: String(index),
+  })).filter(option => option.label.trim().length > 0);
+}
+
+function correctOptionIndex(correctOption: string | null): number {
+  const numeric = Number(correctOption);
+  if (Number.isInteger(numeric) && numeric >= 0) return numeric;
+  const letterIndex = OPTION_KEYS.indexOf((correctOption ?? "").toLowerCase());
+  return letterIndex >= 0 ? letterIndex : 0;
+}
 
 // Public: get questions for a shortlisted applicant
 router.get("/assessment/questions", async (req, res) => {
@@ -59,10 +84,14 @@ router.get("/assessment/questions", async (req, res) => {
     .where(eq(assessmentQuestionsTable.active, true))
     .orderBy(assessmentQuestionsTable.id);
 
-  const totalMarks = questions.reduce((sum, q) => sum + (q.marks ?? 3), 0);
+  const quizQuestions = questions.map(question => ({
+    ...question,
+    options: quizOptions(question.options),
+  }));
+  const totalMarks = quizQuestions.reduce((sum, q) => sum + (q.marks ?? 3), 0);
 
   res.json({
-    questions,
+    questions: quizQuestions,
     applicantName: app.fullName,
     total: questions.length,
     totalMarks,
@@ -110,8 +139,8 @@ router.post("/assessment/submit", async (req, res) => {
 
   for (const q of questions) {
     const submitted = answers[q.id];
-    const correctIdx = q.correctOption ?? 0;
-    if (submitted !== undefined && parseInt(submitted) === correctIdx) {
+    const correctIdx = correctOptionIndex(q.correctOption);
+    if (submitted !== undefined && Number(submitted) === correctIdx) {
       score += (q.marks ?? 3);
     }
   }
