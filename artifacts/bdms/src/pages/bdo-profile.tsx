@@ -151,7 +151,7 @@ export default function BdoProfile() {
                     bdoLeads.map(lead => (
                       <TableRow key={lead.id}>
                         <TableCell className="font-mono text-xs"><Link href={`/leads/${lead.leadRef}`} className="text-primary hover:underline">{lead.leadRef}</Link></TableCell>
-                        <TableCell className="font-medium">{lead.customerName}</TableCell>
+                        <TableCell className="font-medium">{lead.customerName ?? lead.customerId ?? 'Unlinked customer'}</TableCell>
                         <TableCell><Badge variant="outline">{lead.stage}</Badge></TableCell>
                         <TableCell>{lead.value > 0 ? formatCurrency(lead.value) : '-'}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">{format(new Date(lead.updatedAt), 'MMM d, yyyy')}</TableCell>

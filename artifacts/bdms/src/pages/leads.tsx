@@ -37,7 +37,7 @@ export default function Leads() {
   const leads = data?.leads ?? [];
 
   const filteredLeads = leads.filter(l =>
-    l.customerName.toLowerCase().includes(search.toLowerCase()) ||
+    (l.customerName ?? '').toLowerCase().includes(search.toLowerCase()) ||
     l.leadRef.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -52,7 +52,7 @@ export default function Leads() {
           <Button variant="outline">Export</Button>
           {canCreateLead && (
             <NewLeadDialog onCreated={lead => navigate(`/leads/${lead.leadRef}`)}>
-              <Button><Plus className="h-4 w-4 mr-2" /> New Lead</Button>
+              <Button type="button"><Plus className="h-4 w-4 mr-2" /> New Lead</Button>
             </NewLeadDialog>
           )}
         </div>
@@ -106,7 +106,7 @@ export default function Leads() {
             </div>
             {!search && canCreateLead && (
               <NewLeadDialog onCreated={lead => navigate(`/leads/${lead.leadRef}`)}>
-                <Button><Plus className="mr-2 h-4 w-4" /> New Lead</Button>
+                <Button type="button"><Plus className="mr-2 h-4 w-4" /> New Lead</Button>
               </NewLeadDialog>
             )}
             {search && <Button variant="outline" onClick={() => setSearch('')}>Clear search</Button>}
@@ -132,7 +132,7 @@ export default function Leads() {
                               <span className="font-mono text-xs text-muted-foreground">{lead.leadRef}</span>
                               <span className="text-xs font-medium text-primary bg-primary/10 px-1.5 rounded">{lead.sourceBdoId}</span>
                             </div>
-                            <div className="font-medium text-sm line-clamp-1">{lead.customerName}</div>
+                            <div className="font-medium text-sm line-clamp-1">{lead.customerName ?? lead.customerId ?? 'Unlinked customer'}</div>
                             {lead.value > 0 && <div className="text-xs font-semibold">{formatCurrency(lead.value)}</div>}
                           </CardContent>
                         </Card>
@@ -169,7 +169,7 @@ export default function Leads() {
                       <Link href={`/leads/${lead.leadRef}`}>{lead.leadRef}</Link>
                     </TableCell>
                     <TableCell className="font-medium">
-                      <Link href={`/leads/${lead.leadRef}`}>{lead.customerName}</Link>
+                      <Link href={`/leads/${lead.leadRef}`}>{lead.customerName ?? lead.customerId ?? 'Unlinked customer'}</Link>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">{lead.sourceBdoId}</TableCell>
                     <TableCell><Badge variant="outline">{lead.stage}</Badge></TableCell>

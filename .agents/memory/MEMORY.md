@@ -4,3 +4,5 @@
 - [Assessment bank source](assessment-bank-source.md) — use the supplied keyed assessment text; preserve the owner-approved 70% pass mark.
 - [Assessment draft concurrency](assessment-draft-concurrency.md) — resume reads, saves, and submissions must share one app lock and validate attempt identity plus revision.
 - [Lead/customer write consistency](lead-customer-write-consistency.md) — serialize business-reference allocation and calculate aggregate deltas from locked current rows.
+- [Customer visibility policy](customer-visibility-policy.md) — BDOs see their own contacts; Sales/Admin see full details; technical roles receive customer IDs only.
+- [Paused tasks](paused-tasks.md) — Task #24 (warn BDOs of unsaved progress) and Task #25 (portal site assessments) paused by user; resume when GitHub transfer is done.

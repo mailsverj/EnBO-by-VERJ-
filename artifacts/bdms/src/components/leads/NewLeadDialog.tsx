@@ -70,12 +70,15 @@ export function NewLeadDialog({ children, onCreated }: NewLeadDialogProps) {
 
   const createLead = useMutation({
     mutationFn: (input: CreateLeadInput) => api.leads.create(input),
-    onSuccess: async ({ lead }) => {
-      await Promise.all([
+    onSuccess: ({ lead }) => {
+      void Promise.all([
         queryClient.invalidateQueries({ queryKey: ['leads'] }),
         queryClient.invalidateQueries({ queryKey: ['customers'] }),
         queryClient.invalidateQueries({ queryKey: ['bdos'] }),
-      ]);
+      ]).catch(() => {
+        // The create response is already committed. A later list refresh must
+        // never prevent the user from leaving the completed form.
+      });
       toast({
         title: 'Lead created',
         description: `${lead.leadRef} has been added to the pipeline.`,
@@ -100,6 +103,8 @@ export function NewLeadDialog({ children, onCreated }: NewLeadDialogProps) {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    event.stopPropagation();
+    if (createLead.isPending) return;
 
     const input: CreateLeadInput = {
       customerName: form.customerName.trim(),

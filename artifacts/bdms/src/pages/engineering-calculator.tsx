@@ -284,7 +284,7 @@ export default function EngineeringCalculator() {
                     </SelectTrigger>
                     <SelectContent>
                       {allLeads.filter(l => l.stage !== 'Won' && l.stage !== 'Lost / Nurture').map(lead => (
-                        <SelectItem key={lead.leadRef} value={lead.leadRef}>{lead.leadRef} - {lead.customerName}</SelectItem>
+                        <SelectItem key={lead.leadRef} value={lead.leadRef}>{lead.leadRef} - {lead.customerName ?? lead.customerId ?? 'Unlinked customer'}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

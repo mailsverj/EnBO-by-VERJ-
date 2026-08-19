@@ -71,7 +71,7 @@ export default function BdoDashboard() {
             </Button>
           </Link>
           <NewLeadDialog onCreated={lead => navigate(`/leads/${lead.leadRef}`)}>
-            <Button>
+            <Button type="button">
               <Plus className="mr-2 h-4 w-4" /> New Lead
             </Button>
           </NewLeadDialog>
@@ -174,7 +174,7 @@ export default function BdoDashboard() {
                           className="flex items-center justify-between gap-4 rounded-md border p-3 transition-colors hover:bg-muted/50"
                         >
                           <div className="min-w-0">
-                            <div className="truncate text-sm font-medium">{lead.customerName}</div>
+                            <div className="truncate text-sm font-medium">{lead.customerName ?? lead.customerId ?? 'Unlinked customer'}</div>
                             <div className="font-mono text-xs text-muted-foreground">{lead.leadRef}</div>
                           </div>
                           <Badge variant="outline" className="shrink-0">
@@ -230,7 +230,7 @@ export default function BdoDashboard() {
                     </p>
                   </div>
                   <NewLeadDialog onCreated={lead => navigate(`/leads/${lead.leadRef}`)}>
-                    <Button><Plus className="mr-2 h-4 w-4" /> Create First Lead</Button>
+                    <Button type="button"><Plus className="mr-2 h-4 w-4" /> Create First Lead</Button>
                   </NewLeadDialog>
                 </div>
               ) : (
@@ -251,7 +251,7 @@ export default function BdoDashboard() {
                           <TableCell className="font-mono text-xs font-semibold text-primary">
                             <Link href={`/leads/${lead.leadRef}`}>{lead.leadRef}</Link>
                           </TableCell>
-                          <TableCell className="font-medium">{lead.customerName}</TableCell>
+                          <TableCell className="font-medium">{lead.customerName ?? lead.customerId ?? 'Unlinked customer'}</TableCell>
                           <TableCell><Badge variant="outline">{lead.stage}</Badge></TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {lead.followUpDate ? format(new Date(lead.followUpDate), 'MMM d, yyyy') : 'Not scheduled'}

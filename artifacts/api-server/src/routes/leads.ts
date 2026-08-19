@@ -4,6 +4,7 @@ import { bdosTable, customersTable, leadsTable } from "@workspace/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth.js";
 import { REFERENCE_ALLOCATION_LOCK_ID } from "../lib/reference-locks.js";
+import { canViewCustomerContacts, customerNameForViewer } from "../lib/customer-access.js";
 
 const router = Router();
 const LEAD_CREATOR_ROLES = ["Chief Admin", "Super Admin", "Management", "Sales Admin"];
@@ -191,13 +192,22 @@ function parseUpdateLead(body: unknown): UpdateLeadParseResult {
   return { success: true, data };
 }
 
+function visibleLeadForUser<T extends typeof leadsTable.$inferSelect>(user: NonNullable<Express.Request["session"]["user"]>, lead: T) {
+  if (canViewCustomerContacts(user, lead)) return lead;
+  return {
+    ...lead,
+    customerName: customerNameForViewer(user, lead),
+    notes: null,
+  };
+}
+
 router.get("/leads", requireAuth, async (req, res) => {
   const user = req.session.user!;
   const isBdo = user.roles.includes("BDO");
   const leads = isBdo && user.vbdoId
     ? await db.select().from(leadsTable).where(eq(leadsTable.sourceBdoId, user.vbdoId)).orderBy(desc(leadsTable.createdAt))
     : await db.select().from(leadsTable).orderBy(desc(leadsTable.createdAt));
-  res.json({ leads });
+  res.json({ leads: leads.map(lead => visibleLeadForUser(user, lead)) });
 });
 
 router.get("/leads/:leadRef", requireAuth, async (req, res) => {
@@ -207,7 +217,7 @@ router.get("/leads/:leadRef", requireAuth, async (req, res) => {
   if (user.roles.includes("BDO") && lead.sourceBdoId !== user.vbdoId) {
     res.status(404).json({ error: "Not found" }); return;
   }
-  res.json({ lead });
+  res.json({ lead: visibleLeadForUser(user, lead) });
 });
 
 router.post("/leads", requireAuth, async (req, res) => {
@@ -283,7 +293,7 @@ router.post("/leads", requireAuth, async (req, res) => {
     return createdLead;
   });
 
-  res.status(201).json({ lead });
+  res.status(201).json({ lead: visibleLeadForUser(user, lead) });
 });
 
 router.patch("/leads/:leadRef", requireAuth, async (req, res) => {
@@ -348,7 +358,7 @@ router.patch("/leads/:leadRef", requireAuth, async (req, res) => {
     return changedLead;
   });
 
-  res.json({ lead: updated });
+  res.json({ lead: visibleLeadForUser(user, updated) });
 });
 
 export default router;

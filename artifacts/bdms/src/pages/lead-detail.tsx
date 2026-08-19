@@ -65,7 +65,7 @@ export default function LeadDetail() {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">{lead.customerName}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{lead.customerName ?? lead.customerId ?? 'Unlinked customer'}</h1>
             <Badge variant="outline" className="font-mono text-xs">{lead.leadRef}</Badge>
           </div>
           <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
@@ -141,6 +141,13 @@ export default function LeadDetail() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               {customer ? (
+                customer.restricted ? (
+                  <div className="space-y-2">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Customer ID</div>
+                    <div className="font-mono text-sm font-medium">{customer.cidRef}</div>
+                    <p className="text-xs text-muted-foreground">Customer contact details are restricted for your role.</p>
+                  </div>
+                ) : (
                 <>
                   <div className="flex items-center gap-2">
                     <UserSquare2 className="h-4 w-4 text-muted-foreground" />
@@ -151,6 +158,7 @@ export default function LeadDetail() {
                   <div>{customer.phone}</div>
                   <Link href={`/customers/${customer.cidRef}`} className="text-primary hover:underline text-xs mt-2 inline-block">View Full Profile</Link>
                 </>
+                )
               ) : (
                 <div className="text-muted-foreground flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" /> No customer profile linked

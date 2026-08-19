@@ -47,6 +47,20 @@ export default function CustomerProfile() {
     return <div className="p-8 text-center text-muted-foreground">Customer not found</div>;
   }
 
+  if (customer.restricted) {
+    return (
+      <div className="mx-auto max-w-xl space-y-6 py-12 text-center">
+        <Badge variant="outline" className="font-mono">{customer.cidRef}</Badge>
+        <div>
+          <h1 className="text-2xl font-bold">Customer details restricted</h1>
+          <p className="mt-2 text-muted-foreground">
+            Your technical role can use the customer ID for the related engineering work, but cannot view customer details.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const customerLeads = leads.filter(l => l.customerId === id);
   const customerInvoices = invoices.filter(i => i.customerId === id);
 
@@ -106,15 +120,15 @@ export default function CustomerProfile() {
             <div className="grid grid-cols-3 gap-6">
               <div className="space-y-1">
                 <div className="text-sm text-muted-foreground">Total Projects</div>
-                <div className="text-3xl font-bold">{customer.projectCount}</div>
+                <div className="text-3xl font-bold">{customer.projectCount ?? 0}</div>
               </div>
               <div className="space-y-1">
                 <div className="text-sm text-muted-foreground">Total Leads</div>
-                <div className="text-3xl font-bold">{customer.leadCount}</div>
+                <div className="text-3xl font-bold">{customer.leadCount ?? 0}</div>
               </div>
               <div className="space-y-1">
                 <div className="text-sm text-muted-foreground">Total Value</div>
-                <div className="text-2xl font-bold text-primary">{formatCurrency(customer.totalValue)}</div>
+                <div className="text-2xl font-bold text-primary">{formatCurrency(customer.totalValue ?? 0)}</div>
               </div>
             </div>
           </CardContent>

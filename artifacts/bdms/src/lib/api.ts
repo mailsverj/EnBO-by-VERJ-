@@ -234,7 +234,7 @@ export interface Lead {
   id: number;
   leadRef: string;
   customerId: string | null;
-  customerName: string;
+  customerName: string | null;
   sourceBdoId: string;
   assignedEngineerId: number | null;
   stage: string;
@@ -258,19 +258,20 @@ export interface CreateLeadInput {
 }
 
 export interface Customer {
-  id: number;
+  id?: number;
   cidRef: string;
-  name: string;
-  type: string;
-  location: string | null;
-  email: string | null;
-  phone: string | null;
-  sourceBdoId: string | null;
-  leadCount: number;
-  projectCount: number;
-  totalValue: number;
-  createdAt: string;
-  updatedAt: string;
+  name?: string;
+  type?: string;
+  location?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  sourceBdoId?: string | null;
+  leadCount?: number;
+  projectCount?: number;
+  totalValue?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  restricted?: boolean;
 }
 
 export interface Design {

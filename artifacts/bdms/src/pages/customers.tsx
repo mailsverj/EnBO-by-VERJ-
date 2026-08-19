@@ -21,7 +21,7 @@ export default function Customers() {
   const customers = data?.customers ?? [];
 
   const filteredCustomers = customers.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    (c.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
     c.cidRef.toLowerCase().includes(search.toLowerCase()) ||
     (c.location ?? '').toLowerCase().includes(search.toLowerCase())
   );
@@ -85,25 +85,33 @@ export default function Customers() {
                           <Link href={`/customers/${customer.cidRef}`}>{customer.cidRef}</Link>
                         </TableCell>
                         <TableCell>
-                          <Link href={`/customers/${customer.cidRef}`} className="block">
-                            <div className="font-semibold">{customer.name}</div>
-                            <div className="text-xs text-muted-foreground">{customer.email}</div>
-                          </Link>
+                          {customer.restricted ? (
+                            <span className="text-sm text-muted-foreground">Restricted</span>
+                          ) : (
+                            <Link href={`/customers/${customer.cidRef}`} className="block">
+                              <div className="font-semibold">{customer.name}</div>
+                              <div className="text-xs text-muted-foreground">{customer.email}</div>
+                            </Link>
+                          )}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            {customer.type === 'Business' ? <Building2 className="h-3 w-3" /> : <User className="h-3 w-3" />}
-                            {customer.type}
-                          </div>
+                          {customer.restricted ? '—' : (
+                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              {customer.type === 'Business' ? <Building2 className="h-3 w-3" /> : <User className="h-3 w-3" />}
+                              {customer.type}
+                            </div>
+                          )}
                         </TableCell>
-                        <TableCell>{customer.location}</TableCell>
+                        <TableCell>{customer.restricted ? '—' : customer.location}</TableCell>
                         <TableCell>
-                          <Link href={`/bdo/${customer.sourceBdoId}`} className="text-xs font-medium hover:underline text-primary">
-                            {customer.sourceBdoId}
-                          </Link>
+                          {customer.restricted ? '—' : (
+                            <Link href={`/bdo/${customer.sourceBdoId}`} className="text-xs font-medium hover:underline text-primary">
+                              {customer.sourceBdoId}
+                            </Link>
+                          )}
                         </TableCell>
-                        <TableCell className="text-right">{customer.leadCount}</TableCell>
-                        <TableCell className="text-right font-medium">{formatCurrency(customer.totalValue)}</TableCell>
+                        <TableCell className="text-right">{customer.restricted ? '—' : customer.leadCount}</TableCell>
+                        <TableCell className="text-right font-medium">{customer.restricted ? '—' : formatCurrency(customer.totalValue ?? 0)}</TableCell>
                       </TableRow>
                     ))
                   )}

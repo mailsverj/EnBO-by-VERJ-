@@ -5,6 +5,7 @@ import { eq, desc } from "drizzle-orm";
 import { requireAuth, requireRoles } from "../middleware/auth.js";
 import { generateInvoicePdf } from "../lib/invoice-pdf.js";
 import { Resend } from "resend";
+import { canViewCustomerContacts, customerNameForViewer, isBdoScopedCustomerUser } from "../lib/customer-access.js";
 
 const router = Router();
 
@@ -12,6 +13,20 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY);
 }
 const FROM = process.env.EMAIL_FROM ?? "VERJ Solar <mails@verj.ng>";
+const INVOICE_MANAGER_ROLES = ["Chief Admin", "Super Admin", "Sales", "Sales Admin", "Finance", "Management"];
+
+function visibleInvoiceForUser<T extends typeof invoicesTable.$inferSelect>(
+  user: NonNullable<Express.Request["session"]["user"]>,
+  invoice: T,
+) {
+  return canViewCustomerContacts(user, invoice)
+    ? invoice
+    : { ...invoice, customerName: customerNameForViewer(user, invoice) };
+}
+
+function canAccessInvoice(user: NonNullable<Express.Request["session"]["user"]>, invoice: typeof invoicesTable.$inferSelect) {
+  return !isBdoScopedCustomerUser(user) || invoice.sourceBdoId === user.vbdoId;
+}
 
 const WARRANTY_LABELS: Record<string, string> = {
   battery_10y: "Battery: 10-year manufacturer warranty",
@@ -21,24 +36,38 @@ const WARRANTY_LABELS: Record<string, string> = {
 };
 
 // ── List all invoices ──
-router.get("/invoices", requireAuth, async (_req, res) => {
-  const invoices = await db.select().from(invoicesTable).orderBy(desc(invoicesTable.createdAt));
-  res.json({ invoices });
+router.get("/invoices", requireAuth, async (req, res) => {
+  const user = req.session.user!;
+  const invoices = isBdoScopedCustomerUser(user)
+    ? user.vbdoId
+      ? await db.select().from(invoicesTable).where(eq(invoicesTable.sourceBdoId, user.vbdoId)).orderBy(desc(invoicesTable.createdAt))
+      : []
+    : await db.select().from(invoicesTable).orderBy(desc(invoicesTable.createdAt));
+  const visibleInvoices = invoices.map(invoice => visibleInvoiceForUser(user, invoice));
+  res.json({ invoices: visibleInvoices });
 });
 
 // ── Get single invoice ──
 router.get("/invoices/:invoiceRef", requireAuth, async (req, res) => {
   const [invoice] = await db.select().from(invoicesTable).where(eq(invoicesTable.invoiceRef, req.params.invoiceRef)).limit(1);
   if (!invoice) { res.status(404).json({ error: "Not found" }); return; }
+  const user = req.session.user!;
+  if (!canAccessInvoice(user, invoice)) { res.status(404).json({ error: "Not found" }); return; }
   const payments = await db.select().from(paymentsTable).where(eq(paymentsTable.invoiceRef, req.params.invoiceRef)).orderBy(desc(paymentsTable.createdAt));
   const amountPaid = payments.reduce((s, p) => s + p.amount, 0);
-  res.json({ invoice, payments, amountPaid, balance: invoice.total - amountPaid });
+  res.json({ invoice: visibleInvoiceForUser(user, invoice), payments, amountPaid, balance: invoice.total - amountPaid });
 });
 
 // ── Download PDF ──
 router.get("/invoices/:invoiceRef/pdf", requireAuth, async (req, res) => {
+  const user = req.session.user!;
   const [invoice] = await db.select().from(invoicesTable).where(eq(invoicesTable.invoiceRef, req.params.invoiceRef)).limit(1);
   if (!invoice) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canAccessInvoice(user, invoice)) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canViewCustomerContacts(user, invoice)) {
+    res.status(403).json({ error: "Your role cannot download customer invoices" });
+    return;
+  }
 
   const lineItems = Array.isArray(invoice.lineItems)
     ? (invoice.lineItems as Array<{ desc: string; qty: number; unitPrice: number; category?: string }>)
@@ -71,18 +100,26 @@ router.get("/invoices/:invoiceRef/pdf", requireAuth, async (req, res) => {
 
 // ── Create invoice ──
 router.post("/invoices", requireAuth, requireRoles("Chief Admin", "Super Admin", "Sales", "Sales Admin", "Lead Technical Officer"), async (req, res) => {
+  const user = req.session.user!;
   const body = req.body as Record<string, unknown>;
   const existing = await db.select({ invoiceRef: invoicesTable.invoiceRef }).from(invoicesTable).orderBy(desc(invoicesTable.id)).limit(1);
   const lastNum = existing[0] ? parseInt(existing[0].invoiceRef.split("-")[2] ?? "480", 10) : 480;
   const year = new Date().getFullYear();
   const invoiceRef = `INV-${year}-${String(lastNum + 1).padStart(5, "0")}`;
   const [invoice] = await db.insert(invoicesTable).values({ ...body as never, invoiceRef }).returning();
-  res.status(201).json({ invoice });
+  res.status(201).json({ invoice: visibleInvoiceForUser(user, invoice) });
 });
 
 // ── Update invoice (including approval which triggers PDF email) ──
 router.patch("/invoices/:invoiceRef", requireAuth, async (req, res) => {
   const user = req.session.user!;
+  if (!user.roles.some(role => INVOICE_MANAGER_ROLES.includes(role))) {
+    res.status(403).json({ error: "Your role cannot update invoices" });
+    return;
+  }
+  const [existing] = await db.select().from(invoicesTable).where(eq(invoicesTable.invoiceRef, req.params.invoiceRef)).limit(1);
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canAccessInvoice(user, existing)) { res.status(404).json({ error: "Not found" }); return; }
   const body = req.body as Partial<typeof invoicesTable.$inferInsert>;
 
   if (body.status === "Approved") {
@@ -94,7 +131,6 @@ router.patch("/invoices/:invoiceRef", requireAuth, async (req, res) => {
   }
 
   const [updated] = await db.update(invoicesTable).set({ ...body, updatedAt: new Date() }).where(eq(invoicesTable.invoiceRef, req.params.invoiceRef)).returning();
-  if (!updated) { res.status(404).json({ error: "Not found" }); return; }
 
   // Auto-commission when paid
   if (body.status === "Paid" && updated.sourceBdoId) {
@@ -156,7 +192,7 @@ router.patch("/invoices/:invoiceRef", requireAuth, async (req, res) => {
     }
   }
 
-  res.json({ invoice: updated });
+  res.json({ invoice: visibleInvoiceForUser(user, updated) });
 });
 
 // ── Record payment ──
@@ -166,6 +202,7 @@ router.post("/invoices/:invoiceRef/payments", requireAuth, requireRoles("Chief A
 
   const [invoice] = await db.select().from(invoicesTable).where(eq(invoicesTable.invoiceRef, req.params.invoiceRef)).limit(1);
   if (!invoice) { res.status(404).json({ error: "Invoice not found" }); return; }
+  if (!canAccessInvoice(user, invoice)) { res.status(404).json({ error: "Not found" }); return; }
 
   const [payment] = await db.insert(paymentsTable).values({
     invoiceRef: req.params.invoiceRef,

@@ -3,10 +3,12 @@ import { db } from "../lib/db.js";
 import { invoicesTable, expensesTable, commissionsTable, paymentsTable } from "@workspace/db/schema";
 import { gte, desc } from "drizzle-orm";
 import { requireAuth, requireRoles } from "../middleware/auth.js";
+import { customerNameForViewer } from "../lib/customer-access.js";
 
 const router = Router();
 
-router.get("/finance/summary", requireAuth, requireRoles("Chief Admin", "Super Admin", "Finance", "Management"), async (_req, res) => {
+router.get("/finance/summary", requireAuth, requireRoles("Chief Admin", "Super Admin", "Finance", "Management"), async (req, res) => {
+  const user = req.session.user!;
   const [invoices, expenses, commissions, payments] = await Promise.all([
     db.select().from(invoicesTable).orderBy(desc(invoicesTable.createdAt)),
     db.select().from(expensesTable).orderBy(desc(expensesTable.date)),
@@ -34,7 +36,10 @@ router.get("/finance/summary", requireAuth, requireRoles("Chief Admin", "Super A
     commissionsPending,
     invoiceCount: invoices.length,
     paidInvoiceCount: invoices.filter(i => i.status === "Paid").length,
-    recentInvoices: invoices.slice(0, 5),
+    recentInvoices: invoices.slice(0, 5).map(invoice => ({
+      ...invoice,
+      customerName: customerNameForViewer(user, invoice),
+    })),
     recentExpenses: expenses.slice(0, 5),
   });
 });

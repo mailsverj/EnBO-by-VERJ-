@@ -24,7 +24,7 @@ const allLinks = [
 
   // Operations
   { path: '/leads', icon: Briefcase, label: 'Leads Pipeline', group: 'Operations', roles: ['Super Admin', 'Chief Admin', 'Sales Admin', 'Management', 'BDO', 'Technical Officer', 'Lead Technical Officer'] },
-  { path: '/customers', icon: UserSquare2, label: 'Customers', group: 'Operations', roles: ['Super Admin', 'Chief Admin', 'Sales Admin', 'Management'] },
+  { path: '/customers', icon: UserSquare2, label: 'Customers', group: 'Operations', roles: ['Super Admin', 'Chief Admin', 'Sales', 'Sales Admin', 'Management', 'BDO'] },
 
   // Engineering
   { path: '/engineering/queue', icon: FileText, label: 'Engineering Queue', group: 'Engineering', roles: ['Super Admin', 'Chief Admin', 'Technical Officer', 'Lead Technical Officer', 'Engineer', 'Management'] },
