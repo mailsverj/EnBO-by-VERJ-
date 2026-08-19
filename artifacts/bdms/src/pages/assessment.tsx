@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,12 @@ interface QuestionsResponse {
   totalMarks: number;
   attemptNumber: number;
   attemptsRemaining: number;
+  draft?: {
+    answers: Record<number, string>;
+    currentQuestionId: number | null;
+    revision: number;
+    savedAt: string;
+  } | null;
   // error states
   error?: string;
   assessmentStatus?: string;
@@ -40,6 +46,7 @@ interface Result {
   attemptsUsed: number;
   attemptsRemaining: number;
   locked: boolean;
+  staleAttempt?: boolean;
   error?: string;
 }
 
@@ -58,8 +65,7 @@ type Phase = 'entry' | 'loading' | 'instructions' | 'quiz' | 'submitting' | 'res
 
 const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
 const MAX_ATTEMPTS = 2;
-// Bump this whenever the question bank changes so answers from an older bank
-// cannot be restored against questions with the same database IDs.
+// Bump this whenever the local draft shape or question-bank validation changes.
 const DRAFT_PREFIX = 'enbo-assessment-progress-v3';
 
 function draftKey(ref: string) {
@@ -183,6 +189,9 @@ export default function Assessment() {
   const [hasSavedDraft, setHasSavedDraft] = useState(
     () => Boolean(refFromUrl && readDraft(refFromUrl)),
   );
+  const serverSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const serverDraftStateRef = useRef({ identity: '', revision: 0, blocked: false });
+  const [serverSaveConflict, setServerSaveConflict] = useState(false);
 
   const fetchQuestions = async (appRef: string) => {
     const cleanRef = appRef.trim().toUpperCase();
@@ -191,6 +200,7 @@ export default function Assessment() {
     setPhase('loading');
     setErrorMsg('');
     setSubmitError('');
+    setServerSaveConflict(false);
     setConfirmedQuestionBankSignature(null);
     setRef(cleanRef);
     setRefInput(cleanRef);
@@ -223,12 +233,37 @@ export default function Assessment() {
 
       const loadedAttemptNumber = json.attemptNumber ?? 1;
       const loadedQuestionBankSignature = questionBankSignature(loadedQuestions);
-      const savedDraft = readDraft(cleanRef);
-      const restored = savedDraft
-        ? restoreDraft(savedDraft, loadedQuestions, loadedAttemptNumber)
+      serverDraftStateRef.current = {
+        identity: `${cleanRef}:${loadedAttemptNumber}`,
+        revision: json.draft?.revision ?? 0,
+        blocked: false,
+      };
+      const savedLocalDraft = readDraft(cleanRef);
+      const restoredLocal = savedLocalDraft
+        ? restoreDraft(savedLocalDraft, loadedQuestions, loadedAttemptNumber)
         : null;
+      const restoredServer = json.draft
+        ? restoreDraft({
+          version: 1,
+          ref: cleanRef,
+          attemptNumber: loadedAttemptNumber,
+          questionBankSignature: loadedQuestionBankSignature,
+          answers: json.draft.answers,
+          currentQ: 0,
+          currentQuestionId: json.draft.currentQuestionId,
+          savedAt: json.draft.savedAt,
+        }, loadedQuestions, loadedAttemptNumber)
+        : null;
+      const localSavedAt = savedLocalDraft ? Date.parse(savedLocalDraft.savedAt) : Number.NaN;
+      const serverSavedAt = json.draft ? Date.parse(json.draft.savedAt) : Number.NaN;
+      const restored = restoredLocal && (
+        !restoredServer
+        || (Number.isFinite(localSavedAt) && localSavedAt > serverSavedAt)
+      )
+        ? restoredLocal
+        : restoredServer;
 
-      if (savedDraft && !restored) {
+      if (savedLocalDraft && !restoredLocal) {
         clearDraft(cleanRef);
         setHasSavedDraft(false);
       }
@@ -270,7 +305,7 @@ export default function Assessment() {
 
   useEffect(() => {
     if (
-      (phase !== 'quiz' && phase !== 'submitting')
+      phase !== 'quiz'
       || !ref
       || questions.length === 0
       || confirmedQuestionBankSignature !== questionBankSignature(questions)
@@ -279,7 +314,7 @@ export default function Assessment() {
     }
 
     const safeCurrentQ = Math.min(Math.max(currentQ, 0), questions.length - 1);
-    const saved = writeDraft({
+    const draft = {
       version: 1,
       ref,
       attemptNumber,
@@ -288,8 +323,55 @@ export default function Assessment() {
       currentQ: safeCurrentQ,
       currentQuestionId: questions[safeCurrentQ]?.id ?? null,
       savedAt: new Date().toISOString(),
-    });
+    } as const;
+    const saved = writeDraft(draft);
     setHasSavedDraft(saved);
+
+    const identity = `${ref}:${attemptNumber}`;
+    serverSaveQueueRef.current = serverSaveQueueRef.current
+      .catch(() => {
+        // Continue the queue after a temporary network failure.
+      })
+      .then(async () => {
+        const serverState = serverDraftStateRef.current;
+        if (serverState.identity !== identity || serverState.blocked) return;
+
+        const response = await fetch(`${BASE}/api/assessment/draft`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ref,
+            attemptNumber,
+            revision: serverState.revision,
+            answers,
+            currentQuestionId: draft.currentQuestionId,
+          }),
+        });
+        const responseBody = await response.json() as {
+          revision?: number;
+          conflict?: boolean;
+          staleAttempt?: boolean;
+        };
+        if (response.status === 409 && (responseBody.conflict || responseBody.staleAttempt)) {
+          if (serverDraftStateRef.current.identity === identity) {
+            serverDraftStateRef.current.blocked = true;
+            setServerSaveConflict(true);
+          }
+          return;
+        }
+        if (!response.ok) {
+          throw new Error('Server draft save failed');
+        }
+        if (
+          serverDraftStateRef.current.identity === identity
+          && Number.isInteger(responseBody.revision)
+        ) {
+          serverDraftStateRef.current.revision = responseBody.revision!;
+        }
+      })
+      .catch(() => {
+        // Local storage remains the fallback when the server cannot be reached.
+      });
   }, [answers, attemptNumber, confirmedQuestionBankSignature, currentQ, phase, questions, ref]);
 
   const handleStart = () => {
@@ -329,13 +411,25 @@ export default function Assessment() {
     setSubmitError('');
     setPhase('submitting');
     try {
+      await serverSaveQueueRef.current;
+      if (serverDraftStateRef.current.blocked) {
+        setSubmitError('Reload this assessment to restore the latest saved progress before submitting.');
+        setPhase('quiz');
+        return;
+      }
       const res = await fetch(`${BASE}/api/assessment/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ref, answers }),
+        body: JSON.stringify({ ref, attemptNumber, answers }),
       });
       const json = await res.json() as Result;
       if (!res.ok) {
+        if (json.staleAttempt || json.assessmentStatus === 'Passed') {
+          clearDraft(ref);
+          setHasSavedDraft(false);
+          await fetchQuestions(ref);
+          return;
+        }
         if (json.locked) {
           clearDraft(ref);
           setHasSavedDraft(false);
@@ -608,7 +702,7 @@ export default function Assessment() {
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
             <span className="inline-flex items-center gap-1.5 text-xs text-green-700">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Progress saves automatically on this device
+              Progress saves automatically and can be restored on another device
             </span>
             <Button
               type="button"
@@ -650,6 +744,18 @@ export default function Assessment() {
             <div>
               <div className="font-semibold text-sm text-amber-900">Assessment not submitted</div>
               <p className="text-xs text-amber-800 mt-1">{submitError}</p>
+            </div>
+          </div>
+        )}
+
+        {serverSaveConflict && (
+          <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <div className="font-semibold text-sm text-amber-900">Progress changed on another device</div>
+              <p className="text-xs text-amber-800 mt-1">
+                Reload this assessment to restore the latest server copy before continuing.
+              </p>
             </div>
           </div>
         )}
@@ -710,7 +816,7 @@ export default function Assessment() {
             ) : (
               <Button
                 onClick={handleSubmit}
-                disabled={answeredCount < questions.length || phase === 'submitting'}
+                disabled={answeredCount < questions.length || phase === 'submitting' || serverSaveConflict}
                 className="bg-green-600 hover:bg-green-700 text-white"
               >
                 {phase === 'submitting'

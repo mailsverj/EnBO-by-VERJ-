@@ -3,9 +3,10 @@ import { db } from "../lib/db.js";
 import {
   assessmentQuestionsTable,
   assessmentAttemptsTable,
+  assessmentDraftsTable,
   bdoApplicationsTable,
 } from "@workspace/db/schema";
-import { eq, count } from "drizzle-orm";
+import { and, eq, count, sql } from "drizzle-orm";
 
 const router = Router();
 const PASS_PERCENT = 0.7; // 70% to pass
@@ -36,150 +37,412 @@ function correctOptionIndex(correctOption: string | null): number {
   return letterIndex >= 0 ? letterIndex : 0;
 }
 
-// Public: get questions for a shortlisted applicant
-router.get("/assessment/questions", async (req, res) => {
-  const ref = (req.query.ref as string)?.toUpperCase();
-  if (!ref) { res.status(400).json({ error: "ref is required" }); return; }
+function activeAttemptNumber(attemptCount: number): number {
+  return attemptCount + 1;
+}
 
-  const [app] = await db.select({
-    id: bdoApplicationsTable.id,
-    status: bdoApplicationsTable.status,
-    assessmentStatus: bdoApplicationsTable.assessmentStatus,
-    fullName: bdoApplicationsTable.fullName,
-  }).from(bdoApplicationsTable).where(eq(bdoApplicationsTable.refId, ref)).limit(1);
+function questionBankSignature(
+  questions: { id: number; questionText: string; options: unknown }[],
+): string {
+  const source = questions
+    .map(question => [
+      question.id,
+      question.questionText,
+      quizOptions(question.options)
+        .map(option => `${option.value}:${option.label}`)
+        .join("|"),
+    ].join("::"))
+    .join("||");
 
-  if (!app) { res.status(404).json({ error: "Application not found" }); return; }
-  if (app.status !== "Shortlisted") {
-    res.status(403).json({ error: "Assessment is not available yet. Please wait for your shortlisting confirmation." });
-    return;
+  let hash = 5381;
+  for (let index = 0; index < source.length; index += 1) {
+    hash = ((hash * 33) ^ source.charCodeAt(index)) >>> 0;
   }
+  return hash.toString(36);
+}
 
-  // Check attempt count
-  const [{ attemptCount }] = await db
-    .select({ attemptCount: count() })
-    .from(assessmentAttemptsTable)
-    .where(eq(assessmentAttemptsTable.appId, app.id));
+function sanitizeDraft(
+  answers: unknown,
+  currentQuestionId: unknown,
+  questions: { id: number; options: unknown }[],
+): { answers: Record<number, string>; currentQuestionId: number | null } {
+  const cleanAnswers: Record<number, string> = {};
+  const submittedAnswers = answers && typeof answers === "object" && !Array.isArray(answers)
+    ? answers as Record<string, unknown>
+    : {};
 
-  if (app.assessmentStatus === "Passed") {
-    res.status(403).json({ error: "You have already passed this assessment. Well done!", assessmentStatus: "Passed" });
-    return;
-  }
-  if (Number(attemptCount) >= MAX_ATTEMPTS && app.assessmentStatus === "Failed") {
-    res.status(403).json({
-      error: "You have used all your attempts. Please contact VERJ SOLAR if you wish to request another opportunity.",
-      assessmentStatus: "Failed",
-      locked: true,
-    });
-    return;
-  }
-
-  const questions = await db.select({
-    id: assessmentQuestionsTable.id,
-    category: assessmentQuestionsTable.category,
-    questionText: assessmentQuestionsTable.questionText,
-    options: assessmentQuestionsTable.options,
-    marks: assessmentQuestionsTable.marks,
-    // correctOption intentionally excluded — never sent to client
-  }).from(assessmentQuestionsTable)
-    .where(eq(assessmentQuestionsTable.active, true))
-    .orderBy(assessmentQuestionsTable.id);
-
-  const quizQuestions = questions.map(question => ({
-    ...question,
-    options: quizOptions(question.options),
-  }));
-  const totalMarks = quizQuestions.reduce((sum, q) => sum + (q.marks ?? 3), 0);
-
-  res.json({
-    questions: quizQuestions,
-    applicantName: app.fullName,
-    total: questions.length,
-    totalMarks,
-    attemptNumber: Number(attemptCount) + 1,
-    attemptsRemaining: MAX_ATTEMPTS - Number(attemptCount),
-  });
-});
-
-// Public: submit assessment answers
-router.post("/assessment/submit", async (req, res) => {
-  const { ref, answers } = req.body as { ref: string; answers: Record<number, string> };
-
-  if (!ref || !answers) { res.status(400).json({ error: "ref and answers are required" }); return; }
-
-  const [app] = await db.select().from(bdoApplicationsTable)
-    .where(eq(bdoApplicationsTable.refId, ref.toUpperCase())).limit(1);
-
-  if (!app) { res.status(404).json({ error: "Application not found" }); return; }
-  if (app.status !== "Shortlisted") {
-    res.status(403).json({ error: "Assessment not available" }); return;
-  }
-  if (app.assessmentStatus === "Passed") {
-    res.status(409).json({ error: "Assessment already passed", assessmentStatus: "Passed" }); return;
-  }
-
-  // Count existing attempts
-  const [{ attemptCount }] = await db
-    .select({ attemptCount: count() })
-    .from(assessmentAttemptsTable)
-    .where(eq(assessmentAttemptsTable.appId, app.id));
-
-  if (Number(attemptCount) >= MAX_ATTEMPTS) {
-    res.status(409).json({ error: "All attempts exhausted", assessmentStatus: "Failed", locked: true }); return;
-  }
-
-  const currentAttempt = Number(attemptCount) + 1;
-
-  // Fetch all active questions with correct answers
-  const questions = await db.select().from(assessmentQuestionsTable)
-    .where(eq(assessmentQuestionsTable.active, true))
-    .orderBy(assessmentQuestionsTable.id);
-
-  let score = 0;
-  const totalMarks = questions.reduce((sum, q) => sum + (q.marks ?? 3), 0);
-
-  for (const q of questions) {
-    const submitted = answers[q.id];
-    const correctIdx = correctOptionIndex(q.correctOption);
-    if (submitted !== undefined && Number(submitted) === correctIdx) {
-      score += (q.marks ?? 3);
+  for (const question of questions) {
+    const submitted = submittedAnswers[String(question.id)];
+    const optionValues = quizOptions(question.options).map(option => option.value);
+    if (typeof submitted === "string" && optionValues.includes(submitted)) {
+      cleanAnswers[question.id] = submitted;
     }
   }
 
-  const passed = score / totalMarks >= PASS_PERCENT;
-  const isFinalAttempt = currentAttempt >= MAX_ATTEMPTS;
-  const assessmentStatus = passed ? "Passed" : (isFinalAttempt ? "Failed" : "Failed Attempt 1");
-  const newAppStatus = passed ? "Assessment Passed" : (isFinalAttempt ? "Assessment Failed" : "Shortlisted");
+  const parsedCurrentQuestionId = Number(currentQuestionId);
+  return {
+    answers: cleanAnswers,
+    currentQuestionId: questions.some(question => question.id === parsedCurrentQuestionId)
+      ? parsedCurrentQuestionId
+      : null,
+  };
+}
 
-  // Record attempt
-  await db.insert(assessmentAttemptsTable).values({
-    appId: app.id,
-    appRef: app.refId,
-    answers,
-    score,
-    total: totalMarks,
-    passed,
+// Public: get questions for a shortlisted applicant
+router.get("/assessment/questions", async (req, res): Promise<void> => {
+  const rawRef = Array.isArray(req.query.ref) ? req.query.ref[0] : req.query.ref;
+  if (typeof rawRef !== "string" || !rawRef.trim()) {
+    res.status(400).json({ error: "ref is required" });
+    return;
+  }
+  const ref = rawRef.trim().toUpperCase();
+
+  const outcome = await db.transaction(async tx => {
+    const [foundApp] = await tx.select({
+      id: bdoApplicationsTable.id,
+    }).from(bdoApplicationsTable)
+      .where(eq(bdoApplicationsTable.refId, ref))
+      .limit(1);
+    if (!foundApp) {
+      return { status: 404, body: { error: "Application not found" } };
+    }
+
+    await tx.execute(sql`select pg_advisory_xact_lock(${foundApp.id})`);
+    const [app] = await tx.select({
+      id: bdoApplicationsTable.id,
+      status: bdoApplicationsTable.status,
+      assessmentStatus: bdoApplicationsTable.assessmentStatus,
+      fullName: bdoApplicationsTable.fullName,
+    }).from(bdoApplicationsTable)
+      .where(eq(bdoApplicationsTable.id, foundApp.id))
+      .limit(1);
+    if (!app) {
+      return { status: 404, body: { error: "Application not found" } };
+    }
+    if (app.assessmentStatus === "Passed") {
+      return {
+        status: 403,
+        body: {
+          error: "You have already passed this assessment. Well done!",
+          assessmentStatus: "Passed",
+        },
+      };
+    }
+
+    const [{ attemptCount }] = await tx.select({ attemptCount: count() })
+      .from(assessmentAttemptsTable)
+      .where(eq(assessmentAttemptsTable.appId, app.id));
+    if (Number(attemptCount) >= MAX_ATTEMPTS) {
+      return {
+        status: 403,
+        body: {
+          error: "You have used all your attempts. Please contact VERJ SOLAR if you wish to request another opportunity.",
+          assessmentStatus: "Failed",
+          locked: true,
+        },
+      };
+    }
+    if (app.status !== "Shortlisted") {
+      return {
+        status: 403,
+        body: {
+          error: "Assessment is not available yet. Please wait for your shortlisting confirmation.",
+        },
+      };
+    }
+
+    const questions = await tx.select({
+      id: assessmentQuestionsTable.id,
+      category: assessmentQuestionsTable.category,
+      questionText: assessmentQuestionsTable.questionText,
+      options: assessmentQuestionsTable.options,
+      marks: assessmentQuestionsTable.marks,
+      // correctOption intentionally excluded — never sent to client
+    }).from(assessmentQuestionsTable)
+      .where(eq(assessmentQuestionsTable.active, true))
+      .orderBy(assessmentQuestionsTable.id);
+    const quizQuestions = questions.map(question => ({
+      ...question,
+      options: quizOptions(question.options),
+    }));
+    const totalMarks = quizQuestions.reduce((sum, question) => sum + (question.marks ?? 3), 0);
+    const attemptNumber = activeAttemptNumber(Number(attemptCount));
+    const currentQuestionBankSignature = questionBankSignature(questions);
+    const [draft] = await tx.select({
+      id: assessmentDraftsTable.id,
+      answers: assessmentDraftsTable.answers,
+      currentQuestionId: assessmentDraftsTable.currentQuestionId,
+      revision: assessmentDraftsTable.revision,
+      questionBankSignature: assessmentDraftsTable.questionBankSignature,
+      updatedAt: assessmentDraftsTable.updatedAt,
+    }).from(assessmentDraftsTable).where(and(
+      eq(assessmentDraftsTable.appId, app.id),
+      eq(assessmentDraftsTable.attemptNumber, attemptNumber),
+    )).limit(1);
+    const safeDraft = draft?.questionBankSignature === currentQuestionBankSignature
+      ? {
+        ...sanitizeDraft(draft.answers, draft.currentQuestionId, questions),
+        revision: draft.revision,
+        savedAt: draft.updatedAt.toISOString(),
+      }
+      : null;
+    if (draft && !safeDraft) {
+      await tx.delete(assessmentDraftsTable)
+        .where(eq(assessmentDraftsTable.id, draft.id));
+    }
+
+    return {
+      status: 200,
+      body: {
+        questions: quizQuestions,
+        applicantName: app.fullName,
+        total: questions.length,
+        totalMarks,
+        attemptNumber,
+        attemptsRemaining: MAX_ATTEMPTS - Number(attemptCount),
+        draft: safeDraft,
+      },
+    };
   });
 
-  // Update application
-  await db.update(bdoApplicationsTable).set({
-    assessmentStatus,
-    assessmentScore: score,
-    assessmentTotal: totalMarks,
-    assessmentPassed: passed,
-    assessmentCompletedAt: new Date(),
-    status: newAppStatus,
-    updatedAt: new Date(),
-  }).where(eq(bdoApplicationsTable.id, app.id));
+  res.status(outcome.status).json(outcome.body);
+});
 
-  const percentage = Math.round((score / totalMarks) * 100);
-  const attemptsUsed = currentAttempt;
-  const attemptsRemaining = Math.max(0, MAX_ATTEMPTS - attemptsUsed);
+// Public: save an unfinished assessment. Saving does not create an attempt.
+router.put("/assessment/draft", async (req, res): Promise<void> => {
+  const { ref, attemptNumber, revision, answers, currentQuestionId } = req.body as {
+    ref?: unknown;
+    attemptNumber?: unknown;
+    revision?: unknown;
+    answers?: unknown;
+    currentQuestionId?: unknown;
+  };
+  if (
+    typeof ref !== "string"
+    || !ref.trim()
+    || !Number.isInteger(attemptNumber)
+    || Number(attemptNumber) < 1
+    || !Number.isInteger(revision)
+    || Number(revision) < 0
+  ) {
+    res.status(400).json({ error: "ref, attemptNumber, and revision are required" });
+    return;
+  }
 
-  res.json({
-    ok: true, score, totalMarks, passed, assessmentStatus,
-    percentage, attemptsUsed, attemptsRemaining,
-    locked: !passed && isFinalAttempt,
+  const outcome = await db.transaction(async tx => {
+    const [foundApp] = await tx.select({
+      id: bdoApplicationsTable.id,
+    }).from(bdoApplicationsTable)
+      .where(eq(bdoApplicationsTable.refId, ref.trim().toUpperCase()))
+      .limit(1);
+    if (!foundApp) {
+      return { status: 404, body: { error: "Application not found" } };
+    }
+
+    await tx.execute(sql`select pg_advisory_xact_lock(${foundApp.id})`);
+    const [app] = await tx.select({
+      id: bdoApplicationsTable.id,
+      status: bdoApplicationsTable.status,
+      assessmentStatus: bdoApplicationsTable.assessmentStatus,
+    }).from(bdoApplicationsTable).where(eq(bdoApplicationsTable.id, foundApp.id)).limit(1);
+    if (!app || app.status !== "Shortlisted" || app.assessmentStatus === "Passed") {
+      return { status: 403, body: { error: "Assessment is not available" } };
+    }
+
+    const [{ attemptCount }] = await tx.select({ attemptCount: count() })
+      .from(assessmentAttemptsTable).where(eq(assessmentAttemptsTable.appId, app.id));
+    if (Number(attemptCount) >= MAX_ATTEMPTS) {
+      return { status: 409, body: { error: "All attempts exhausted", locked: true } };
+    }
+
+    const activeAttempt = activeAttemptNumber(Number(attemptCount));
+    if (Number(attemptNumber) !== activeAttempt) {
+      return {
+        status: 409,
+        body: { error: "This assessment attempt is no longer active", staleAttempt: true },
+      };
+    }
+
+    const questions = await tx.select({
+      id: assessmentQuestionsTable.id,
+      questionText: assessmentQuestionsTable.questionText,
+      options: assessmentQuestionsTable.options,
+    }).from(assessmentQuestionsTable)
+      .where(eq(assessmentQuestionsTable.active, true))
+      .orderBy(assessmentQuestionsTable.id);
+    const safeDraft = sanitizeDraft(answers, currentQuestionId, questions);
+    const currentQuestionBankSignature = questionBankSignature(questions);
+    const [currentDraft] = await tx.select({
+      id: assessmentDraftsTable.id,
+      revision: assessmentDraftsTable.revision,
+    }).from(assessmentDraftsTable).where(and(
+      eq(assessmentDraftsTable.appId, app.id),
+      eq(assessmentDraftsTable.attemptNumber, activeAttempt),
+    )).limit(1);
+    const currentRevision = currentDraft?.revision ?? 0;
+    if (Number(revision) !== currentRevision) {
+      return {
+        status: 409,
+        body: {
+          error: "This draft was updated on another device",
+          conflict: true,
+          revision: currentRevision,
+        },
+      };
+    }
+
+    const nextRevision = currentRevision + 1;
+    const updatedAt = new Date();
+    if (currentDraft) {
+      await tx.update(assessmentDraftsTable).set({
+        ...safeDraft,
+        revision: nextRevision,
+        questionBankSignature: currentQuestionBankSignature,
+        updatedAt,
+      }).where(eq(assessmentDraftsTable.id, currentDraft.id));
+    } else {
+      await tx.insert(assessmentDraftsTable).values({
+        appId: app.id,
+        attemptNumber: activeAttempt,
+        revision: nextRevision,
+        questionBankSignature: currentQuestionBankSignature,
+        ...safeDraft,
+        updatedAt,
+      });
+    }
+
+    return {
+      status: 200,
+      body: { ok: true, ...safeDraft, revision: nextRevision, savedAt: updatedAt.toISOString() },
+    };
   });
+
+  res.status(outcome.status).json(outcome.body);
+});
+
+// Public: submit assessment answers
+router.post("/assessment/submit", async (req, res): Promise<void> => {
+  const { ref, attemptNumber, answers } = req.body as {
+    ref?: unknown;
+    attemptNumber?: unknown;
+    answers?: unknown;
+  };
+
+  if (
+    typeof ref !== "string"
+    || !ref.trim()
+    || !Number.isInteger(attemptNumber)
+    || Number(attemptNumber) < 1
+    || !answers
+    || typeof answers !== "object"
+    || Array.isArray(answers)
+  ) {
+    res.status(400).json({ error: "ref, attemptNumber, and answers are required" });
+    return;
+  }
+
+  const outcome = await db.transaction(async tx => {
+    const [foundApp] = await tx.select({
+      id: bdoApplicationsTable.id,
+    }).from(bdoApplicationsTable)
+      .where(eq(bdoApplicationsTable.refId, ref.trim().toUpperCase()))
+      .limit(1);
+    if (!foundApp) {
+      return { status: 404, body: { error: "Application not found" } };
+    }
+
+    await tx.execute(sql`select pg_advisory_xact_lock(${foundApp.id})`);
+    const [app] = await tx.select().from(bdoApplicationsTable)
+      .where(eq(bdoApplicationsTable.id, foundApp.id)).limit(1);
+    if (!app) {
+      return { status: 404, body: { error: "Application not found" } };
+    }
+    if (app.assessmentStatus === "Passed") {
+      return {
+        status: 409,
+        body: { error: "Assessment already passed", assessmentStatus: "Passed" },
+      };
+    }
+    if (app.status !== "Shortlisted") {
+      return { status: 403, body: { error: "Assessment not available" } };
+    }
+
+    const [{ attemptCount }] = await tx.select({ attemptCount: count() })
+      .from(assessmentAttemptsTable)
+      .where(eq(assessmentAttemptsTable.appId, app.id));
+    if (Number(attemptCount) >= MAX_ATTEMPTS) {
+      return {
+        status: 409,
+        body: { error: "All attempts exhausted", assessmentStatus: "Failed", locked: true },
+      };
+    }
+
+    const currentAttempt = activeAttemptNumber(Number(attemptCount));
+    if (Number(attemptNumber) !== currentAttempt) {
+      return {
+        status: 409,
+        body: { error: "This assessment attempt is no longer active", staleAttempt: true },
+      };
+    }
+
+    const questions = await tx.select().from(assessmentQuestionsTable)
+      .where(eq(assessmentQuestionsTable.active, true))
+      .orderBy(assessmentQuestionsTable.id);
+    const safeAnswers = sanitizeDraft(answers, null, questions).answers;
+    let score = 0;
+    const totalMarks = questions.reduce((sum, q) => sum + (q.marks ?? 3), 0);
+    for (const question of questions) {
+      const submitted = safeAnswers[question.id];
+      const correctIdx = correctOptionIndex(question.correctOption);
+      if (submitted !== undefined && Number(submitted) === correctIdx) {
+        score += (question.marks ?? 3);
+      }
+    }
+
+    const passed = totalMarks > 0 && score / totalMarks >= PASS_PERCENT;
+    const isFinalAttempt = currentAttempt >= MAX_ATTEMPTS;
+    const assessmentStatus = passed ? "Passed" : (isFinalAttempt ? "Failed" : "Failed Attempt 1");
+    const newAppStatus = passed ? "Assessment Passed" : (isFinalAttempt ? "Assessment Failed" : "Shortlisted");
+
+    await tx.insert(assessmentAttemptsTable).values({
+      appId: app.id,
+      appRef: app.refId,
+      answers: safeAnswers,
+      score,
+      total: totalMarks,
+      passed,
+    });
+    await tx.update(bdoApplicationsTable).set({
+      assessmentStatus,
+      assessmentScore: score,
+      assessmentTotal: totalMarks,
+      assessmentPassed: passed,
+      assessmentCompletedAt: new Date(),
+      status: newAppStatus,
+      updatedAt: new Date(),
+    }).where(eq(bdoApplicationsTable.id, app.id));
+    await tx.delete(assessmentDraftsTable)
+      .where(eq(assessmentDraftsTable.appId, app.id));
+
+    const percentage = totalMarks > 0 ? Math.round((score / totalMarks) * 100) : 0;
+    const attemptsRemaining = Math.max(0, MAX_ATTEMPTS - currentAttempt);
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        score,
+        totalMarks,
+        passed,
+        assessmentStatus,
+        percentage,
+        attemptsUsed: currentAttempt,
+        attemptsRemaining,
+        locked: !passed && isFinalAttempt,
+      },
+    };
+  });
+
+  res.status(outcome.status).json(outcome.body);
 });
 
 export default router;
