@@ -13,15 +13,53 @@ export default function Login() {
   const [email, setEmail] = useState('admin@verjsolar.com');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, loading } = useAuth();
+  const { login, loading, user, logout } = useAuth();
   const [, navigate] = useLocation();
+  const nextPath = new URLSearchParams(window.location.search).get('next');
+  const safeNextPath = nextPath === '/bdo/dashboard' ? nextPath : null;
+
+  if (user) {
+    const isBdo = user.roles.includes('BDO');
+    const currentDashboard = isBdo ? '/bdo/dashboard' : '/';
+    const currentRole = user.roles[0] ?? 'EnBO user';
+
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background" />
+        <Card className="z-10 w-full max-w-md mx-6 border-border shadow-xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold tracking-tight">You are already signed in</CardTitle>
+            <CardDescription>
+              Signed in as <strong>{user.name}</strong> ({currentRole}).
+              {safeNextPath && !isBdo && ' Sign out before using the BDO activation link.'}
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="flex flex-col gap-3">
+            <Button className="w-full" onClick={() => navigate(currentDashboard)}>
+              Continue to {isBdo ? 'BDO Dashboard' : 'Executive Dashboard'}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={async () => {
+                await logout();
+                navigate(safeNextPath ? `/login?next=${encodeURIComponent(safeNextPath)}` : '/login');
+              }}
+            >
+              Sign in as a different user
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
       const user = await login(email, password);
-      navigate(user.roles.includes('BDO') ? '/bdo/dashboard' : '/');
+      navigate(user.roles.includes('BDO') ? (safeNextPath ?? '/bdo/dashboard') : '/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     }

@@ -157,7 +157,7 @@ export async function sendActivationEmail(opts: {
   vbdoId: string;
   defaultPassword: string;
 }): Promise<{ ok: boolean; error?: string }> {
-  const loginUrl = `${appBaseUrl()}/login`;
+  const loginUrl = `${appBaseUrl()}/login?next=${encodeURIComponent("/bdo/dashboard")}`;
   const firstName = opts.name.split(" ")[0];
 
   const html = `

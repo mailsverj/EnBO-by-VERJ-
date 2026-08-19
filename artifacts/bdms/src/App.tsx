@@ -86,8 +86,8 @@ function Router() {
   }
 
   // Login page
-  if (location === '/login') {
-    return user ? <Redirect to="/" /> : <Login />;
+  if (location.split('?')[0] === '/login') {
+    return <Login />;
   }
 
   // All other routes require auth
