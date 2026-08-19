@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
-import logoOnLight from '@assets/enbo-verj-logo-light.png';
+import logoOnDark from '@assets/enbo-verj-logo-dark.png';
 import { useAuth } from '@/store/auth';
 
 export default function Login() {
@@ -73,7 +73,7 @@ export default function Login() {
         <div className="flex flex-col items-center gap-2 mb-8">
           <div className="flex flex-col items-center">
             <img
-              src={logoOnLight}
+              src={logoOnDark}
               alt="EnBO by VERJ"
               className="h-20 w-auto object-contain"
             />

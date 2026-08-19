@@ -62,10 +62,10 @@ export default function Broadcasts() {
     return t;
   };
   const targetColor = (t: string) => {
-    if (t === 'all') return 'bg-purple-100 text-purple-800 border-purple-200';
-    if (t === 'BDO') return 'bg-blue-100 text-blue-800 border-blue-200';
-    if (t === 'Engineer') return 'bg-green-100 text-green-800 border-green-200';
-    return 'bg-gray-100 text-gray-700 border-gray-200';
+    if (t === 'all') return 'bg-purple-500/15 text-purple-300 border-purple-400/30';
+    if (t === 'BDO') return 'bg-blue-500/15 text-blue-300 border-blue-400/30';
+    if (t === 'Engineer') return 'bg-green-500/15 text-green-300 border-green-400/30';
+    return 'bg-white/10 text-white/75 border-white/20';
   };
 
   return (
@@ -76,7 +76,7 @@ export default function Broadcasts() {
             <Megaphone className="h-7 w-7 text-primary" />
             Broadcasts
             {unread > 0 && (
-              <Badge className="bg-red-100 text-red-700 border-red-200">{unread} unread</Badge>
+              <Badge className="bg-red-500/15 text-red-300 border-red-400/30">{unread} unread</Badge>
             )}
           </h1>
           <p className="text-muted-foreground mt-1">Send announcements to BDOs, engineers, or the entire team.</p>

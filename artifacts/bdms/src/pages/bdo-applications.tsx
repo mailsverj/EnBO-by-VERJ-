@@ -100,20 +100,20 @@ export default function BdoApplications() {
     if (s === 'Shortlisted') return 'bg-purple-100 text-purple-800 border-purple-200';
     if (s === 'KYC Verified' || s.includes('KYC')) return 'bg-amber-100 text-amber-800 border-amber-200';
     if (s === 'Submitted') return 'bg-blue-100 text-blue-800 border-blue-200';
-    return 'bg-gray-100 text-gray-800 border-gray-200';
+    return 'bg-white/10 text-white/80 border-white/20';
   };
 
   const kycColor = (s: string) => {
     if (s === 'KYC Verified') return 'bg-green-100 text-green-700 border-green-200';
     if (s === 'KYC Resubmission Required') return 'bg-red-100 text-red-700 border-red-200';
     if (s === 'KYC Pending') return 'bg-amber-100 text-amber-700 border-amber-200';
-    return 'bg-gray-100 text-gray-500 border-gray-200';
+    return 'bg-white/10 text-white/65 border-white/20';
   };
 
   const assessColor = (s: string) => {
     if (s === 'Passed') return 'bg-green-100 text-green-700 border-green-200';
     if (s === 'Failed') return 'bg-red-100 text-red-700 border-red-200';
-    return 'bg-gray-100 text-gray-500 border-gray-200';
+    return 'bg-white/10 text-white/65 border-white/20';
   };
 
   const copyFormLink = () => {
@@ -496,7 +496,7 @@ export default function BdoApplications() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-border bg-white hover:bg-muted/50 rounded-md px-3 py-1.5 transition-colors">
+                        <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-border bg-card hover:bg-muted rounded-md px-3 py-1.5 transition-colors">
                           <FileText className="h-3.5 w-3.5 text-primary" />
                           Certificate of Appointment
                           <ExternalLink className="h-3 w-3 text-muted-foreground" />
@@ -507,7 +507,7 @@ export default function BdoApplications() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-border bg-white hover:bg-muted/50 rounded-md px-3 py-1.5 transition-colors">
+                        <button className="inline-flex items-center gap-1.5 text-xs font-medium border border-border bg-card hover:bg-muted rounded-md px-3 py-1.5 transition-colors">
                           <CreditCard className="h-3.5 w-3.5 text-primary" />
                           VERJ Work ID Card
                           <ExternalLink className="h-3 w-3 text-muted-foreground" />

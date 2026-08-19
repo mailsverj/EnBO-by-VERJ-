@@ -27,11 +27,11 @@ export default function EngineeringDesigns() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Approved': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'Submitted for Approval': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
-      case 'Draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400';
-      case 'Revision Required': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Approved': return 'bg-green-500/15 text-green-300 border-green-400/30';
+      case 'Submitted for Approval': return 'bg-amber-500/15 text-amber-300 border-amber-400/30';
+      case 'Draft': return 'bg-white/10 text-white/70 border-white/20';
+      case 'Revision Required': return 'bg-red-500/15 text-red-300 border-red-400/30';
+      default: return 'bg-white/10 text-white/70 border-white/20';
     }
   };
 
