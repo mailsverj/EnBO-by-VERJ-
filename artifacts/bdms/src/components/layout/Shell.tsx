@@ -16,6 +16,7 @@ import { api } from '@/lib/api';
 
 const allLinks = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard', roles: ['Super Admin', 'Chief Admin', 'Management', 'Sales Admin', 'Finance', 'Lead Technical Officer'] },
+  { path: '/bdo/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['BDO'] },
 
   // BDO Management
   { path: '/bdo/applications', icon: FileText, label: 'Applications', group: 'BDO Management', roles: ['Super Admin', 'Chief Admin', 'Recruitment/Admin', 'Management'] },

@@ -5,7 +5,7 @@ interface AuthState {
   user: SafeUser | null;
   loading: boolean;
   initialized: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<SafeUser>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   canSeePrices: () => boolean;
@@ -22,6 +22,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     try {
       const { user } = await api.auth.login(email, password);
       set({ user, loading: false, initialized: true });
+      return user;
     } catch (err) {
       set({ loading: false });
       throw err;

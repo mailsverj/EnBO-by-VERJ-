@@ -15,6 +15,7 @@ import Login from '@/pages/login';
 import BdoApply from '@/pages/bdo-apply';
 import Assessment from '@/pages/assessment';
 import Dashboard from '@/pages/dashboard';
+import BdoDashboard from '@/pages/bdo-dashboard';
 import BdoApplications from '@/pages/bdo-applications';
 import BdoDirectory from '@/pages/bdo-directory';
 import BdoProfile from '@/pages/bdo-profile';
@@ -40,6 +41,11 @@ import ContentAdmin from '@/pages/content-admin';
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
+
+function HomeDashboard() {
+  const { user } = useAuth();
+  return user?.roles.includes('BDO') ? <BdoDashboard /> : <Dashboard />;
+}
 
 function Router() {
   const [location] = useLocation();
@@ -93,8 +99,9 @@ function Router() {
     <RoutedErrorBoundary>
       <Shell>
         <Switch>
-          <Route path="/" component={Dashboard} />
+          <Route path="/" component={HomeDashboard} />
 
+          <Route path="/bdo/dashboard" component={BdoDashboard} />
           <Route path="/bdo/applications" component={BdoApplications} />
           <Route path="/bdo/directory" component={BdoDirectory} />
           <Route path="/bdo/:id" component={BdoProfile} />

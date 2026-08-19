@@ -6,14 +6,22 @@ import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
-router.get("/leads", requireAuth, async (_req, res) => {
-  const leads = await db.select().from(leadsTable).orderBy(desc(leadsTable.createdAt));
+router.get("/leads", requireAuth, async (req, res) => {
+  const user = req.session.user!;
+  const isBdo = user.roles.includes("BDO");
+  const leads = isBdo && user.vbdoId
+    ? await db.select().from(leadsTable).where(eq(leadsTable.sourceBdoId, user.vbdoId)).orderBy(desc(leadsTable.createdAt))
+    : await db.select().from(leadsTable).orderBy(desc(leadsTable.createdAt));
   res.json({ leads });
 });
 
 router.get("/leads/:leadRef", requireAuth, async (req, res) => {
   const [lead] = await db.select().from(leadsTable).where(eq(leadsTable.leadRef, req.params.leadRef)).limit(1);
   if (!lead) { res.status(404).json({ error: "Not found" }); return; }
+  const user = req.session.user!;
+  if (user.roles.includes("BDO") && lead.sourceBdoId !== user.vbdoId) {
+    res.status(404).json({ error: "Not found" }); return;
+  }
   res.json({ lead });
 });
 
