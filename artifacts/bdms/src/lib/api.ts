@@ -86,7 +86,7 @@ export const api = {
   leads: {
     list: () => request<{ leads: Lead[] }>("/leads"),
     get: (leadRef: string) => request<{ lead: Lead }>(`/leads/${leadRef}`),
-    create: (data: Partial<Lead>) => request<{ lead: Lead }>("/leads", { method: "POST", body: JSON.stringify(data) }),
+    create: (data: CreateLeadInput) => request<{ lead: Lead }>("/leads", { method: "POST", body: JSON.stringify(data) }),
     update: (leadRef: string, data: Partial<Lead>) =>
       request<{ lead: Lead }>(`/leads/${leadRef}`, { method: "PATCH", body: JSON.stringify(data) }),
   },
@@ -243,6 +243,18 @@ export interface Lead {
   followUpDate: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateLeadInput {
+  customerName: string;
+  customerType?: 'Individual' | 'Business';
+  customerPhone?: string;
+  customerEmail?: string;
+  customerLocation?: string;
+  sourceBdoId?: string;
+  value?: number;
+  notes?: string;
+  followUpDate?: string;
 }
 
 export interface Customer {

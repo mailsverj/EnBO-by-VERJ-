@@ -7,9 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api } from '@/lib/api';
 import { formatCurrency } from '@/data/mock';
-import { Search, Plus, List, LayoutGrid, Loader2 } from 'lucide-react';
+import { Search, Plus, List, LayoutGrid, Loader2, RefreshCw } from 'lucide-react';
 import { Link } from 'wouter';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { NewLeadDialog } from '@/components/leads/NewLeadDialog';
+import { useAuth } from '@/store/auth';
+import { useLocation } from 'wouter';
 
 const FUNNEL_STAGES = [
   'New Lead', 'Contacted', 'Needs Discovery', 'Load Details Submitted',
@@ -20,8 +23,13 @@ const FUNNEL_STAGES = [
 export default function Leads() {
   const [view, setView] = useState<'board' | 'table'>('board');
   const [search, setSearch] = useState('');
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
+  const canCreateLead = user?.roles.some(role =>
+    ['BDO', 'Chief Admin', 'Super Admin', 'Management', 'Sales Admin'].includes(role),
+  ) ?? false;
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['leads'],
     queryFn: () => api.leads.list(),
   });
@@ -42,7 +50,11 @@ export default function Leads() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline">Export</Button>
-          <Button><Plus className="h-4 w-4 mr-2" /> New Lead</Button>
+          {canCreateLead && (
+            <NewLeadDialog onCreated={lead => navigate(`/leads/${lead.leadRef}`)}>
+              <Button><Plus className="h-4 w-4 mr-2" /> New Lead</Button>
+            </NewLeadDialog>
+          )}
         </div>
       </div>
 
@@ -68,6 +80,38 @@ export default function Leads() {
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
+      ) : isError ? (
+        <Card className="shrink-0 border-destructive/40">
+          <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+            <div>
+              <h2 className="font-semibold">Leads could not be loaded</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {error instanceof Error ? error.message : 'Please try again.'}
+              </p>
+            </div>
+            <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+              {isFetching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      ) : filteredLeads.length === 0 ? (
+        <Card className="shrink-0">
+          <CardContent className="flex flex-col items-center gap-4 py-14 text-center">
+            <div>
+              <h2 className="font-semibold">{search ? 'No matching leads' : 'No leads yet'}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {search ? 'Try a different customer name or lead ID.' : 'Create the first opportunity to start the pipeline.'}
+              </p>
+            </div>
+            {!search && canCreateLead && (
+              <NewLeadDialog onCreated={lead => navigate(`/leads/${lead.leadRef}`)}>
+                <Button><Plus className="mr-2 h-4 w-4" /> New Lead</Button>
+              </NewLeadDialog>
+            )}
+            {search && <Button variant="outline" onClick={() => setSearch('')}>Clear search</Button>}
+          </CardContent>
+        </Card>
       ) : view === 'board' ? (
         <div className="flex-1 overflow-x-auto pb-4">
           <div className="flex gap-4 min-h-[500px] h-full items-start w-max">

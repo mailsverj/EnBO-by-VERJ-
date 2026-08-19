@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { db } from "../lib/db.js";
 import { customersTable } from "@workspace/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth.js";
+import { REFERENCE_ALLOCATION_LOCK_ID } from "../lib/reference-locks.js";
 
 const router = Router();
 
@@ -19,10 +20,14 @@ router.get("/customers/:cidRef", requireAuth, async (req, res) => {
 
 router.post("/customers", requireAuth, async (req, res) => {
   const body = req.body as Record<string, string | number>;
-  const existing = await db.select({ cidRef: customersTable.cidRef }).from(customersTable).orderBy(desc(customersTable.id)).limit(1);
-  const lastNum = existing[0] ? parseInt(existing[0].cidRef.replace("CID-", ""), 10) : 0;
-  const cidRef = `CID-${String(lastNum + 1).padStart(6, "0")}`;
-  const [customer] = await db.insert(customersTable).values({ ...body as never, cidRef }).returning();
+  const customer = await db.transaction(async tx => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(${REFERENCE_ALLOCATION_LOCK_ID})`);
+    const existing = await tx.select({ cidRef: customersTable.cidRef }).from(customersTable).orderBy(desc(customersTable.id)).limit(1);
+    const lastNum = existing[0] ? parseInt(existing[0].cidRef.replace("CID-", ""), 10) : 0;
+    const cidRef = `CID-${String(lastNum + 1).padStart(6, "0")}`;
+    const [createdCustomer] = await tx.insert(customersTable).values({ ...body as never, cidRef }).returning();
+    return createdCustomer;
+  });
   res.status(201).json({ customer });
 });
 

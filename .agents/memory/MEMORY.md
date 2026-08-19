@@ -3,3 +3,4 @@
 - [Backend Architecture](backend-architecture.md) — full DB schema, API routes, auth/session setup, seeded users/data, frontend wiring decisions.
 - [Assessment bank source](assessment-bank-source.md) — use the supplied keyed assessment text; preserve the owner-approved 70% pass mark.
 - [Assessment draft concurrency](assessment-draft-concurrency.md) — resume reads, saves, and submissions must share one app lock and validate attempt identity plus revision.
+- [Lead/customer write consistency](lead-customer-write-consistency.md) — serialize business-reference allocation and calculate aggregate deltas from locked current rows.
